@@ -4,6 +4,18 @@ Sistema para la gestión de prácticas profesionales y laborales basado en el Ca
 
 ## 🚀 Entorno de Desarrollo Local
 
+Esta sección describe los pasos necesarios para configurar y ejecutar el proyecto en tu máquina local para desarrollo.
+
+### Pre-requisitos
+
+Asegúrate de tener instalado lo siguiente:
+
+* **Git:** Para clonar y gestionar el control de versiones ([https://git-scm.com/](https://git-scm.com/)).
+* **Node.js:** Versión 22.14.0 LTS ([https://nodejs.org/](https://nodejs.org/)). Esto incluye `npm` y `npx`.
+* **npm** Gestor de paquetes (npm viene con Node.js).
+
+### Pasos de Configuración
+
 1.  **Clonar el repositorio:**
     ```bash
     git clone https://github.com/KaiMinCL/proyecto-practicas
@@ -13,25 +25,29 @@ Sistema para la gestión de prácticas profesionales y laborales basado en el Ca
     ```bash
     npm install
     ```
-3.  **Configurar Variables de Entorno:**
-    * Copia el archivo `.env.example` a un nuevo archivo llamado `.env`.
-    * Rellena las variables en el archivo `.env` con los valores correspondientes para el entorno local. Pide las claves necesarias si no las tienes.
+4.  **Configurar Variables de Entorno:**
+    * Busca el archivo `.env.example` en la raíz del proyecto. Este archivo lista las variables de entorno que la aplicación necesita.
+    * Crea una copia de este archivo en la misma raíz y llámala `.env`:
+  
+    ```bash
+    copy .env.example .env
+    ```
       
-4.  **Aplicar Migraciones de Base de Datos:**
+5.  **Aplicar Migraciones de Base de Datos:**
     ```bash
     npx prisma migrate dev
     ```
     *(Esto creará/actualizará tu base de datos local según el schema de Prisma)*
-5.  **Cargar Datos Iniciales (Seed):**
+6.  **Cargar Datos Iniciales (Seed):**
     ```bash
     npx prisma db seed
     ```
     
-6.  **Ejecutar el servidor de desarrollo:**
+7.  **Ejecutar el servidor de desarrollo:**
     ```bash
     npm run dev
     ```
-    La aplicación estará disponible en `http://localhost:xxxx`.
+    La aplicación estará disponible en `http://localhost:3000`.
 
 ## 🌳 Gitflow
 
