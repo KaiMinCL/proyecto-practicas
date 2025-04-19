@@ -1,0 +1,227 @@
+generator dbml {
+  provider = "prisma-dbml-generator"
+  output   = "./schema.dbml"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// MODELOS 👇
+
+model Rol {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique
+  usuarios Usuario[]
+}
+
+model Usuario {
+  id        Int        @id @default(autoincrement())
+  rut       String     @unique
+  nombre    String
+  apellido  String
+  email     String     @unique
+  password  String
+  claveInicialVisible Boolean @default(true) // Se vuelve false si el usuario cambia su clave
+  estado    Estado     @default(ACTIVO)
+  rolId     Int
+  rol       Rol        @relation(fields: [rolId], references: [id])
+  sedeId    Int?
+  sede      Sede?      @relation(fields: [sedeId], references: [id])
+  alumno    Alumno?
+  docente   Docente?
+  empleador Empleador?
+}
+
+model Sede {
+  id         Int              @id @default(autoincrement())
+  nombre     String           @unique
+  direccion  String?
+  estado     Estado           @default(ACTIVO)
+  carreras   Carrera[]
+  usuarios   Usuario[]
+  documentos DocumentoApoyo[]
+}
+
+model Carrera {
+  id                       Int              @id @default(autoincrement())
+  nombre                   String
+  sedeId                   Int
+  sede                     Sede             @relation(fields: [sedeId], references: [id])
+  horasPracticaLaboral     Int
+  horasPracticaProfesional Int
+  estado                   Estado           @default(ACTIVO)
+  alumnos                  Alumno[]
+  practicas                Practica[]
+  documentos               DocumentoApoyo[]
+
+  @@unique([nombre, sedeId]) // Evita duplicados de carrera en una sede
+}
+
+model Alumno {
+  id        Int        @id @default(autoincrement())
+  usuarioId Int        @unique
+  usuario   Usuario    @relation(fields: [usuarioId], references: [id])
+  carreraId Int
+  carrera   Carrera    @relation(fields: [carreraId], references: [id])
+  practicas Practica[]
+  fotoUrl   String? // URL de la foto de perfil
+}
+
+model Docente {
+  id        Int        @id @default(autoincrement())
+  usuarioId Int        @unique
+  usuario   Usuario    @relation(fields: [usuarioId], references: [id])
+  practicas Practica[]
+}
+
+model Empleador {
+  id        Int               @id @default(autoincrement())
+  usuarioId Int               @unique
+  usuario   Usuario           @relation(fields: [usuarioId], references: [id])
+  centros   EmpleadorCentro[] // Relación N:M con Centros
+}
+
+model CentroPractica {
+  id               Int               @id @default(autoincrement())
+  nombreEmpresa    String
+  giro             String?
+  direccion        String?
+  telefono         String?
+  emailGerente     String?
+  nombreContacto   String?
+  emailContacto    String?
+  telefonoContacto String?
+  empleadores      EmpleadorCentro[] // Relación N:M con Empleadores
+  practicas        Practica[]
+}
+
+model EmpleadorCentro {
+  id               Int @id @default(autoincrement())
+  empleadorId      Int
+  centroPracticaId Int
+
+  empleador      Empleador      @relation(fields: [empleadorId], references: [id])
+  centroPractica CentroPractica @relation(fields: [centroPracticaId], references: [id])
+
+  @@unique([empleadorId, centroPracticaId])
+}
+
+model Practica {
+  id                   Int            @id @default(autoincrement())
+  alumnoId             Int
+  alumno               Alumno         @relation(fields: [alumnoId], references: [id])
+  docenteId            Int
+  docente              Docente        @relation(fields: [docenteId], references: [id])
+  carreraId            Int
+  carrera              Carrera        @relation(fields: [carreraId], references: [id])
+  centroPracticaId     Int
+  centroPractica       CentroPractica @relation(fields: [centroPracticaId], references: [id])
+  tipo                 TipoPractica
+  fechaInicio          DateTime
+  fechaTermino         DateTime
+  estado               EstadoPractica @default(PENDIENTE)
+  direccionCentro      String?
+  departamento         String?
+  nombreJefeDirecto    String?
+  cargoJefeDirecto     String?
+  contactoCorreoJefe   String?
+  contactoTelefonoJefe String?
+  practicaDistancia    Boolean        @default(false)
+  tareasPrincipales    String?
+  creadoEn             DateTime       @default(now())
+  informeUrl           String? // URL del informe final subido por el alumno
+
+  evaluacionDocente   EvaluacionInformeDocente?
+  evaluacionEmpleador EvaluacionEmpleador?
+  actaFinal           ActaFinal?
+  alertasManuales AlertaManual[] //  relación inversa obligatoria
+
+}
+
+model DocumentoApoyo {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  url       String
+  carreraId Int
+  carrera   Carrera  @relation(fields: [carreraId], references: [id])
+  sedeId    Int
+  sede      Sede     @relation(fields: [sedeId], references: [id])
+  creadoEn  DateTime @default(now())
+}
+
+model EvaluacionInformeDocente {
+  id          Int      @id @default(autoincrement())
+  practicaId  Int      @unique
+  practica    Practica @relation(fields: [practicaId], references: [id])
+  nota        Float
+  comentarios String?
+  fecha       DateTime @default(now())
+}
+
+model EvaluacionEmpleador {
+  id          Int      @id @default(autoincrement())
+  practicaId  Int      @unique
+  practica    Practica @relation(fields: [practicaId], references: [id])
+  nota        Float
+  comentarios String?
+  fecha       DateTime @default(now())
+}
+
+model ActaFinal {
+  id            Int             @id @default(autoincrement())
+  practicaId    Int             @unique
+  practica      Practica        @relation(fields: [practicaId], references: [id])
+  notaInforme   Float
+  notaEmpleador Float
+  notaFinal     Float
+  fechaCierre   DateTime        @default(now())
+  estado        EstadoActaFinal @default(VALIDADA)
+}
+
+model ConfiguracionEvaluacion {
+  id                  Int @id @default(1)
+  porcentajeInforme   Int
+  porcentajeEmpleador Int
+}
+
+model AlertaManual {
+  id          Int      @id @default(autoincrement())
+  practicaId  Int
+  practica    Practica @relation(fields: [practicaId], references: [id])
+  asunto      String?
+  mensaje     String
+  enviadoPor  String    // nombre o rol del Coordinador que la envía
+  fecha       DateTime  @default(now())
+}
+
+
+// ENUMS
+/// Enum reutilizado para representar el estado general de las entidades del sistema.
+/// Aplica a: Usuario, Sede, Carrera, etc.
+enum Estado {
+  ACTIVO
+  INACTIVO
+}
+
+enum TipoPractica {
+  LABORAL
+  PROFESIONAL
+}
+
+enum EstadoPractica {
+  PENDIENTE
+  EN_CURSO
+  FINALIZADA
+  ANULADA
+}
+
+enum EstadoActaFinal {
+  VALIDADA
+  CERRADA
+}
