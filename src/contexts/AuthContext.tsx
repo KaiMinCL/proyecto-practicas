@@ -5,12 +5,8 @@ import { UserJwtPayload } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-interface UserSession extends UserJwtPayload {
-  // Añadir más propiedades específicas del cliente aquí si es necesario
-}
-
 interface AuthContextType {
-  user: UserSession | null;
+  user: UserJwtPayload | null;
   isLoading: boolean;
   login: (tokenPayload: UserJwtPayload) => void;
   logout: () => Promise<void>;
@@ -23,7 +19,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<UserSession | null>(null);
+  const [user, setUser] = useState<UserJwtPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -35,7 +31,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (response.ok) {
           const sessionData = await response.json();
           if (sessionData) { // Check if sessionData is not null
-            setUser(sessionData as UserSession);
+            setUser(sessionData as UserJwtPayload);
           } else {
             setUser(null);
           }
@@ -53,7 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = (tokenPayload: UserJwtPayload) => {
-    setUser(tokenPayload as UserSession);
+    setUser(tokenPayload as UserJwtPayload);
     // El login real lo realiza una serverAction
   };
 

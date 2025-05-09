@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { jwtVerify, JWTPayload } from 'jose'; // Usar jose para la verificación en el Edge
+import { jwtVerify } from 'jose';
 import { UserJwtPayload } from './lib/auth';
 
 
