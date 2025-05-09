@@ -1,17 +1,18 @@
 import bcrypt from 'bcryptjs';
-import jwt, { Secret, SignOptions } from 'jsonwebtoken';
+import jwt, { JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
 import prisma from './prisma';
 import { LoginFormData } from './validators';
-import { cookies } from 'next/headers'
+import { cookies } from 'next/headers';
 
 const SALT_ROUNDS = 10;
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
+const JWT_SECRET_FROM_ENV = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
-if (!JWT_SECRET) {
+if (!JWT_SECRET_FROM_ENV) {
   console.error("FATAL ERROR: JWT_SECRET no está definido en las variables de entorno.");
-  throw new Error('JWT_SECRET no está definido en las variables de entorno. Por favor, añádelo a tu archivo .env');
+  throw new Error('JWT_SECRET no está definido. La autenticación no funcionará.');
 }
+const SIGNING_KEY: Secret = JWT_SECRET_FROM_ENV;
 
 /**
  * Hashes a password using bcrypt.
@@ -35,17 +36,16 @@ export async function comparePasswords(password: string, hash: string): Promise<
 }
 
 /**
- * Generates a JWT token for a user.
- * @param userId - The ID of the user.
- * @param role - The role of the user.
- * @returns The generated JWT token.
+ * Verifies user credentials.
+ * @param credentials - The login form data.
+ * @returns The user data if credentials are valid, null otherwise.
  */
 export async function verifyCredentials(credentials: LoginFormData) {
   try {
     const usuario = await prisma.usuario.findUnique({
       where: { rut: credentials.rut },
       include: {
-        rol: true, 
+        rol: true,
       },
     });
 
@@ -56,7 +56,7 @@ export async function verifyCredentials(credentials: LoginFormData) {
 
     if (usuario.estado !== 'ACTIVO') {
       console.log(`Intento de login fallido: Usuario ${credentials.rut} no está activo.`);
-      return null; 
+      return null;
     }
 
     const passwordIsValid = await comparePasswords(credentials.password, usuario.password);
@@ -67,20 +67,28 @@ export async function verifyCredentials(credentials: LoginFormData) {
     }
 
     console.log(`Credenciales verificadas para RUT ${credentials.rut}`);
-    // Devolver solo la información necesaria para el payload del token y la sesión
     return {
       id: usuario.id,
       rut: usuario.rut,
       nombre: usuario.nombre,
       apellido: usuario.apellido,
       email: usuario.email,
-      rol: usuario.rol.nombre, // Asumiendo que el modelo Rol tiene un campo 'nombre'
+      rol: usuario.rol.nombre,
     };
 
   } catch (error) {
     console.error("Error en verifyCredentials:", error);
-    return null; // En caso de cualquier error, no autenticar
+    return null;
   }
+}
+
+// Define un tipo para el payload del token para consistencia
+export interface UserJwtPayload extends JwtPayload {
+  userId: number;
+  rut: string;
+  rol: string;
+  email: string;
+  nombre: string;
 }
 
 /**
@@ -89,12 +97,8 @@ export async function verifyCredentials(credentials: LoginFormData) {
  * @returns The generated JWT token.
  */
 export function generateJwtToken(payload: { userId: number; rut: string; rol: string; email: string; nombre: string; }) {
-  if (!JWT_SECRET) {
-    console.error("Error al generar token: JWT_SECRET no está configurado.");
-    throw new Error("Error de configuración del servidor al generar token.");
-  }
   try {
-    const token = jwt.sign(payload, JWT_SECRET as Secret, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
+    const token = jwt.sign(payload, SIGNING_KEY, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
     console.log("Token JWT generado.");
     return token;
   } catch (error) {
@@ -109,46 +113,66 @@ export function generateJwtToken(payload: { userId: number; rut: string; rol: st
  * @param token - El token JWT a establecer.
  */
 export async function setAuthCookie(token: string) {
-  const cookieStore = await cookies();
-  const decodedToken = jwt.decode(token);
-  const expires = new Date(Date.now() + (decodedToken as { [key: string]: any })!.exp! * 1000 - Date.now());
+  const cookieStore = cookies();
+  let expiresDate: Date | undefined = undefined;
 
   try {
-    cookieStore.set('session_token', token, {
+    const decodedPayload = jwt.decode(token);
+
+    if (decodedPayload && typeof decodedPayload === 'object' && typeof decodedPayload.exp === 'number') {
+      expiresDate = new Date(decodedPayload.exp * 1000);
+    } else {
+      console.warn("Token JWT no contiene 'exp' o es inválido. La cookie se establecerá como de sesión (sin fecha de expiración explícita).");
+    }
+
+    (await cookieStore).set('session_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Cookie segura solo en producción
-      path: '/', // Disponible en todo el sitio
-      sameSite: 'lax', // Protección CSRF
-      expires: expires, // Establecer la expiración de la cookie
-      // maxAge: maxAgeInSeconds, // O usar maxAge si prefieres
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      sameSite: 'lax',
+      expires: expiresDate,
     });
     console.log("Cookie de autenticación establecida.");
   } catch (error) {
     console.error("Error al establecer la cookie de autenticación:", error);
-    // Considera cómo manejar este error. Podría ser crítico para el login.
   }
 }
 
-/*
-* Obtains the user session from the cookie.
-* @returns The user session if valid, null otherwise.
-*/
-export async function getUserSession() {
-  // TODO:
-  // 1. Obtener el token de la cookie 'session_token'.
-  // 2. Verificar y decodificar el token usando JWT_SECRET.
-  // 3. Si es válido, retornar el payload del token (datos del usuario).
-  // 4. Si no es válido o no existe, retornar null.
-  console.log("getUserSession llamado"); // Log temporal
-  return null; // Temporal
+/**
+ * Obtiene la sesión del usuario desde la cookie.
+ * @returns El payload del usuario si el token es válido, null en caso contrario.
+ */
+export async function getUserSession(): Promise<UserJwtPayload | null> {
+  const cookieStore = cookies();
+  const token = (await cookieStore).get('session_token')?.value;
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const decoded = jwt.verify(token, SIGNING_KEY) as UserJwtPayload;
+    if (typeof decoded.userId === 'number' && typeof decoded.rut === 'string' && typeof decoded.rol === 'string') {
+      return decoded;
+    }
+    console.error("Payload del token JWT no tiene la estructura esperada después de la verificación.");
+    return null;
+  } catch (error) {
+    console.log("Error al verificar token de sesión (puede haber expirado o ser inválido):", (error as Error).name);
+    return null;
+  }
 }
 
 /**
- * Clears the authentication cookie.
- * @param res - The response object.
- * @returns void
+ * Limpia la cookie de autenticación (cierra sesión).
+ * Esta función debe ser llamada desde un Server Action o Route Handler.
  */
-export function clearAuthCookie(res: Response) {
-  // cookies().delete('session_token');
-  console.log("clearAuthCookie llamado"); // Log temporal
+export async function clearAuthCookie() {
+  try {
+    const cookieStore = cookies();
+    (await cookieStore).delete('session_token');
+    console.log("Cookie de autenticación eliminada (sesión cerrada).");
+  } catch (error) {
+    console.error("Error al eliminar la cookie de autenticación:", error);
+  }
 }
