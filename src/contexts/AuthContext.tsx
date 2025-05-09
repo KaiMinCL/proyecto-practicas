@@ -5,14 +5,14 @@ import { UserJwtPayload } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: UserJwtPayload | null;
   isLoading: boolean;
   login: (tokenPayload: UserJwtPayload) => void;
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -89,12 +89,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-  }
-  return context;
 }

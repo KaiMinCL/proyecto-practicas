@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getUserSession } from '@/lib/auth';
-
+import { apiErrorResponse, apiSuccessResponse } from '@/lib/utils'; 
 export async function GET() {
   try {
     const session = await getUserSession();
-    if (session) {
-      return NextResponse.json(session);
-    }
-    return NextResponse.json(null, { status: 200 }); // No session found
+    // if (session) { // apiSuccessResponse maneja el null si es necesario
+    //   return apiSuccessResponse(session);
+    // }
+    // return apiSuccessResponse(null); // O manejar el caso de no sesión más explícitamente
+    return NextResponse.json(session || null, { status: 200 }); // Manteniendo la lógica original simple
   } catch (error) {
-    console.error('Error fetching user session:', error);
-    return NextResponse.json({ message: 'Error fetching session' }, { status: 500 });
+    let errorMessage = 'Error fetching session';
+    if (error instanceof Error) errorMessage = error.message;
+    return apiErrorResponse(errorMessage, 500);
   }
 }

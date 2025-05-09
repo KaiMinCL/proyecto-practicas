@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { clearAuthCookie } from '@/lib/auth';
+import { apiErrorResponse, apiSuccessResponse } from '@/lib/utils';
 
-export async function POST() { 
+export async function POST() {
   try {
     await clearAuthCookie();
-    return NextResponse.json({ message: 'Logged out successfully' });
+    return apiSuccessResponse({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error('Error during logout:', error);
-    return NextResponse.json({ message: 'Error during logout' }, { status: 500 });
+    let errorMessage = 'Error during logout';
+    if (error instanceof Error) errorMessage = error.message;
+    return apiErrorResponse(errorMessage, 500);
   }
 }
