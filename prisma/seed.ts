@@ -1,6 +1,14 @@
 // prisma/seed.ts
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs'; // Import bcryptjs
+
 const prisma = new PrismaClient();
+
+const SALT_ROUNDS = 10; // Define salt rounds, consistent with auth.ts if possible or manage centrally
+
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
 
 async function main() {
   // 1. Crear roles
@@ -37,13 +45,14 @@ async function main() {
   });
 
   // 4. Crear usuario + Alumno
+  const hashedPasswordAlumno = await hashPassword('clave123');
   const usuarioAlumno = await prisma.usuario.create({
     data: {
       rut: '11111111-1',
       nombre: 'Juan',
       apellido: 'Pérez',
       email: 'juan.perez@example.com',
-      password: 'clave123',
+      password: hashedPasswordAlumno, // Use hashed password
       claveInicialVisible: true,
       estado: 'ACTIVO',
       rol:    { connect: { nombre: 'Alumno' } },
@@ -59,13 +68,14 @@ async function main() {
   });
 
   // 5. Crear usuario + Docente
+  const hashedPasswordDocente = await hashPassword('clave123');
   const usuarioDocente = await prisma.usuario.create({
     data: {
       rut: '22222222-2',
       nombre: 'Ana',
       apellido: 'Soto',
       email: 'ana.soto@example.com',
-      password: 'clave123',
+      password: hashedPasswordDocente, // Use hashed password
       claveInicialVisible: true,
       estado: 'ACTIVO',
       rol:    { connect: { nombre: 'Docente' } },
@@ -88,13 +98,14 @@ async function main() {
     },
   });
 
+  const hashedPasswordEmpleador = await hashPassword('clave123');
   const usuarioEmpleador = await prisma.usuario.create({
     data: {
       rut: '33333333-3',
       nombre: 'Carlos',
       apellido: 'Gómez',
       email: 'carlos.gomez@example.com',
-      password: 'clave123',
+      password: hashedPasswordEmpleador, // Use hashed password
       claveInicialVisible: true,
       estado: 'ACTIVO',
       rol:    { connect: { nombre: 'Empleador' } },
