@@ -89,6 +89,7 @@ export interface UserJwtPayload extends JwtPayload {
   rol: string;
   email: string;
   nombre: string;
+  apellido: string;
 }
 
 /**
