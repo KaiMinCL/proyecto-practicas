@@ -1,6 +1,5 @@
 'use server'; // Directiva para Server Actions
 
-import { z } from 'zod';
 import { LoginSchema, LoginFormData } from '@/lib/validators';
 import { verifyCredentials, generateJwtToken, setAuthCookie } from '@/lib/auth'; 
 import { redirect } from 'next/navigation';
@@ -77,7 +76,7 @@ export async function loginUser(
 
   } catch (error) {
     console.error('Error inesperado durante el login:', error);
-    let errorMessage = 'Ocurrió un error inesperado durante el inicio de sesión. Por favor, inténtalo de nuevo.';
+    const errorMessage = 'Ocurrió un error inesperado durante el inicio de sesión. Por favor, inténtalo de nuevo.';
     if (error instanceof Error) {
         // Podrías querer ser más específico si el error es conocido
         // errorMessage = error.message; // Cuidado con exponer detalles internos
