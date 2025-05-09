@@ -11,6 +11,6 @@ export function apiErrorResponse(message: string, status: number = 500) {
   return NextResponse.json({ message }, { status });
 }
 
-export function apiSuccessResponse(data: any, status: number = 200) {
+export function apiSuccessResponse<T>(data: T, status: number = 200) {
   return NextResponse.json(data, { status });
 }

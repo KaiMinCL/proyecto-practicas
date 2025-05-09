@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserSession } from '@/lib/auth';
-import { apiErrorResponse, apiSuccessResponse } from '@/lib/utils'; 
+import { apiErrorResponse } from '@/lib/utils'; 
 export async function GET() {
   try {
     const session = await getUserSession();
