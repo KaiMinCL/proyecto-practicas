@@ -1,3 +1,5 @@
-export default function PlaceholderComponent() {
-  return null;
+import { redirect } from 'next/navigation';
+
+export default function LoginPageRedirect() {
+  redirect('/');
 }
