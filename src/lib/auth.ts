@@ -1,13 +1,15 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import prisma from './prisma'; // Asegúrate que prisma esté importado
-import { LoginFormData } from './validators'; // Importa el tipo del validador
+import jwt, { Secret, SignOptions } from 'jsonwebtoken';
+import prisma from './prisma';
+import { LoginFormData } from './validators';
+import { cookies } from 'next/headers'
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 if (!JWT_SECRET) {
+  console.error("FATAL ERROR: JWT_SECRET no está definido en las variables de entorno.");
   throw new Error('JWT_SECRET no está definido en las variables de entorno. Por favor, añádelo a tu archivo .env');
 }
 
@@ -39,14 +41,46 @@ export async function comparePasswords(password: string, hash: string): Promise<
  * @returns The generated JWT token.
  */
 export async function verifyCredentials(credentials: LoginFormData) {
-  // TODO:
-  // 1. Buscar usuario en BD por RUT.
-  // 2. Si no existe o está inactivo, retornar error/null.
-  // 3. Comparar contraseña hasheada.
-  // 4. Si es correcta, retornar datos del usuario (id, rol, etc.).
+  try {
+    const usuario = await prisma.usuario.findUnique({
+      where: { rut: credentials.rut },
+      include: {
+        rol: true, 
+      },
+    });
 
-  console.log("verifyCredentials llamado con:", credentials);
-  return null; // Temporal
+    if (!usuario) {
+      console.log(`Intento de login fallido: Usuario no encontrado con RUT ${credentials.rut}`);
+      return null;
+    }
+
+    if (usuario.estado !== 'ACTIVO') {
+      console.log(`Intento de login fallido: Usuario ${credentials.rut} no está activo.`);
+      return null; 
+    }
+
+    const passwordIsValid = await comparePasswords(credentials.password, usuario.password);
+
+    if (!passwordIsValid) {
+      console.log(`Intento de login fallido: Contraseña incorrecta para RUT ${credentials.rut}`);
+      return null;
+    }
+
+    console.log(`Credenciales verificadas para RUT ${credentials.rut}`);
+    // Devolver solo la información necesaria para el payload del token y la sesión
+    return {
+      id: usuario.id,
+      rut: usuario.rut,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      email: usuario.email,
+      rol: usuario.rol.nombre, // Asumiendo que el modelo Rol tiene un campo 'nombre'
+    };
+
+  } catch (error) {
+    console.error("Error en verifyCredentials:", error);
+    return null; // En caso de cualquier error, no autenticar
+  }
 }
 
 /**
@@ -54,31 +88,45 @@ export async function verifyCredentials(credentials: LoginFormData) {
  * @param payload - The payload to include in the token.
  * @returns The generated JWT token.
  */
-export function generateJwtToken(payload: { userId: number; rut: string; rol: string; /* otros datos necesarios en el token */ }) {
+export function generateJwtToken(payload: { userId: number; rut: string; rol: string; email: string; nombre: string; }) {
   if (!JWT_SECRET) {
     console.error("Error al generar token: JWT_SECRET no está configurado.");
     throw new Error("Error de configuración del servidor al generar token.");
   }
-  // TODO: Usar un método de firma a uno más seguro y moderno.
-  // jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-  console.log("generateJwtToken llamado con payload:", payload); // Log temporal
-  return "dummy-jwt-token"; // Temporal
+  try {
+    const token = jwt.sign(payload, JWT_SECRET as Secret, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
+    console.log("Token JWT generado.");
+    return token;
+  } catch (error) {
+    console.error("Error al firmar el token JWT:", error);
+    throw new Error("No se pudo generar el token de sesión.");
+  }
 }
 
 /**
- * Sets an authentication cookie in the response.
- * @param res - The response object.
- * @param token - The JWT token to set in the cookie.
- * @returns void
- *
+ * Establece el token JWT como una cookie HttpOnly segura.
+ * Esta función debe ser llamada desde un Server Action o Route Handler.
+ * @param token - El token JWT a establecer.
  */
-export function setAuthCookie(res: Response, token: string) {
-  // TODO: Implementar la lógica para establecer la cookie de autenticación.
-  // Usar la API de cookies de Next.js
+export async function setAuthCookie(token: string) {
+  const cookieStore = await cookies();
+  const decodedToken = jwt.decode(token);
+  const expires = new Date(Date.now() + (decodedToken as { [key: string]: any })!.exp! * 1000 - Date.now());
 
-  // cookies().set('session_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: ... });
-  console.log("setAuthCookie llamado con token:", token); // Log temporal
-  // Esta función probablemente no devuelva nada, sino que modifique el objeto Response o use una API de cookies.
+  try {
+    cookieStore.set('session_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Cookie segura solo en producción
+      path: '/', // Disponible en todo el sitio
+      sameSite: 'lax', // Protección CSRF
+      expires: expires, // Establecer la expiración de la cookie
+      // maxAge: maxAgeInSeconds, // O usar maxAge si prefieres
+    });
+    console.log("Cookie de autenticación establecida.");
+  } catch (error) {
+    console.error("Error al establecer la cookie de autenticación:", error);
+    // Considera cómo manejar este error. Podría ser crítico para el login.
+  }
 }
 
 /*
@@ -104,5 +152,3 @@ export function clearAuthCookie(res: Response) {
   // cookies().delete('session_token');
   console.log("clearAuthCookie llamado"); // Log temporal
 }
-
-export {}; 
