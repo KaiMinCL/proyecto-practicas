@@ -7,8 +7,8 @@ export const sedeSchema = z.object({
     .transform(val => val.trim()),
   direccion: z.string()
     .max(200, { message: "La dirección no puede tener más de 200 caracteres" })
-    .optional()
-    .transform(val => val?.trim() || ""),
+    .default("")
+    .transform(val => val.trim()),
 });
 
 export type SedeInput = z.infer<typeof sedeSchema>;

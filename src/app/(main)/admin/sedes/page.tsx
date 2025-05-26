@@ -1,13 +1,9 @@
 import { redirect } from 'next/navigation';
-import { Terminal } from "lucide-react";
-
 import { getUserSession } from '@/lib/auth';
 import type { RoleName } from '@/types/roles';
-import { listSedesAction, type ActionResponse } from './actions'; 
-import { columns } from './columns';
-import { SedesDataTable } from './sedes-data-table';
+import { listSedesAction, type ActionResponse } from './actions';
 import type { Sede } from '@/lib/validators/sede';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { SedesPageClientContent } from './sedes-page-client-content';
 
 const REQUIRED_ROLE: RoleName = 'SUPERADMIN';
 
@@ -32,17 +28,19 @@ export default async function SedesAdminPage() {
   const result: ActionResponse<Sede[]> = await listSedesAction();
   let sedesData: Sede[] = [];
   let fetchError: string | null = null;
+  // let actionErrors = undefined; // Si listSedesAction pudiera devolver errores de Zod
 
   if (result.success && result.data) {
     sedesData = result.data;
   } else {
     fetchError = result.error || "No se pudieron cargar las sedes desde el servidor.";
     console.error("Error al obtener las sedes para la página:", fetchError, result.errors);
+    // actionErrors = result.errors;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+      <header className="mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Gestión de Sedes
@@ -51,27 +49,14 @@ export default async function SedesAdminPage() {
             Visualiza y administra las sedes de la institución.
           </p>
         </div>
-        {/* El botón para "Crear Nueva Sede" se añadirá en el próximo commit, probablemente aquí o en la toolbar de DataTable */}
       </header>
 
       <section>
-        {fetchError && (
-          <Alert variant="destructive" className="mb-4">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Error al Cargar Datos</AlertTitle>
-            <AlertDescription>
-              {fetchError}
-              {result.errors && (
-                <ul className="mt-2 list-disc pl-5">
-                  {result.errors.map((err, idx) => (
-                    <li key={idx}>{`Campo '${err.field}': ${err.message}`}</li>
-                  ))}
-                </ul>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
-        <SedesDataTable columns={columns} data={sedesData} searchColumnId="nombre" searchPlaceholder="Filtrar por nombre de sede..." />
+        <SedesPageClientContent 
+          initialSedes={sedesData} 
+          initialFetchError={fetchError}
+          // initialActionErrors={actionErrors} 
+        />
       </section>
     </div>
   );
