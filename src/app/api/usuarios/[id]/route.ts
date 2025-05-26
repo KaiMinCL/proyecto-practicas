@@ -11,7 +11,7 @@ interface RouteContext {
 
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
     // 1. Verificar autenticación
@@ -65,7 +65,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: RouteContext
 ) {
   try {    
     // 1. Verificar autenticación
