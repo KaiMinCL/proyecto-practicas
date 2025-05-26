@@ -76,8 +76,10 @@ export function SedesDataTable<TData, TValue>({
   });
 
   // Helper para obtener un nombre legible para las columnas
-  const getColumnName = (columnId: string) => {
-    const column = columns.find(col => col.id === columnId || (col as any).accessorKey === columnId);
+  const getColumnName = (columnId: string) => {    const column = columns.find(col => {
+      const typedCol = col as ColumnDef<TData, TValue> & { accessorKey?: string };
+      return col.id === columnId || typedCol.accessorKey === columnId;
+    });
     if (typeof column?.header === 'string') return column.header;
     // Para headers complejos (ej. con botón de sort), puedes mapear IDs a nombres legibles
     const map: Record<string, string> = {
