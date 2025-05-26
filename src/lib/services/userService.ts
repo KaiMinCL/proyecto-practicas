@@ -244,7 +244,7 @@ export class UserService {
    */
   static async deactivateUser(id: number): Promise<CreateUserResponse> {
     try {
-      const usuario = await prisma.usuario.update({
+      await prisma.usuario.update({
         where: { id },
         data: {
           estado: 'INACTIVO'
@@ -278,7 +278,7 @@ export class UserService {
    */
   static async reactivateUser(id: number): Promise<CreateUserResponse> {
     try {
-      const usuario = await prisma.usuario.update({
+      await prisma.usuario.update({
         where: { id },
         data: {
           estado: 'ACTIVO'
