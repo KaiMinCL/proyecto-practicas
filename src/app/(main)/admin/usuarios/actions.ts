@@ -109,3 +109,67 @@ export async function updateUserAction(
     success: result.success,
   };
 }
+
+export interface ToggleUserStateFormState {
+  message?: string;
+  errors?: Record<string, string[]>;
+  success: boolean;
+}
+
+export async function deactivateUserAction(
+  prevState: ToggleUserStateFormState | undefined,
+  formData: FormData
+): Promise<ToggleUserStateFormState> {
+  // 1. Obtener el ID del usuario
+  const id = Number(formData.get('id'));
+  if (!id || isNaN(id)) {
+    return {
+      message: 'ID de usuario inválido.',
+      errors: { general: ['ID de usuario inválido.'] },
+      success: false,
+    };
+  }
+
+  // 2. Llamar al servicio
+  const result = await UserService.deactivateUser(id);
+
+  // 3. Si el usuario se desactivó exitosamente, revalidar la página
+  if (result.success) {
+    revalidatePath('/admin/usuarios');
+  }
+
+  return {
+    message: result.message,
+    errors: result.errors,
+    success: result.success,
+  };
+}
+
+export async function reactivateUserAction(
+  prevState: ToggleUserStateFormState | undefined,
+  formData: FormData
+): Promise<ToggleUserStateFormState> {
+  // 1. Obtener el ID del usuario
+  const id = Number(formData.get('id'));
+  if (!id || isNaN(id)) {
+    return {
+      message: 'ID de usuario inválido.',
+      errors: { general: ['ID de usuario inválido.'] },
+      success: false,
+    };
+  }
+
+  // 2. Llamar al servicio
+  const result = await UserService.reactivateUser(id);
+
+  // 3. Si el usuario se reactivó exitosamente, revalidar la página
+  if (result.success) {
+    revalidatePath('/admin/usuarios');
+  }
+
+  return {
+    message: result.message,
+    errors: result.errors,
+    success: result.success,
+  };
+}

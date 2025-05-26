@@ -16,11 +16,12 @@ export async function GET() {
     // 2. Obtener usuarios con sus relaciones
     const usuarios = await prisma.usuario.findMany({
       select: {
-        id: true,
+        id: true,        
         rut: true,
         nombre: true,
         apellido: true,
         email: true,
+        estado: true,
         rol: {
           select: {
             nombre: true,
