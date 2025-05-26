@@ -3,18 +3,31 @@ import prisma from '@/lib/prisma';
 import { verifyUserSession } from '@/lib/auth';
 import type { NextRequest } from 'next/server';
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
-
 export async function GET(
   req: NextRequest,
-  context: RouteContext
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context;
+    const routeParams = await params;
+
+    // Validar que el parámetro 'id'
+    if (!routeParams || typeof routeParams.id !== 'string') {
+      return NextResponse.json(
+        { error: 'ID parameter is missing or invalid' },
+        { status: 400 }
+      );
+    }
+    const idString = routeParams.id;
+    const numericId = parseInt(idString, 10);
+
+    // Validar que el ID sea un número válido
+    if (isNaN(numericId)) {
+        return NextResponse.json(
+            { error: 'ID parameter must be a valid number' },
+            { status: 400 }
+        );
+    }
+
 
     // 1. Verificar autenticación
     const user = await verifyUserSession();
@@ -28,7 +41,7 @@ export async function GET(
     // 2. Obtener usuario por ID con sus relaciones
     const usuario = await prisma.usuario.findUnique({
       where: {
-        id: parseInt(params.id),
+        id: numericId,
       },
       select: {
         id: true,
@@ -69,10 +82,28 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  context: RouteContext
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context;
+    const routeParams = await params;
+
+    // Validar el parámetro 'id'
+    if (!routeParams || typeof routeParams.id !== 'string') {
+      return NextResponse.json(
+        { error: 'ID parameter is missing or invalid' },
+        { status: 400 }
+      );
+    }
+    const idString = routeParams.id;
+    const numericId = parseInt(idString, 10);
+
+    // Validar que el ID sea un número válido
+    if (isNaN(numericId)) {
+        return NextResponse.json(
+            { error: 'ID parameter must be a valid number' },
+            { status: 400 }
+        );
+    }
 
     // 1. Verificar autenticación
     const user = await verifyUserSession();
@@ -89,7 +120,7 @@ export async function PUT(
     // 3. Actualizar usuario
     const usuario = await prisma.usuario.update({
       where: {
-        id: parseInt(params.id), 
+        id: numericId, 
       },
       data: {
         nombre: data.nombre,
