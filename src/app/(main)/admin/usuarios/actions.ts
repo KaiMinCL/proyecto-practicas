@@ -2,7 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { CreateUserSchema } from '@/lib/validators';
-import { UserService } from '@/lib/services';
+import { UserService, SedeService } from '@/lib/services';
+
+export async function getSedesAction() {
+  const result = await SedeService.getSedesActivas();
+  return result;
+}
 
 interface CreateUserFormState {
   message?: string;
