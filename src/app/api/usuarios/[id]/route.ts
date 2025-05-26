@@ -3,9 +3,15 @@ import prisma from '@/lib/prisma';
 import { verifyUserSession } from '@/lib/auth';
 import type { NextRequest } from 'next/server';
 
+interface RouteContext {
+  params: {
+    id: string;
+  };
+}
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     // 1. Verificar autenticación
@@ -15,12 +21,10 @@ export async function GET(
         { error: 'No autorizado' },
         { status: 401 }
       );
-    }
-
-    // 2. Obtener usuario por ID con sus relaciones
+    }    // 2. Obtener usuario por ID con sus relaciones
     const usuario = await prisma.usuario.findUnique({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(context.params.id),
       },
       select: {
         id: true,
@@ -61,7 +65,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {    
     // 1. Verificar autenticación
@@ -79,7 +83,7 @@ export async function PUT(
     // 3. Actualizar usuario
     const usuario = await prisma.usuario.update({
       where: {
-        id: parseInt(params.id),
+        id: parseInt(context.params.id),
       },
       data: {
         nombre: data.nombre,
