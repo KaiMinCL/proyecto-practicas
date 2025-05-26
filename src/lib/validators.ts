@@ -50,6 +50,24 @@ export const UpdateUserSchema = z.object({
   }),
 });
 
+export const CreateAlumnoSchema = z.object({
+  rut: z.string()
+    .min(8, 'RUT debe tener al menos 8 caracteres')
+    .max(12, 'RUT no puede tener más de 12 caracteres')
+    .regex(/^[0-9]{7,8}-[0-9kK]$/, 'RUT debe tener el formato correcto (ej: 12345678-9)'),
+  nombre: z.string()
+    .min(2, 'Nombre debe tener al menos 2 caracteres')
+    .max(50, 'Nombre no puede tener más de 50 caracteres'),
+  apellido: z.string()
+    .min(2, 'Apellido debe tener al menos 2 caracteres')
+    .max(50, 'Apellido no puede tener más de 50 caracteres'),
+  carreraId: z.number({
+    required_error: 'Debe seleccionar una carrera',
+    invalid_type_error: 'Carrera inválida',
+  }),
+});
+
 export type LoginFormData = z.infer<typeof LoginSchema>;
 export type CreateUserFormData = z.infer<typeof CreateUserSchema>;
 export type UpdateUserFormData = z.infer<typeof UpdateUserSchema>;
+export type CreateAlumnoFormData = z.infer<typeof CreateAlumnoSchema>;
