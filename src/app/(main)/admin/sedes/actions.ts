@@ -125,3 +125,26 @@ export async function deactivateSedeAction(id: string): Promise<ActionResponse<S
     return { success: false, error: 'Ocurrió un error inesperado al desactivar la sede.' };
   }
 }
+
+/**
+ * Activa una sede. Requiere rol de Super Administrador.
+ * @param id El ID de la sede a activar (como string).
+ */
+export async function activateSedeAction(id: string): Promise<ActionResponse<Sede>> {
+  try {
+    await authorizeSuperAdmin(); // Asegura la autorización
+    
+    const result = await SedeService.activateSede(id);
+
+    if (result.success && result.data) {
+      revalidatePath('/admin/sedes');
+      return { success: true, data: result.data as Sede};
+    }
+    return { success: false, error: result.error || 'Error desconocido al activar la sede.' };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Ocurrió un error inesperado al activar la sede.' };
+  }
+}

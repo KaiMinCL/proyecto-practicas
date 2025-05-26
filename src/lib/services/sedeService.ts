@@ -153,4 +153,50 @@ export class SedeService {
       };
     }
   }
+
+  /**
+   * Activa una sede existente.
+   */
+  static async activateSede(id: string) {
+    try {
+      const sedeId = Number(id);
+      if (isNaN(sedeId)) {
+        return { success: false, error: 'ID de sede inválido.' };
+      }
+
+      const existingSede = await prisma.sede.findUnique({
+        where: { id: sedeId },
+      });
+
+      if (!existingSede) {
+        return {
+          success: false,
+          error: 'No se encontró la sede para activar.',
+        };
+      }
+
+      if (existingSede.estado === 'ACTIVO') {
+        // Opcional: puedes considerarlo un éxito si ya está activa, o un error/advertencia.
+        // Por consistencia con deactivateSede, lo trataré como un caso que no requiere acción.
+        return {
+          success: true, 
+          data: existingSede, 
+          message: 'La sede ya se encuentra activa.' // Mensaje informativo
+        };
+      }
+
+      const sede = await prisma.sede.update({
+        where: { id: sedeId },
+        data: { estado: 'ACTIVO' },
+      });
+
+      return { success: true, data: sede };
+    } catch (error) {
+      console.error('Error al activar sede:', error);
+      return { 
+        success: false, 
+        error: 'Error interno al intentar activar la sede.',
+      };
+    }
+  }
 }
