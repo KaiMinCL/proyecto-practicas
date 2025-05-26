@@ -1,3 +1,4 @@
+// src/app/(main)/admin/sedes/sede-form-dialog.tsx
 "use client";
 
 import React from "react";
@@ -5,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Save, XCircle } from "lucide-react";
 import { z } from "zod";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,84 +27,74 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { sedeSchema, type SedeInput, type Sede } from "@/lib/validators/sede";
-import { createSedeAction, type ActionResponse } from './actions';
-
 type SedeFormInputValues = z.input<typeof sedeSchema>;
 
 interface SedeFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialData?: Sede | null; // Para poblar el formulario en modo edición
+  // onSubmitAction: (mode: 'create' | 'edit', data: SedeInput, id?: number) => Promise<any>; // Para el próximo commit
 }
 
-export function SedeFormDialog({ open, onOpenChange }: SedeFormDialogProps) {
+export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const formMode = initialData ? 'edit' : 'create';
 
   const form = useForm<SedeFormInputValues, any, SedeInput>({
     resolver: zodResolver(sedeSchema),
-    defaultValues: {
-      nombre: "",
-      direccion: "",
-    },
   });
+
+  React.useEffect(() => {
+    if (open) {
+      if (formMode === 'edit' && initialData) {
+        form.reset({
+          nombre: initialData.nombre,
+          direccion: initialData.direccion,
+        });
+      } else {
+        form.reset({
+          nombre: "",
+          direccion: "",
+        });
+      }
+      form.clearErrors();
+    }
+  }, [open, formMode, initialData, form]);
 
   const onSubmitSedeForm: SubmitHandler<SedeInput> = async (data) => {
     setIsSubmitting(true);
     try {
-      const result: ActionResponse<Sede> = await createSedeAction(data);
-
-      if (result.success && result.data) {
-        toast.success(`Sede "${result.data.nombre}" creada exitosamente.`);
-        onOpenChange(false); // Cierra el diálogo
+      if (formMode === 'edit' && initialData) {
+        console.log("Valores del formulario (Sede a Editar - UI solamente):", { id: initialData.id, ...data });
+        // Aquí llamaremos a updateSedeAction en el próximo commit
       } else {
-        // Manejo de errores de validación del servidor o errores generales de la acción
-        if (result.errors && result.errors.length > 0) {
-          result.errors.forEach(err => {
-            const fieldName = Array.isArray(err.field) ? err.field[0] : err.field;
-            if (typeof fieldName === 'string' && (fieldName === 'nombre' || fieldName === 'direccion')) {
-              form.setError(fieldName as keyof SedeInput, { // Casteo seguro después de la comprobación
-                type: 'server',
-                message: err.message,
-              });
-            } else {
-              // Error no asociado a un campo específico o campo no esperado
-              toast.error(`Error: ${err.message}`);
-            }
-          });
-          toast.warning("Por favor, corrige los errores en el formulario.");
-        } else {
-          // Error general de la acción sin detalles de campo
-          toast.error(result.error || "No se pudo crear la sede. Inténtalo de nuevo.");
-        }
+        console.log("Valores del formulario (Sede a Crear - UI solamente):", data);
+        // Aquí llamaremos a createSedeAction en el próximo commit
       }
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simular llamada API
+      onOpenChange(false); 
     } catch (error) {
-      console.error("Error al enviar el formulario de creación de sede:", error);
-      toast.error("Ocurrió un error inesperado al intentar crear la sede. Por favor, inténtalo más tarde.");
+      console.error(`Error al procesar el formulario en modo ${formMode}:`, error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  React.useEffect(() => {
-    if (open) {
-      form.reset({
-        nombre: "",
-        direccion: "", 
-      });
-      form.clearErrors(); // Limpia errores previos al abrir
-    }
-  }, [open, form]);
+  const dialogTitle = formMode === 'edit' ? "Editar Sede" : "Crear Nueva Sede";
+  const dialogDescription = formMode === 'edit' 
+    ? `Editando la sede: "${initialData?.nombre}". Modifica los detalles y guarda los cambios.`
+    : "Completa los detalles de la nueva sede. Haz clic en 'Guardar Sede' cuando termines.";
+  const submitButtonText = formMode === 'edit' ? "Guardar Cambios" : "Guardar Sede";
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
-      if (isSubmitting && !isOpen) return; // Prevenir cierre mientras se envía
+      if (isSubmitting && !isOpen) return;
       onOpenChange(isOpen);
     }}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Crear Nueva Sede</DialogTitle>
-          <DialogDescription>
-            Completa los detalles de la nueva sede. Haz clic en "Guardar Sede" cuando termines.
-          </DialogDescription>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitSedeForm)} className="space-y-5 pt-2">
@@ -152,7 +142,7 @@ export function SedeFormDialog({ open, onOpenChange }: SedeFormDialogProps) {
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 <Save className="mr-2 h-4 w-4" />
-                {isSubmitting ? "Guardando..." : "Guardar Sede"}
+                {isSubmitting ? (formMode === 'edit' ? "Guardando Cambios..." : "Guardando...") : submitButtonText}
               </Button>
             </DialogFooter>
           </form>
