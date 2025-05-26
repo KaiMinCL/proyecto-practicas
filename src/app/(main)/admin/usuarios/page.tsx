@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { CreateUserDialog } from './create-user-dialog';
 import { EditUserDialog } from './edit-user-dialog';
+import { ToggleUserStateDialog } from './toggle-user-state-dialog';
 import { Search } from 'lucide-react';
 
 interface Usuario {
@@ -23,6 +24,7 @@ interface Usuario {
   nombre: string;
   apellido: string;
   email: string;
+  estado: 'ACTIVO' | 'INACTIVO';
   rol: {
     nombre: string;
   };
@@ -105,16 +107,16 @@ export default function UsuariosPage() {
 
       <div className="border rounded-md">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>RUT</TableHead>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Apellido</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Sede</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
+          <TableHeader>              <TableRow>
+                <TableHead>RUT</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Apellido</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Rol</TableHead>
+                <TableHead>Sede</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="w-[100px]">Acciones</TableHead>
+              </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
@@ -134,12 +136,27 @@ export default function UsuariosPage() {
                 <TableRow key={usuario.id}>
                   <TableCell>{usuario.rut}</TableCell>
                   <TableCell>{usuario.nombre}</TableCell>
-                  <TableCell>{usuario.apellido}</TableCell>
-                  <TableCell>{usuario.email}</TableCell>
+                  <TableCell>{usuario.apellido}</TableCell>                  <TableCell>{usuario.email}</TableCell>
                   <TableCell>{usuario.rol.nombre}</TableCell>
                   <TableCell>{usuario.sede.nombre}</TableCell>
                   <TableCell>
-                    <EditUserDialog userId={usuario.id} />
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                      usuario.estado === 'ACTIVO' 
+                        ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' 
+                        : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'
+                    }`}>
+                      {usuario.estado}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <EditUserDialog userId={usuario.id} />
+                      <ToggleUserStateDialog 
+                        userId={usuario.id} 
+                        userName={`${usuario.nombre} ${usuario.apellido}`}
+                        isActive={usuario.estado === 'ACTIVO'}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
