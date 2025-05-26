@@ -59,10 +59,9 @@ export class AlumnoService {
 
       // 3. Generar contraseña inicial
       const initialPassword = generateSecurePassword();
-      const hashedPassword = await hashPassword(initialPassword);
-
+      const hashedPassword = await hashPassword(initialPassword);      
       // 4. Crear el usuario y alumno en una transacción
-      const result = await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx) => {
         // 4.1 Crear el usuario
         const usuario = await tx.usuario.create({
           data: {

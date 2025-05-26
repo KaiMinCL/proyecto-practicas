@@ -46,10 +46,9 @@ export async function GET() {
           apellido: 'asc',
         }
       },
-    });
-
+    });    
     // 3. Transformar datos para el frontend
-    const transformedAlumnos = alumnos.map(alumno => ({
+    const transformedAlumnos: AlumnoResponse[] = alumnos.map(alumno => ({
       id: alumno.id,
       rut: alumno.usuario.rut,
       nombre: alumno.usuario.nombre,
