@@ -36,12 +36,11 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
     success: false
   });
 
-  useEffect(() => {
-    if (state?.success) {
+  useEffect(() => {    if (state?.success) {
       setOpen(false);
       toast.success(state.message);
     } else if (state?.errors) {
-      Object.entries(state.errors).forEach(([_key, messages]) => {
+      Object.entries(state.errors).forEach(([, messages]) => {
         if (Array.isArray(messages)) {
           messages.forEach((message) => toast.error(message));
         }
