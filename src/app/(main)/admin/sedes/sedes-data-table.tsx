@@ -118,9 +118,9 @@ export function SedesDataTable<TData, TValue>({
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value: any) =>
-                      column.toggleVisibility(!!value)
+                    checked={column.getIsVisible()}                    
+                    onCheckedChange={(value: boolean) =>
+                      column.toggleVisibility(value)
                     }
                   >
                     {getColumnName(column.id)}
