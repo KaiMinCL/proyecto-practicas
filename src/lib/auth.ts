@@ -177,3 +177,24 @@ export async function clearAuthCookie() {
     console.error("Error al eliminar la cookie de autenticación:", error);
   }
 }
+
+/**
+ * Verifica la sesión del usuario desde el servidor.
+ * @returns El payload del token JWT si la sesión es válida, null en caso contrario.
+ */
+export async function verifyUserSession(): Promise<UserJwtPayload | null> {
+  try {
+    const cookieStore = cookies();
+    const token = (await cookieStore).get('auth-token');
+    
+    if (!token?.value) {
+      return null;
+    }
+
+    const decoded = jwt.verify(token.value, SIGNING_KEY) as UserJwtPayload;
+    return decoded;
+  } catch (error) {
+    console.error('Error al verificar la sesión:', error);
+    return null;
+  }
+}

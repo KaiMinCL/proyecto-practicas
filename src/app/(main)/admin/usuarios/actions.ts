@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { CreateUserSchema } from '@/lib/validators';
+import { CreateUserSchema, UpdateUserSchema } from '@/lib/validators';
 import { UserService, SedeService } from '@/lib/services';
 
 export async function getSedesAction() {
@@ -55,5 +55,57 @@ export async function createUserAction(
     errors: result.errors,
     success: result.success,
     initialPassword: result.initialPassword,
+  };
+}
+
+interface UpdateUserFormState {
+  message?: string;
+  errors?: Record<string, string[]>;
+  success: boolean;
+}
+
+export async function getUserAction(id: number) {
+  const user = await UserService.getUserById(id);
+  return user;
+}
+
+export async function updateUserAction(
+  prevState: UpdateUserFormState | undefined,
+  formData: FormData
+): Promise<UpdateUserFormState> {
+  // 1. Convertir FormData a objeto
+  const rawFormData = {
+    id: Number(formData.get('id')),
+    nombre: formData.get('nombre'),
+    apellido: formData.get('apellido'),
+    email: formData.get('email'),
+    rol: formData.get('rol'),
+    sedeId: Number(formData.get('sedeId')),
+  };
+
+  // 2. Validar datos con Zod
+  const validatedFields = UpdateUserSchema.safeParse(rawFormData);
+
+  if (!validatedFields.success) {
+    console.log("Errores de validación:", validatedFields.error.flatten().fieldErrors);
+    return {
+      message: 'Error en los datos del formulario.',
+      errors: validatedFields.error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+
+  // 3. Llamar al servicio de actualización de usuario
+  const result = await UserService.updateUser(validatedFields.data);
+
+  // 4. Si el usuario se actualizó exitosamente, revalidar la página
+  if (result.success) {
+    revalidatePath('/admin/usuarios');
+  }
+
+  return {
+    message: result.message,
+    errors: result.errors,
+    success: result.success,
   };
 }
