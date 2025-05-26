@@ -3,15 +3,9 @@ import prisma from '@/lib/prisma';
 import { verifyUserSession } from '@/lib/auth';
 import type { NextRequest } from 'next/server';
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
-
 export async function GET(
   req: NextRequest,
-  context: RouteContext
+  { params }: { params: { id: string } }
 ) {
   try {
     // 1. Verificar autenticación
@@ -19,12 +13,13 @@ export async function GET(
     if (!user || user.rol !== 'SA') {
       return NextResponse.json(
         { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }    // 2. Obtener usuario por ID con sus relaciones
+        { status: 401 }      );
+    }
+    
+    // 2. Obtener usuario por ID con sus relaciones
     const usuario = await prisma.usuario.findUnique({
       where: {
-        id: parseInt(context.params.id),
+        id: parseInt(params.id),
       },
       select: {
         id: true,
@@ -65,17 +60,16 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  context: RouteContext
+  { params }: { params: { id: string } }
 ) {
-  try {    
+  try {
     // 1. Verificar autenticación
     const user = await verifyUserSession();
     if (!user || user.rol !== 'SA') {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
-      );
-    }
+      );    }
 
     // 2. Obtener datos del body
     const data = await req.json();
@@ -83,7 +77,7 @@ export async function PUT(
     // 3. Actualizar usuario
     const usuario = await prisma.usuario.update({
       where: {
-        id: parseInt(context.params.id),
+        id: parseInt(params.id),
       },
       data: {
         nombre: data.nombre,
