@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Save, XCircle } from "lucide-react";
 import { z } from "zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,10 +26,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { sedeSchema, type SedeInput } from "@/lib/validators/sede";
+import { sedeSchema, type SedeInput, type Sede } from "@/lib/validators/sede";
+import { createSedeAction, type ActionResponse } from './actions';
 
-
-type SedeFormInputValues = z.input<typeof sedeSchema>; 
+type SedeFormInputValues = z.input<typeof sedeSchema>;
 
 interface SedeFormDialogProps {
   open: boolean;
@@ -41,19 +42,43 @@ export function SedeFormDialog({ open, onOpenChange }: SedeFormDialogProps) {
   const form = useForm<SedeFormInputValues, any, SedeInput>({
     resolver: zodResolver(sedeSchema),
     defaultValues: {
-      nombre: "",       
-      direccion: "",   
+      nombre: "",
+      direccion: "",
     },
   });
 
   const onSubmitSedeForm: SubmitHandler<SedeInput> = async (data) => {
     setIsSubmitting(true);
     try {
-      console.log("Valores del formulario (Sede a Crear - UI solamente):", data);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onOpenChange(false); 
+      const result: ActionResponse<Sede> = await createSedeAction(data);
+
+      if (result.success && result.data) {
+        toast.success(`Sede "${result.data.nombre}" creada exitosamente.`);
+        onOpenChange(false); // Cierra el diálogo
+      } else {
+        // Manejo de errores de validación del servidor o errores generales de la acción
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach(err => {
+            const fieldName = Array.isArray(err.field) ? err.field[0] : err.field;
+            if (typeof fieldName === 'string' && (fieldName === 'nombre' || fieldName === 'direccion')) {
+              form.setError(fieldName as keyof SedeInput, { // Casteo seguro después de la comprobación
+                type: 'server',
+                message: err.message,
+              });
+            } else {
+              // Error no asociado a un campo específico o campo no esperado
+              toast.error(`Error: ${err.message}`);
+            }
+          });
+          toast.warning("Por favor, corrige los errores en el formulario.");
+        } else {
+          // Error general de la acción sin detalles de campo
+          toast.error(result.error || "No se pudo crear la sede. Inténtalo de nuevo.");
+        }
+      }
     } catch (error) {
-      console.error("Error al procesar el formulario:", error);
+      console.error("Error al enviar el formulario de creación de sede:", error);
+      toast.error("Ocurrió un error inesperado al intentar crear la sede. Por favor, inténtalo más tarde.");
     } finally {
       setIsSubmitting(false);
     }
@@ -63,13 +88,17 @@ export function SedeFormDialog({ open, onOpenChange }: SedeFormDialogProps) {
     if (open) {
       form.reset({
         nombre: "",
-        direccion: "",
+        direccion: "", 
       });
+      form.clearErrors(); // Limpia errores previos al abrir
     }
   }, [open, form]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (isSubmitting && !isOpen) return; // Prevenir cierre mientras se envía
+      onOpenChange(isOpen);
+    }}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Crear Nueva Sede</DialogTitle>
@@ -81,12 +110,12 @@ export function SedeFormDialog({ open, onOpenChange }: SedeFormDialogProps) {
           <form onSubmit={form.handleSubmit(onSubmitSedeForm)} className="space-y-5 pt-2">
             <FormField
               control={form.control}
-              name="nombre" 
+              name="nombre"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nombre de la Sede</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ej: Sede Valparaíso Central" {...field} value={field.value ?? ''} />
+                    <Input placeholder="Ej: Sede Valparaíso Central" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,6 +133,7 @@ export function SedeFormDialog({ open, onOpenChange }: SedeFormDialogProps) {
                       className="resize-none h-24"
                       {...field}
                       value={field.value ?? ''}
+                      disabled={isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
