@@ -41,7 +41,7 @@ export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDial
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const formMode = initialData?.id ? 'edit' : 'create'; // Determina el modo por la presencia de initialData.id
 
-  const form = useForm<SedeFormInputValues, any, SedeInput>({
+  const form = useForm<SedeFormInputValues, unknown, SedeInput>({
     resolver: zodResolver(sedeSchema),
   });
 
