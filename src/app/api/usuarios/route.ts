@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { verifyUserSession } from '@/lib/auth';
 import type { NextRequest } from 'next/server';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // 1. Verificar autenticación
     const user = await verifyUserSession();
