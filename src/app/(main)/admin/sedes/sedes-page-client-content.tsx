@@ -18,6 +18,7 @@ import type { ColumnDef } from "@tanstack/react-table"; // Para definir columnas
 import type { Sede } from '@/lib/validators/sede';
 import { SedesDataTable } from './sedes-data-table';
 import { SedeFormDialog } from './sede-form-dialog';
+import { ToggleSedeStateDialog } from './toggle-sede-state-dialog';
 
 interface SedesPageClientContentProps {
   initialSedes: Sede[];
@@ -28,25 +29,37 @@ export function SedesPageClientContent({
   initialSedes,
   initialFetchError,
 }: SedesPageClientContentProps) {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingSede, setEditingSede] = React.useState<Sede | null>(null); 
+  const [isFormDialogOpen, setIsFormDialogOpen] = React.useState(false);
+  const [editingSede, setEditingSede] = React.useState<Sede | null>(null);
+
+  const [isToggleStateDialogOpen, setIsToggleStateDialogOpen] = React.useState(false);
+  const [sedeToToggleState, setSedeToToggleState] = React.useState<Sede | null>(null);
 
   const handleOpenCreateDialog = () => {
     setEditingSede(null);
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   };
 
   const handleOpenEditDialog = (sedeToEdit: Sede) => {
     setEditingSede(sedeToEdit);
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
+  const handleCloseFormDialog = () => {
+    setIsFormDialogOpen(false);
+  };
+
+  const handleOpenToggleStateDialog = (sede: Sede) => {
+    setSedeToToggleState(sede);
+    setIsToggleStateDialogOpen(true);
+  };
+
+  const handleCloseToggleStateDialog = () => {
+    setIsToggleStateDialogOpen(false);
   };
 
   // Definimos las columnas aquí para tener acceso a handleOpenEditDialog
-  const tableColumns: ColumnDef<Sede>[] = [
+   const tableColumns: ColumnDef<Sede>[] = [
     {
       accessorKey: "nombre",
       header: ({ column }) => (
@@ -110,23 +123,19 @@ export function SedesPageClientContent({
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {sede.estado === "ACTIVO" ? (
-                  <DropdownMenuItem
-                    className="text-red-600 hover:!text-red-600 dark:hover:!text-red-500 focus:text-red-600 dark:focus:text-red-500"
-                    // onClick={() => handleDeactivate(sede)} // Se implementará después
-                  >
+                <DropdownMenuItem
+                  onClick={() => handleOpenToggleStateDialog(sede)}
+                  className={sede.estado === "ACTIVO" 
+                    ? "text-red-600 hover:!text-red-600 dark:hover:!text-red-500 focus:text-red-600 dark:focus:text-red-500" 
+                    : "text-green-600 hover:!text-green-600 dark:hover:!text-green-500 focus:text-green-600 dark:focus:text-green-500"}
+                >
+                  {sede.estado === "ACTIVO" ? (
                     <EyeOff className="mr-2 h-4 w-4" />
-                    Desactivar
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem
-                    className="text-green-600 hover:!text-green-600 dark:hover:!text-green-500 focus:text-green-600 dark:focus:text-green-500"
-                   // onClick={() => handleActivate(sede)} // Se implementará después
-                  >
+                  ) : (
                     <Eye className="mr-2 h-4 w-4" />
-                    Activar
-                  </DropdownMenuItem>
-                )}
+                  )}
+                  {sede.estado === "ACTIVO" ? "Desactivar" : "Activar"}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -140,31 +149,38 @@ export function SedesPageClientContent({
   return (
     <>
       <div className="flex justify-end mb-6">
-        <Button onClick={handleOpenCreateDialog}> 
+        <Button onClick={handleOpenCreateDialog}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Crear Nueva Sede
         </Button>
       </div>
 
       {initialFetchError && (
-        <Alert variant="destructive" className="mb-4">
-          <Terminal className="h-4 w-4" />
-          <AlertTitle>Error al Cargar Datos</AlertTitle>
-          <AlertDescription>{initialFetchError}</AlertDescription>
-        </Alert>
-      )}
+            <Alert variant="destructive" className="mb-4">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Error al Cargar Datos</AlertTitle>
+              <AlertDescription>{initialFetchError}</AlertDescription>
+            </Alert>
+        )
+      }
 
       <SedesDataTable 
-        columns={tableColumns} // Usa las columnas definidas localmente
+        columns={tableColumns} 
         data={initialSedes} 
         searchColumnId="nombre" 
         searchPlaceholder="Filtrar por nombre de sede..."
       />
 
       <SedeFormDialog 
-        open={isDialogOpen}
-        onOpenChange={handleCloseDialog}
-        initialData={editingSede} // Pasa la sede a editar (o null si es creación)
+        open={isFormDialogOpen}
+        onOpenChange={handleCloseFormDialog}
+        initialData={editingSede}
+      />
+
+      <ToggleSedeStateDialog
+        open={isToggleStateDialogOpen}
+        onOpenChange={handleCloseToggleStateDialog}
+        sede={sedeToToggleState}
       />
     </>
   );
