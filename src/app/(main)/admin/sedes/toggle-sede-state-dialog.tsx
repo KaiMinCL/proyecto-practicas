@@ -82,7 +82,7 @@ export function ToggleSedeStateDialog({
           </AlertDialogTitle>
           <AlertDialogDescription>
             ¿Estás seguro de que quieres {actionToPerformText} la sede{" "}
-            <strong>"{sede.nombre}"</strong>?
+            <strong>&quot;{sede.nombre}&quot;</strong>?
             {isActivating 
               ? " Esto permitirá que la sede vuelva a estar operativa en el sistema."
               : " Esto podría afectar a carreras y usuarios asociados."
