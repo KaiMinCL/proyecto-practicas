@@ -69,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       toast.error("Error al cerrar sesión. Por favor, inténtalo de nuevo.");
       // Fallback: si la API falla, limpiar el estado local
       setUser(null);
-      if (router) { // Asegúrar que el router esté disponible
+      if (router) { // Asegurar que el router esté disponible
          router.push('/');
       } else {
          window.location.href = '/'; // Fallback si router no está disponible
