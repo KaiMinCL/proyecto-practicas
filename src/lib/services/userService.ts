@@ -236,4 +236,72 @@ export class UserService {
       };
     }
   }
+
+  /**
+   * Desactiva un usuario en el sistema.
+   * @param id ID del usuario a desactivar
+   * @returns Objeto con el resultado de la operación
+   */
+  static async deactivateUser(id: number): Promise<CreateUserResponse> {
+    try {
+      const usuario = await prisma.usuario.update({
+        where: { id },
+        data: {
+          estado: 'INACTIVO'
+        },
+        include: {
+          rol: true
+        }
+      });
+
+      return {
+        success: true,
+        message: "Usuario desactivado exitosamente."
+      };
+
+    } catch (error) {
+      console.error('Error al desactivar usuario:', error);
+      return {
+        success: false,
+        message: "Error al desactivar el usuario.",
+        errors: {
+          general: ["Ha ocurrido un error inesperado. Por favor, intente de nuevo."]
+        }
+      };
+    }
+  }
+
+  /**
+   * Reactiva un usuario en el sistema.
+   * @param id ID del usuario a reactivar
+   * @returns Objeto con el resultado de la operación
+   */
+  static async reactivateUser(id: number): Promise<CreateUserResponse> {
+    try {
+      const usuario = await prisma.usuario.update({
+        where: { id },
+        data: {
+          estado: 'ACTIVO'
+        },
+        include: {
+          rol: true
+        }
+      });
+
+      return {
+        success: true,
+        message: "Usuario reactivado exitosamente."
+      };
+
+    } catch (error) {
+      console.error('Error al reactivar usuario:', error);
+      return {
+        success: false,
+        message: "Error al reactivar el usuario.",
+        errors: {
+          general: ["Ha ocurrido un error inesperado. Por favor, intente de nuevo."]
+        }
+      };
+    }
+  }
 }
