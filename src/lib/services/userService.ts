@@ -24,22 +24,29 @@ export class UserService {
   static async createUser(data: CreateUserFormData): Promise<CreateUserResponse> {
     try {
       // 1. Validar que el RUT y email no existan
-      const existingUser = await prisma.usuario.findFirst({
-        where: {
-          OR: [
-            { rut: data.rut },
-            { email: data.email }
-          ]
-        }
+      const existingUserByRut = await prisma.usuario.findUnique({
+        where: { rut: data.rut }
       });
 
-      if (existingUser) {
+      const existingUserByEmail = await prisma.usuario.findUnique({
+        where: { email: data.email }
+      });
+
+      const errors: Record<string, string[]> = {};
+
+      if (existingUserByRut) {
+        errors.rut = ["Ya existe un usuario con este RUT."];
+      }
+
+      if (existingUserByEmail) {
+        errors.email = ["Ya existe un usuario con este email."];
+      }
+
+      if (Object.keys(errors).length > 0) {
         return {
           success: false,
-          message: "Usuario no pudo ser creado.",
-          errors: {
-            general: ["Ya existe un usuario con este RUT o email."]
-          }
+          message: "Usuario no pudo ser creado debido a datos duplicados.",
+          errors
         };
       }
 
