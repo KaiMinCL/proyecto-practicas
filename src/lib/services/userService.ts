@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { generateInitialPassword } from '@/lib/utils';
-import { CreateUserFormData } from '@/lib/validators';
+import { CreateUserFormData, UpdateUserFormData } from '@/lib/validators';
 import { Prisma } from '@prisma/client';
 
 export interface CreateUserResponse {
@@ -120,6 +120,116 @@ export class UserService {
       return {
         success: false,
         message: "Error al crear el usuario.",
+        errors: {
+          general: ["Ha ocurrido un error inesperado. Por favor, intente de nuevo."]
+        }
+      };
+    }
+  }
+
+  /**
+   * Obtiene un usuario por su ID.
+   * @param id ID del usuario a buscar
+   * @returns El usuario si existe, null si no
+   */
+  static async getUserById(id: number) {
+    try {
+      const user = await prisma.usuario.findUnique({
+        where: { id },
+        include: {
+          rol: true,
+          sede: true,
+        },
+      });
+
+      return user;
+    } catch (error) {
+      console.error('Error al obtener usuario:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Actualiza los datos de un usuario existente.
+   * @param data Los datos actualizados del usuario
+   * @returns Objeto con el resultado de la operación
+   */
+  static async updateUser(data: UpdateUserFormData): Promise<CreateUserResponse> {
+    try {
+      // 1. Verificar que el email no exista (excepto para el mismo usuario)
+      const existingUserByEmail = await prisma.usuario.findFirst({
+        where: {
+          AND: [
+            { email: data.email },
+            { id: { not: data.id } }
+          ]
+        }
+      });
+
+      if (existingUserByEmail) {
+        return {
+          success: false,
+          message: "No se pudo actualizar el usuario.",
+          errors: {
+            email: ["Ya existe otro usuario con este email."]
+          }
+        };
+      }
+
+      // 2. Obtener rol por nombre
+      const rol = await prisma.rol.findUnique({
+        where: { nombre: data.rol }
+      });
+
+      if (!rol) {
+        return {
+          success: false,
+          message: "Rol no encontrado.",
+          errors: {
+            rol: ["El rol especificado no existe."]
+          }
+        };
+      }
+
+      // 3. Actualizar el usuario
+      const user = await prisma.usuario.update({
+        where: { id: data.id },
+        data: {
+          nombre: data.nombre,
+          apellido: data.apellido,
+          email: data.email,
+          rolId: rol.id,
+          sedeId: data.sedeId,
+        },
+        include: {
+          rol: true,
+        }
+      });
+
+      // 4. Actualizar o crear registro de docente según corresponda
+      if (data.rol === 'Docente') {
+        await prisma.docente.upsert({
+          where: { usuarioId: user.id },
+          create: { usuarioId: user.id },
+          update: {}
+        });
+      } else {
+        // Si el usuario era docente y ahora no, eliminar el registro
+        await prisma.docente.deleteMany({
+          where: { usuarioId: user.id }
+        });
+      }
+
+      return {
+        success: true,
+        message: "Usuario actualizado exitosamente."
+      };
+
+    } catch (error) {
+      console.error('Error al actualizar usuario:', error);
+      return {
+        success: false,
+        message: "Error al actualizar el usuario.",
         errors: {
           general: ["Ha ocurrido un error inesperado. Por favor, intente de nuevo."]
         }
