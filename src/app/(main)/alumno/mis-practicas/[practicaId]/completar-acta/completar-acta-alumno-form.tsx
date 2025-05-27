@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Save } from "lucide-react";
+import { Link, Save, UserCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -229,6 +229,22 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
                   </FormItem>
                 )}
               />
+              <div className="space-y-2 pt-2">
+                <FormLabel>Foto de Perfil del Alumno</FormLabel>
+                <div className="flex items-center gap-4 p-3 border rounded-md bg-muted/30">
+                  <UserCircle2 className="h-16 w-16 text-gray-400 dark:text-gray-600" />
+                  <div className="text-sm text-muted-foreground">
+                    <p>La funcionalidad para cargar o actualizar tu foto de perfil se implementará en la HU-30.</p>
+                    <p>Tu foto actual (si existe) se puede ver en tu perfil general.</p>
+                    {practica.alumno?.fotoUrl && (
+                       <p className="mt-1 text-xs">Foto actual: <Link href={practica.alumno.fotoUrl} target="_blank" className="text-blue-500 hover:underline">ver imagen</Link></p>
+                    )}
+                  </div>
+                </div>
+                <FormDescription>
+                  Este es un marcador de posición para la carga de la foto de perfil.
+                </FormDescription>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -95,6 +95,7 @@ export interface PracticaConDetalles {
       nombre: string; 
       apellido: string; 
     };
+    fotoUrl?: string | null;
   };
   docente?: { // Datos del docente asignado
     id: number;
