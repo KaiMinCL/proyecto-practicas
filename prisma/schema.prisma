@@ -116,8 +116,8 @@ model Practica {
   docente              Docente        @relation(fields: [docenteId], references: [id])
   carreraId            Int
   carrera              Carrera        @relation(fields: [carreraId], references: [id])
-  centroPracticaId     Int
-  centroPractica       CentroPractica @relation(fields: [centroPracticaId], references: [id])
+  centroPracticaId     Int?
+  centroPractica       CentroPractica? @relation(fields: [centroPracticaId], references: [id])
   tipo                 TipoPractica
   fechaInicio          DateTime
   fechaTermino         DateTime
