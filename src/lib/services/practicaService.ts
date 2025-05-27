@@ -22,7 +22,7 @@ export function calculateFechaTerminoSugerida(fechaInicio: Date, horasPracticaRe
   }
 
   let diasLaboralesNecesarios = Math.ceil(horasPracticaRequeridas / HORAS_POR_DIA_LABORAL);
-  let fechaTermino = new Date(fechaInicio.valueOf());
+  const fechaTermino = new Date(fechaInicio.valueOf());
   let diasAgregados = 0;
 
   // Si el día de inicio es fin de semana, lo movemos al siguiente lunes (o al mismo día si es laboral)
@@ -139,7 +139,8 @@ export class PracticaService {
       console.error('Error al iniciar práctica (servicio):', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2003') {
-          const fieldName = (error.meta as any)?.field_name || 'desconocido';
+          type PrismaFieldError = { field_name: string };
+          const fieldName = (error.meta as PrismaFieldError)?.field_name || 'desconocido';
           return { success: false, error: `Error de referencia: El campo '${fieldName}' apunta a un registro inexistente.` };
         }
       }

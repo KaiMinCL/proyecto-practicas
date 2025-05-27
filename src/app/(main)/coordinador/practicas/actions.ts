@@ -106,7 +106,7 @@ export async function iniciarPracticaAction(
       // TODO: Notificación al Alumno
       return { success: true, data: result.data as PracticaConDetalles };
     }
-    return result;
+    return result; // Devuelve el resultado del servicio (puede tener error específico)
   } catch (error) {
     if (error instanceof ZodError) {
       return {
@@ -115,10 +115,10 @@ export async function iniciarPracticaAction(
         errors: error.errors.map((e) => ({ field: e.path, message: e.message })),
       };
     }
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-        const fieldName = (error.meta as any)?.field_name || 'desconocido';
-        return { success: false, error: `Error de referencia: El campo '${fieldName}' apunta a un registro inexistente.` };
-    }
+    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2003') {
+            const fieldName = (error.meta as { field_name?: string })?.field_name || 'desconocido';
+            return { success: false, error: `Error de referencia: El campo '${fieldName}' apunta a un registro inexistente.` };
+        }
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }

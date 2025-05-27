@@ -79,7 +79,7 @@ export function IniciarPracticaForm() {
   const [alumnoPopoverOpen, setAlumnoPopoverOpen] = React.useState(false);
   const [docentePopoverOpen, setDocentePopoverOpen] = React.useState(false);
 
-  const form = useForm<IniciarPracticaFormValues, any, IniciarPracticaInput>({
+  const form = useForm<IniciarPracticaFormValues, unknown, IniciarPracticaInput>({
     resolver: zodResolver(iniciarPracticaSchema),
     defaultValues: {
       alumnoId: undefined,
