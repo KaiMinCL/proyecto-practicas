@@ -64,8 +64,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
   const [sedePopoverOpen, setSedePopoverOpen] = React.useState(false);
 
   const formMode = initialData?.id ? 'edit' : 'create';
-
-  const form = useForm<CarreraFormInputValues, any, CarreraInput>({
+  const form = useForm<CarreraFormInputValues, unknown, CarreraInput>({
     resolver: zodResolver(carreraSchema),
   });
 
@@ -80,7 +79,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
             toast.error(response.error || "No se pudieron cargar las sedes activas.");
           }
         })
-        .catch(_err  => toast.error("Error crítico al cargar sedes."))
+        .catch(() => toast.error("Error crítico al cargar sedes."))
         .finally(() => setIsSedesLoading(false));
 
       if (formMode === 'edit' && initialData) {
