@@ -80,7 +80,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
             toast.error(response.error || "No se pudieron cargar las sedes activas.");
           }
         })
-        .catch(err => toast.error("Error crítico al cargar sedes."))
+        .catch(_err  => toast.error("Error crítico al cargar sedes."))
         .finally(() => setIsSedesLoading(false));
 
       if (formMode === 'edit' && initialData) {
