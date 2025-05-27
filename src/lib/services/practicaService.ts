@@ -280,8 +280,9 @@ export class PracticaService {
           estado: estado,
         },
         include: {
-          carrera: { select: { nombre: true, sede: { select: { nombre: true } } } },
-          docente: { include: { usuario: { select: { nombre: true, apellido: true } } } },
+          carrera: { select: { id: true, nombre: true, sede: { select: { id: true, nombre: true } } } }, 
+          docente: { include: { usuario: { select: { id:true, nombre: true, apellido: true } } } },
+          alumno: { include: { usuario: { select: { id:true, rut:true, nombre: true, apellido: true }}}},
           centroPractica: { select: { nombreEmpresa: true } } 
         },
         orderBy: {

@@ -87,14 +87,31 @@ export interface PracticaConDetalles {
   tareasPrincipales?: string | null;
   fechaCompletadoAlumno?: Date | null;
 
-  // Datos relacionales
-  alumno?: {
-    id: number;
-    usuario: { rut: string; nombre: string; apellido: string; };
-    carrera: { id: number; nombre: string; sede?: { id: number; nombre: string; } | null };
+  // DATOS RELACIONALES 
+  alumno?: { // Datos del alumno asociado
+    id: number; 
+    usuario: { 
+      rut: string; 
+      nombre: string; 
+      apellido: string; 
+    };
   };
-  docente?: {
+  docente?: { // Datos del docente asignado
     id: number;
-    usuario: { nombre: string; apellido: string; };
+    usuario: { 
+      nombre: string; 
+      apellido: string; 
+    };
   };
+  carrera?: { // Datos de la carrera asociada
+    id: number;
+    nombre: string;
+    sede?: { 
+      id: number;
+      nombre: string; 
+    } | null;
+  };
+  centroPractica?: { // Datos del centro de práctica
+    nombreEmpresa: string | null;
+  } | null;
 }
