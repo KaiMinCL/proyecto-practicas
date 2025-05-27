@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  output   = "../node_modules/.prisma/client" // Asegúrate que esta ruta sea correcta para tu estructura de proyecto
 }
 
 datasource db {
@@ -17,21 +17,21 @@ model Rol {
 }
 
 model Usuario {
-  id        Int        @id @default(autoincrement())
-  rut       String     @unique
-  nombre    String
-  apellido  String
-  email     String     @unique
-  password  String
-  claveInicialVisible Boolean @default(true) // Se vuelve false si el usuario cambia su clave
-  estado    Estado     @default(ACTIVO)
-  rolId     Int
-  rol       Rol        @relation(fields: [rolId], references: [id])
-  sedeId    Int?
-  sede      Sede?      @relation(fields: [sedeId], references: [id])
-  alumno    Alumno?
-  docente   Docente?
-  empleador Empleador?
+  id                  Int        @id @default(autoincrement())
+  rut                 String     @unique
+  nombre              String
+  apellido            String
+  email               String     @unique
+  password            String
+  claveInicialVisible Boolean    @default(true)
+  estado              Estado     @default(ACTIVO)
+  rolId               Int
+  rol                 Rol        @relation(fields: [rolId], references: [id])
+  sedeId              Int?
+  sede                Sede?      @relation(fields: [sedeId], references: [id])
+  alumno              Alumno?
+  docente             Docente?
+  empleador           Empleador?
 }
 
 model Sede {
@@ -44,6 +44,7 @@ model Sede {
   documentos DocumentoApoyo[]
 }
 
+// Tabla de unión para la relación Muchos-a-Muchos entre Docente y Carrera
 model DocenteCarrera {
   docenteId Int
   carreraId Int
@@ -66,13 +67,13 @@ model Carrera {
   practicas                Practica[]
   documentos               DocumentoApoyo[]
 
-  @@unique([nombre, sedeId]) // Evita duplicados de carrera en una sede
+  @@unique([nombre, sedeId])
 }
 
 model Alumno {
   id        Int        @id @default(autoincrement())
   usuarioId Int        @unique
-  usuario   Usuario    @relation(fields: [usuarioId], references: [id])
+  usuario   Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade) // onDelete Cascade
   carreraId Int
   carrera   Carrera    @relation(fields: [carreraId], references: [id])
   practicas Practica[]
@@ -80,18 +81,18 @@ model Alumno {
 }
 
 model Docente {
-  id        Int        @id @default(autoincrement())
-  usuarioId Int        @unique
-  usuario   Usuario    @relation(fields: [usuarioId], references: [id])
+  id        Int              @id @default(autoincrement())
+  usuarioId Int              @unique
+  usuario   Usuario          @relation(fields: [usuarioId], references: [id], onDelete: Cascade) // onDelete Cascade
   practicas Practica[]
-  carreras  DocenteCarrera[]
+  carreras  DocenteCarrera[] // Relación con Carreras
 }
 
 model Empleador {
   id        Int               @id @default(autoincrement())
   usuarioId Int               @unique
-  usuario   Usuario           @relation(fields: [usuarioId], references: [id])
-  centros   EmpleadorCentro[] // Relación N:M con Centros
+  usuario   Usuario           @relation(fields: [usuarioId], references: [id], onDelete: Cascade) // onDelete Cascade
+  centros   EmpleadorCentro[]
 }
 
 model CentroPractica {
@@ -104,17 +105,16 @@ model CentroPractica {
   nombreContacto   String?
   emailContacto    String?
   telefonoContacto String?
-  empleadores      EmpleadorCentro[] // Relación N:M con Empleadores
+  empleadores      EmpleadorCentro[]
   practicas        Practica[]
 }
 
 model EmpleadorCentro {
-  id               Int @id @default(autoincrement())
+  id               Int            @id @default(autoincrement())
   empleadorId      Int
   centroPracticaId Int
-
-  empleador      Empleador      @relation(fields: [empleadorId], references: [id])
-  centroPractica CentroPractica @relation(fields: [centroPracticaId], references: [id])
+  empleador        Empleador      @relation(fields: [empleadorId], references: [id], onDelete: Cascade)
+  centroPractica   CentroPractica @relation(fields: [centroPracticaId], references: [id], onDelete: Cascade)
 
   @@unique([empleadorId, centroPracticaId])
 }
@@ -127,28 +127,35 @@ model Practica {
   docente              Docente        @relation(fields: [docenteId], references: [id])
   carreraId            Int
   carrera              Carrera        @relation(fields: [carreraId], references: [id])
-  centroPracticaId     Int?
-  centroPractica       CentroPractica? @relation(fields: [centroPracticaId], references: [id])
+  centroPracticaId     Int?           // Correctamente opcional
+  centroPractica       CentroPractica? @relation(fields: [centroPracticaId], references: [id]) // Correctamente opcional
+  
   tipo                 TipoPractica
   fechaInicio          DateTime
   fechaTermino         DateTime
   estado               EstadoPractica @default(PENDIENTE)
+
+  // Campos completados por el Alumno para Acta 1
   direccionCentro      String?
-  departamento         String?
+  departamento         String?        
   nombreJefeDirecto    String?
   cargoJefeDirecto     String?
-  contactoCorreoJefe   String?
-  contactoTelefonoJefe String?
+  contactoCorreoJefe   String?       
+  contactoTelefonoJefe String?        
   practicaDistancia    Boolean        @default(false)
-  tareasPrincipales    String?
+  tareasPrincipales    String?        @db.Text
+  
+  fechaCompletadoAlumno DateTime?     
+  
+  // Otros campos
+  informeUrl           String?        
   creadoEn             DateTime       @default(now())
-  informeUrl           String? // URL del informe final subido por el alumno
+  updatedAt            DateTime       @default(now()) @updatedAt
 
   evaluacionDocente   EvaluacionInformeDocente?
   evaluacionEmpleador EvaluacionEmpleador?
   actaFinal           ActaFinal?
-  alertasManuales AlertaManual[] //  relación inversa obligatoria
-
+  alertasManuales     AlertaManual[]
 }
 
 model DocumentoApoyo {
@@ -165,25 +172,25 @@ model DocumentoApoyo {
 model EvaluacionInformeDocente {
   id          Int      @id @default(autoincrement())
   practicaId  Int      @unique
-  practica    Practica @relation(fields: [practicaId], references: [id])
+  practica    Practica @relation(fields: [practicaId], references: [id], onDelete: Cascade) // onDelete Cascade
   nota        Float
-  comentarios String?
+  comentarios String?  @db.Text
   fecha       DateTime @default(now())
 }
 
 model EvaluacionEmpleador {
   id          Int      @id @default(autoincrement())
   practicaId  Int      @unique
-  practica    Practica @relation(fields: [practicaId], references: [id])
+  practica    Practica @relation(fields: [practicaId], references: [id], onDelete: Cascade) // onDelete Cascade
   nota        Float
-  comentarios String?
+  comentarios String?  @db.Text
   fecha       DateTime @default(now())
 }
 
 model ActaFinal {
   id            Int             @id @default(autoincrement())
   practicaId    Int             @unique
-  practica      Practica        @relation(fields: [practicaId], references: [id])
+  practica      Practica        @relation(fields: [practicaId], references: [id], onDelete: Cascade) // onDelete Cascade
   notaInforme   Float
   notaEmpleador Float
   notaFinal     Float
@@ -202,15 +209,13 @@ model AlertaManual {
   practicaId  Int
   practica    Practica @relation(fields: [practicaId], references: [id])
   asunto      String?
-  mensaje     String
-  enviadoPor  String    // nombre o rol del Coordinador que la envía
-  fecha       DateTime  @default(now())
+  mensaje     String   @db.Text
+  enviadoPor  String   
+  fecha       DateTime @default(now())
 }
 
 
 // ENUMS
-/// Enum reutilizado para representar el estado general de las entidades del sistema.
-/// Aplica a: Usuario, Sede, Carrera, etc.
 enum Estado {
   ACTIVO
   INACTIVO
@@ -222,13 +227,17 @@ enum TipoPractica {
 }
 
 enum EstadoPractica {
-  PENDIENTE
-  EN_CURSO
-  FINALIZADA
-  ANULADA
+  PENDIENTE                   // Iniciada por Coord, pendiente que Alumno complete
+  PENDIENTE_ACEPTACION_DOCENTE  // Alumno completó, Docente Tutor debe revisar/aceptar
+  EN_CURSO                    // Docente aceptó/validó, práctica en desarrollo
+  FINALIZADA_PENDIENTE_EVAL   // Práctica terminada, informes/evaluaciones pendientes
+  EVALUACION_COMPLETA         // Todas las evaluaciones completadas
+  CERRADA                     // Proceso de práctica administrativamente cerrado (nota final asignada)
+  ANULADA                     // Práctica anulada
+  RECHAZADA_DOCENTE           // Acta 1 rechazada por el docente (requiere acción del coord/alumno)
 }
 
 enum EstadoActaFinal {
-  VALIDADA
-  CERRADA
+  VALIDADA // Docente validó las notas y la nota final está calculada
+  CERRADA  // El coordinador/director cerró administrativamente el acta final
 }
