@@ -48,7 +48,10 @@ async function fetchAndCacheHolidaysForYear(year: number): Promise<Set<string>> 
       try {
         const errorBody = await response.json();
         errorDetails += ` - ${JSON.stringify(errorBody)}`;
-      } catch (e) { /* No se pudo parsear el cuerpo del error, se ignora */ }
+      } catch ( jsonError) {
+        // Si no se puede parsear el cuerpo de error, manten el mensaje original
+        console.warn(`No se pudo parsear el cuerpo del error: ${jsonError}`);
+      }
       
       console.error(`Error al obtener feriados para el año ${year}: ${errorDetails}`);
       // Devuelve el caché antiguo si existe, o un set vacío para no bloquear el cálculo principal

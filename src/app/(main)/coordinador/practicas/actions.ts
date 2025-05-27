@@ -5,7 +5,7 @@ import { ZodError } from 'zod';
 import { Prisma, TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
 
 import { authorizeCoordinador } from '@/lib/auth/checkRole';
-import { PracticaService, calculateFechaTerminoSugerida } from '@/lib/services/practicaService';
+import { PracticaService } from '@/lib/services/practicaService';
 import { AlumnoService } from '@/lib/services/alumnoService';
 import { DocenteService } from '@/lib/services/docenteService';
 import { 
@@ -13,7 +13,6 @@ import {
     type IniciarPracticaInput, 
     type PracticaConDetalles 
 } from '@/lib/validators/practica';
-import prismaClient from '@/lib/prisma';
 
 // Definición de ActionResponse
 export type ActionResponse<TData = null> = {

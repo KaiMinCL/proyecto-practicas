@@ -27,8 +27,8 @@ export async function calculateFechaTerminoSugerida(
     throw new Error("Las horas de práctica requeridas deben ser un número positivo.");
   }
 
-  let diasLaboralesNecesarios = Math.ceil(horasPracticaRequeridas / HORAS_POR_DIA_LABORAL);
-  let fechaActual = new Date(fechaInicio.valueOf());
+  const diasLaboralesNecesarios = Math.ceil(horasPracticaRequeridas / HORAS_POR_DIA_LABORAL);
+  const fechaActual = new Date(fechaInicio.valueOf());
   let diasLaboralesContados = 0;
   let iteracionesSeguridad = 0;
   const MAX_ITERACIONES = diasLaboralesNecesarios + 365 * 2; // Margen para feriados en 2 años
@@ -76,7 +76,7 @@ export class PracticaService {
         return { success: false, error: 'Carrera no encontrada para calcular horas.' };
       }
 
-     let horasRequeridas = tipoPractica === PrismaTipoPracticaEnum.LABORAL 
+     const horasRequeridas = tipoPractica === PrismaTipoPracticaEnum.LABORAL 
         ? carrera.horasPracticaLaboral 
         : carrera.horasPracticaProfesional;
 
@@ -87,7 +87,7 @@ export class PracticaService {
         };
       }
 
-      const fechaTerminoSugerida = await calculateFechaTerminoSugerida(fechaInicio, horasRequeridas); // <--- await
+      const fechaTerminoSugerida = await calculateFechaTerminoSugerida(fechaInicio, horasRequeridas);
       return { success: true, data: fechaTerminoSugerida };
 
     } catch (error) {
