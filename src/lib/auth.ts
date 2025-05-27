@@ -97,7 +97,7 @@ export interface UserJwtPayload extends JwtPayload {
  * @param payload - The payload to include in the token.
  * @returns The generated JWT token.
  */
-export function generateJwtToken(payload: { userId: number; rut: string; rol: string; email: string; nombre: string; }) {
+export function generateJwtToken(payload: { userId: number; rut: string; rol: string; email: string; nombre: string; apellido: string }): string {
   try {
     const token = jwt.sign(payload, SIGNING_KEY, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
     console.log("Token JWT generado.");
