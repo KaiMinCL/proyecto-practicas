@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import type { CarreraInput } from '@/lib/validators/carrera'; 
-import type { Estado } from '@prisma/client';
+import { Prisma, type Estado } from '@prisma/client';
 
 export class CarreraService {
   /**
@@ -64,8 +64,8 @@ export class CarreraService {
       return { success: true, data: carrera };
     } catch (error) {
       console.error('Error al crear carrera:', error);
-      if ((error as any).code === 'P2002') {
-         return { success: false, error: 'Error de unicidad: Ya existe una carrera con este nombre en la sede.'};
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        return { success: false, error: 'Error de unicidad: Ya existe una carrera con este nombre en la sede.'};
       }
       return { success: false, error: 'Error al crear la carrera.' };
     }
@@ -141,8 +141,8 @@ export class CarreraService {
       return { success: true, data: carrera };
     } catch (error) {
       console.error(`Error al actualizar carrera con ID ${id}:`, error);
-      if ((error as any).code === 'P2002') {
-         return { success: false, error: 'Error de unicidad: Ya existe una carrera con este nombre en la sede.'};
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        return { success: false, error: 'Error de unicidad: Ya existe una carrera con este nombre en la sede.'};
       }
       return { success: false, error: 'Error al actualizar la carrera.' };
     }
