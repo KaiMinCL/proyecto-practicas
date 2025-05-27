@@ -5,7 +5,7 @@ import { ZodError } from 'zod';
 import { Prisma, TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
 
 import { authorizeCoordinador } from '@/lib/auth/checkRole';
-import { PracticaService, calculateFechaTerminoSugerida } from '@/lib/services/practicaService';
+import { PracticaService } from '@/lib/services/practicaService';
 import { AlumnoService } from '@/lib/services/alumnoService';
 import { DocenteService } from '@/lib/services/docenteService';
 import { 
@@ -13,7 +13,6 @@ import {
     type IniciarPracticaInput, 
     type PracticaConDetalles 
 } from '@/lib/validators/practica';
-import prismaClient from '@/lib/prisma';
 
 // Definición de ActionResponse
 export type ActionResponse<TData = null> = {
@@ -62,32 +61,28 @@ export async function sugerirFechaTerminoAction(
   try {
     await authorizeCoordinador();
     const fechaInicio = new Date(fechaInicioStr);
+
+    // Validaciones básicas de entrada
     if (isNaN(fechaInicio.getTime())) {
         return { success: false, error: "Fecha de inicio inválida." };
     }
-
-    const carrera = await prismaClient.carrera.findUnique({ where: { id: carreraId } });
-    if (!carrera) {
-      return { success: false, error: "Carrera no encontrada." };
+    if (!carreraId || carreraId <= 0) {
+        return { success: false, error: "ID de carrera inválido." };
+    }
+    if (!Object.values(PrismaTipoPracticaEnum).includes(tipoPractica)) {
+        return { success: false, error: "Tipo de práctica inválido." };
     }
 
-    let horasRequeridas: number;
-    if (tipoPractica === PrismaTipoPracticaEnum.LABORAL) {
-      horasRequeridas = carrera.horasPracticaLaboral;
-    } else if (tipoPractica === PrismaTipoPracticaEnum.PROFESIONAL) {
-      horasRequeridas = carrera.horasPracticaProfesional;
-    } else {
-      return { success: false, error: "Tipo de práctica inválido." };
-    }
-    if (horasRequeridas <= 0) {
-        return { success: false, error: `La carrera "${carrera.nombre}" no tiene horas configuradas para la práctica de tipo ${tipoPractica.toLowerCase()}.` };
-    }
+    const result = await PracticaService.sugerirFechaTermino(fechaInicio, tipoPractica, carreraId);
     
-    const fechaTerminoSugerida = calculateFechaTerminoSugerida(fechaInicio, horasRequeridas);
-    return { success: true, data: { fechaTerminoSugerida: fechaTerminoSugerida.toISOString().split('T')[0] } };
+   if (result.success && result.data) {
+      return { success: true, data: { fechaTerminoSugerida: result.data.toISOString().split('T')[0] } };
+    }
+    return { success: false, error: result.error || "No se pudo calcular la fecha de término sugerida." };
 
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Error al sugerir fecha de término.';
+  }  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Error inesperado al sugerir fecha de término.';
+    console.error("Error en sugerirFechaTerminoAction:", errorMessage);
     return { success: false, error: errorMessage };
   }
 }

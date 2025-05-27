@@ -5,6 +5,8 @@ import {
     EstadoPractica as PrismaEstadoPracticaEnum,
     Prisma 
 } from '@prisma/client';
+import { isHoliday } from './holidayService';
+
 
 const HORAS_POR_DIA_LABORAL = 8; // Asunción: 8 horas por día laboral
 
@@ -16,49 +18,55 @@ const HORAS_POR_DIA_LABORAL = 8; // Asunción: 8 horas por día laboral
  * @returns La fecha de término calculada.
  * @throws Error si las horas de práctica son 0 o negativas.
  */
-export function calculateFechaTerminoSugerida(fechaInicio: Date, horasPracticaRequeridas: number): Date {
+export async function calculateFechaTerminoSugerida(
+  fechaInicio: Date,
+  horasPracticaRequeridas: number
+): Promise<Date> {
+  
   if (horasPracticaRequeridas <= 0) {
     throw new Error("Las horas de práctica requeridas deben ser un número positivo.");
   }
 
-  let diasLaboralesNecesarios = Math.ceil(horasPracticaRequeridas / HORAS_POR_DIA_LABORAL);
-  const fechaTermino = new Date(fechaInicio.valueOf());
-  let diasAgregados = 0;
+  const diasLaboralesNecesarios = Math.ceil(horasPracticaRequeridas / HORAS_POR_DIA_LABORAL);
+  const fechaActual = new Date(fechaInicio.valueOf());
+  let diasLaboralesContados = 0;
+  let iteracionesSeguridad = 0;
+  const MAX_ITERACIONES = diasLaboralesNecesarios + 365 * 2; // Margen para feriados en 2 años
 
-  // Si el día de inicio es fin de semana, lo movemos al siguiente lunes (o al mismo día si es laboral)
-  // para asegurar que el conteo empiece en un día laboral o el cálculo sea correcto.
-  // Asumimos que el coordinador elige una fecha de inicio laboral, o el cálculo es "bruto".
-  // Para un cálculo más preciso, se necesitaría una librería de manejo de fechas laborales.
-
-  // Si el primer día es laboral y se cuentan las horas de ese día:
-  const diaInicioSemana = fechaInicio.getDay();
-  if (diaInicioSemana !== 0 && diaInicioSemana !== 6) { // Si el día de inicio es laboral
-      diasLaboralesNecesarios--; // Ya cuenta como un día trabajado
-  }
-
-
-  while (diasAgregados < diasLaboralesNecesarios) {
-    fechaTermino.setDate(fechaTermino.getDate() + 1);
-    const diaDeLaSemana = fechaTermino.getDay();
-    if (diaDeLaSemana !== 0 && diaDeLaSemana !== 6) { // No es Domingo ni Sábado
-      diasAgregados++;
+  while (diasLaboralesContados < diasLaboralesNecesarios && iteracionesSeguridad < MAX_ITERACIONES) {
+    const diaDeLaSemana = fechaActual.getDay();
+    
+    if (diaDeLaSemana !== 0 && diaDeLaSemana !== 6 && !(await isHoliday(fechaActual))) { // <--- await isHoliday
+      diasLaboralesContados++;
     }
+    
+    if (diasLaboralesContados < diasLaboralesNecesarios) {
+      fechaActual.setDate(fechaActual.getDate() + 1);
+    }
+    iteracionesSeguridad++;
   }
-  return fechaTermino;
+
+  if (iteracionesSeguridad >= MAX_ITERACIONES) {
+      console.warn("Cálculo de fecha de término excedió iteraciones de seguridad.");
+      throw new Error("No se pudo calcular una fecha de término dentro de un rango razonable (posiblemente demasiados feriados o error en API).");
+  }
+
+  return fechaActual;
 }
 
 export class PracticaService {
+
   /**
    * Sugiere una fecha de término para una práctica.
    * @param fechaInicio La fecha de inicio propuesta.
    * @param tipoPractica El tipo de práctica (LABORAL o PROFESIONAL).
    * @param carreraId El ID de la carrera para obtener las horas requeridas.
    */
-  static async sugerirFechaTermino(
+   static async sugerirFechaTermino(
     fechaInicio: Date,
     tipoPractica: PrismaTipoPracticaEnum,
     carreraId: number
-  ) {
+  ): Promise<{ success: boolean; data?: Date; error?: string }> {
     try {
       const carrera = await prisma.carrera.findUnique({
         where: { id: carreraId },
@@ -68,14 +76,9 @@ export class PracticaService {
         return { success: false, error: 'Carrera no encontrada para calcular horas.' };
       }
 
-      let horasRequeridas: number;
-      if (tipoPractica === PrismaTipoPracticaEnum.LABORAL) {
-        horasRequeridas = carrera.horasPracticaLaboral;
-      } else if (tipoPractica === PrismaTipoPracticaEnum.PROFESIONAL) {
-        horasRequeridas = carrera.horasPracticaProfesional;
-      } else {
-        return { success: false, error: 'Tipo de práctica inválido.' };
-      }
+     const horasRequeridas = tipoPractica === PrismaTipoPracticaEnum.LABORAL 
+        ? carrera.horasPracticaLaboral 
+        : carrera.horasPracticaProfesional;
 
       if (horasRequeridas <= 0) {
         return { 
@@ -84,7 +87,7 @@ export class PracticaService {
         };
       }
 
-      const fechaTerminoSugerida = calculateFechaTerminoSugerida(fechaInicio, horasRequeridas);
+      const fechaTerminoSugerida = await calculateFechaTerminoSugerida(fechaInicio, horasRequeridas);
       return { success: true, data: fechaTerminoSugerida };
 
     } catch (error) {
