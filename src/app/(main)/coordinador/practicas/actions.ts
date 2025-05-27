@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { ZodError } from 'zod';
-import { Prisma, TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
+import { TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
 
 import { authorizeCoordinador } from '@/lib/auth/checkRole';
 import { PracticaService, calculateFechaTerminoSugerida } from '@/lib/services/practicaService';
