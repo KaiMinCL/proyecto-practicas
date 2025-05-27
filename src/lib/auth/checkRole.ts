@@ -34,3 +34,12 @@ export async function authorize(requiredRole: RoleName): Promise<UserJwtPayload>
 export async function authorizeSuperAdmin(): Promise<UserJwtPayload> {
   return authorize('SUPERADMIN' as RoleName); 
 }
+
+/**
+ * Helper específico para autorizar al Coordinador.
+ * @returns El payload del token del usuario (UserJwtPayload) si está autorizado como Coordinador.
+ * @throws Error si el usuario no está autenticado o no es Coordinador.
+ */
+export async function authorizeCoordinador(): Promise<UserJwtPayload> {
+  return authorize('COORDINADOR' as RoleName);
+}
