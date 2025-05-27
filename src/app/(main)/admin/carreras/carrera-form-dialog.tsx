@@ -40,8 +40,13 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-import { carreraSchema, type CarreraInput, type Carrera as FullCarreraType } from "@/lib/validators/carrera"; // Renombrado Sede a SedeType para evitar colisión
-import { getActiveSedesAction, createCarreraAction, type ActionResponse } from './actions';
+import { carreraSchema, type CarreraInput, type Carrera as FullCarreraType } from "@/lib/validators/carrera";
+import { 
+    getActiveSedesAction, 
+    createCarreraAction, 
+    updateCarreraAction,
+    type ActionResponse 
+} from './actions';
 
 type CarreraFormInputValues = z.input<typeof carreraSchema>;
 type ActiveSedeOption = { label: string; value: number };
@@ -89,7 +94,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
         form.reset({
           nombre: "",
           sedeId: undefined,
-          horasPracticaLaboral: undefined, 
+          horasPracticaLaboral: undefined,
           horasPracticaProfesional: undefined,
         });
       }
@@ -100,44 +105,43 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
   const onSubmitCarreraForm: SubmitHandler<CarreraInput> = async (data) => {
     setIsSubmitting(true);
     try {
-      let result: ActionResponse<FullCarreraType>; 
+      let result: ActionResponse<FullCarreraType>;
 
-      if (formMode === 'create') {
+      if (formMode === 'edit' && initialData?.id) {
+        result = await updateCarreraAction(initialData.id.toString(), data);
+      } else { 
         result = await createCarreraAction(data);
+      }
 
-        if (result.success && result.data) {
-          toast.success(`Carrera "${result.data.nombre}" creada exitosamente.`);
-          onOpenChange(false);
-        } else {
-          // Manejo de errores específico para creación
-          if (result.errors && result.errors.length > 0) {
-            result.errors.forEach(err => {
-              const fieldName = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
-              // Asegura que fieldName es una clave válida de CarreraFormInputValues (o CarreraInput)
-              if (Object.prototype.hasOwnProperty.call(form.getValues(), fieldName)) {
-                   form.setError(fieldName as keyof CarreraFormInputValues, {
-                      type: "server",
-                      message: err.message,
-                   });
-              } else {
-                   toast.error(`Error: ${err.message}`);
-              }
-            });
-             if (Object.keys(form.formState.errors).length > 0) {
-                toast.warning("Por favor, corrige los errores en el formulario.");
-             } else if(result.error) {
-                toast.error(result.error);
-             }
-          } else if (result.error) {
-            toast.error(result.error || "No se pudo crear la carrera. Inténtalo de nuevo.");
+      if (result.success && result.data) {
+        toast.success(
+          formMode === 'edit'
+            ? `Carrera "${result.data.nombre}" actualizada exitosamente.`
+            : `Carrera "${result.data.nombre}" creada exitosamente.`
+        );
+        onOpenChange(false);
+      } else {
+        // Manejo de errores
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach(err => {
+            const fieldName = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
+            if (Object.prototype.hasOwnProperty.call(form.getValues(), fieldName)) {
+                 form.setError(fieldName as keyof CarreraFormInputValues, {
+                    type: "server",
+                    message: err.message,
+                 });
+            } else {
+                 toast.error(`Error: ${err.message}`);
+            }
+          });
+          if (Object.keys(form.formState.errors).length > 0) {
+              toast.warning("Por favor, corrige los errores en el formulario.");
+          } else if(result.error) {
+              toast.error(result.error);
           }
+        } else if (result.error) {
+          toast.error(result.error || `No se pudo ${formMode === 'edit' ? 'actualizar' : 'crear'} la carrera.`);
         }
-      } else if (formMode === 'edit' && initialData?.id) {
-        // Lógica de edición (se implementará en el próximo commit)
-        console.log("Modo Edición - Lógica de actualización pendiente:", {id: initialData.id, ...data});
-        toast.info("La funcionalidad de editar se implementará en el siguiente paso.");
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simular
-        onOpenChange(false); // Cierra el diálogo por ahora
       }
     } catch (error) {
       console.error(`Error al enviar el formulario de carrera en modo ${formMode}:`, error);
@@ -167,6 +171,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitCarreraForm)} className="space-y-4 pt-2">
+            {/* Nombre */}
             <FormField
               control={form.control}
               name="nombre"
@@ -178,6 +183,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 </FormItem>
               )}
             />
+            {/* SedeId Combobox */}
             <FormField
               control={form.control}
               name="sedeId"
@@ -231,6 +237,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 </FormItem>
               )}
             />
+            {/* Horas Prácticas */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -255,6 +262,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 )}
               />
             </div>
+            {/* Footer con botones */}
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                 <XCircle className="mr-2 h-4 w-4" /> Cancelar
