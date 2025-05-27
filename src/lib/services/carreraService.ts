@@ -158,13 +158,13 @@ export class CarreraService {
         return { success: false, error: `Carrera no encontrada para ${nuevoEstado === 'ACTIVO' ? 'activar' : 'desactivar'}.` };
       }
 
-      if (carreraExists.estado === nuevoEstado) {
+       if (carreraExists.estado === nuevoEstado) {
         return { 
             success: true, 
-            data: carreraExists, // Devuelve la carrera como está
-            message: `La carrera ya se encuentra ${nuevoEstado === 'ACTIVO' ? 'activa' : 'inactiva'}.` 
+            data: carreraExists,
+            message: `La carrera ya se encuentra ${nuevoEstado === 'ACTIVO' ? 'activa' : 'inactiva'}.`
         };
-      }
+    }
 
       const carrera = await prisma.carrera.update({
         where: { id },
