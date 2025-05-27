@@ -1,3 +1,4 @@
+// src/app/(main)/admin/carreras/carreras-page-client-content.tsx
 "use client";
 
 import React from 'react';
@@ -15,9 +16,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { Carrera, CarreraInput } from '@/lib/validators/carrera'; 
+import type { Carrera, CarreraInput } from '@/lib/validators/carrera';
 import { CarrerasDataTable } from './carreras-data-table';
 import { CarreraFormDialog } from './carrera-form-dialog';
+import { ToggleCarreraStateDialog } from './toggle-carrera-state-dialog';
 
 interface CarrerasPageClientContentProps {
   initialCarreras: Carrera[];
@@ -31,21 +33,20 @@ export function CarrerasPageClientContent({
   const [isFormDialogOpen, setIsFormDialogOpen] = React.useState(false);
   const [editingCarrera, setEditingCarrera] = React.useState<(CarreraInput & {id?:number}) | undefined>(undefined);
 
-  // const [isToggleStateDialogOpen, setIsToggleStateDialogOpen] = React.useState(false);
-  // const [carreraToToggleState, setCarreraToToggleState] = React.useState<Carrera | null>(null);
+  // Estado para el diálogo de activar/desactivar
+  const [isToggleStateDialogOpen, setIsToggleStateDialogOpen] = React.useState(false);
+  const [carreraToToggleState, setCarreraToToggleState] = React.useState<Carrera | null>(null);
 
   const handleOpenCreateDialog = () => {
-    setEditingCarrera(undefined); // Sin datos iniciales para creación
+    setEditingCarrera(undefined);
     setIsFormDialogOpen(true);
   };
 
   const handleOpenEditDialog = (carreraToEdit: Carrera) => {
-    // Mapea la 'Carrera' completa a 'CarreraInput & {id}'
-    // CarreraInput espera sedeId, no el objeto sede.
     const carreraFormData: CarreraInput & { id: number } = {
         id: carreraToEdit.id,
         nombre: carreraToEdit.nombre,
-        sedeId: carreraToEdit.sedeId, // CarreraInput espera sedeId numérico
+        sedeId: carreraToEdit.sedeId,
         horasPracticaLaboral: carreraToEdit.horasPracticaLaboral,
         horasPracticaProfesional: carreraToEdit.horasPracticaProfesional,
     };
@@ -57,8 +58,15 @@ export function CarrerasPageClientContent({
     setIsFormDialogOpen(false);
   };
 
-  // const handleOpenToggleStateDialog = (carrera: Carrera) => { ... };
-  // const handleCloseToggleStateDialog = () => { ... };
+  // Handlers para el diálogo de activar/desactivar
+  const handleOpenToggleStateDialog = (carrera: Carrera) => {
+    setCarreraToToggleState(carrera);
+    setIsToggleStateDialogOpen(true);
+  };
+
+  const handleCloseToggleStateDialog = () => {
+    setIsToggleStateDialogOpen(false);
+  };
 
   const tableColumns: ColumnDef<Carrera>[] = [
     {
@@ -109,8 +117,10 @@ export function CarrerasPageClientContent({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  // onClick={() => handleOpenToggleStateDialog(carrera)}
-                  className={carrera.estado === "ACTIVO" ? "text-red-600 hover:!text-red-600 dark:hover:!text-red-500 focus:text-red-600 dark:focus:text-red-500" : "text-green-600 hover:!text-green-600 dark:hover:!text-green-500 focus:text-green-600 dark:focus:text-green-500"}
+                  onClick={() => handleOpenToggleStateDialog(carrera)} // <--- Conectado
+                  className={carrera.estado === "ACTIVO" 
+                    ? "text-red-600 hover:!text-red-600 dark:hover:!text-red-500 focus:text-red-600 dark:focus:text-red-500" 
+                    : "text-green-600 hover:!text-green-600 dark:hover:!text-green-500 focus:text-green-600 dark:focus:text-green-500"}
                 >
                   {carrera.estado === "ACTIVO" ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
                   {carrera.estado === "ACTIVO" ? "Desactivar" : "Activar"}
@@ -132,7 +142,7 @@ export function CarrerasPageClientContent({
         </Button>
       </div>
 
-      {initialFetchError && ( /* Tu Alerta de error */
+      {initialFetchError && (
          <Alert variant="destructive" className="mb-4">
            <Terminal className="h-4 w-4" />
            <AlertTitle>Error al Cargar Datos</AlertTitle>
@@ -153,7 +163,12 @@ export function CarrerasPageClientContent({
         initialData={editingCarrera}
       />
 
-      {/* <ToggleCarreraStateDialog ... /> */}
+      {/* Renderiza el diálogo de activar/desactivar */}
+      <ToggleCarreraStateDialog
+        open={isToggleStateDialogOpen}
+        onOpenChange={handleCloseToggleStateDialog}
+        carrera={carreraToToggleState}
+      />
     </>
   );
 }
