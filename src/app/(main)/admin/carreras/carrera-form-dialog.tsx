@@ -40,8 +40,8 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-import { carreraSchema, type CarreraInput } from "@/lib/validators/carrera";
-import { getActiveSedesAction, type ActionResponse } from './actions';
+import { carreraSchema, type CarreraInput, type Carrera as FullCarreraType } from "@/lib/validators/carrera"; // Renombrado Sede a SedeType para evitar colisión
+import { getActiveSedesAction, createCarreraAction, type ActionResponse } from './actions';
 
 type CarreraFormInputValues = z.input<typeof carreraSchema>;
 type ActiveSedeOption = { label: string; value: number };
@@ -49,13 +49,13 @@ type ActiveSedeOption = { label: string; value: number };
 interface CarreraFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData?: CarreraInput & { id?: number };
+  initialData?: CarreraInput & { id?: number }; 
 }
 
 export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [activeSedes, setActiveSedes] = React.useState<ActiveSedeOption[]>([]);
-  const [isSedesLoading, setIsSedesLoading] = React.useState(true); 
+  const [isSedesLoading, setIsSedesLoading] = React.useState(true);
   const [sedePopoverOpen, setSedePopoverOpen] = React.useState(false);
 
   const formMode = initialData?.id ? 'edit' : 'create';
@@ -70,19 +70,14 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
       getActiveSedesAction()
         .then(response => {
           if (response.success && response.data) {
-            setActiveSedes(response.data.map(sede => ({ label: sede.nombre, value: sede.id })));
+            setActiveSedes(response.data.map(s => ({ label: s.nombre, value: s.id })));
           } else {
             toast.error(response.error || "No se pudieron cargar las sedes activas.");
-            setActiveSedes([]);
           }
         })
-        .catch(err => {
-          toast.error("Error crítico al cargar sedes activas.");
-          console.error(err);
-        })
+        .catch(err => toast.error("Error crítico al cargar sedes."))
         .finally(() => setIsSedesLoading(false));
 
-      // Configurar valores del formulario
       if (formMode === 'edit' && initialData) {
         form.reset({
           nombre: initialData.nombre,
@@ -90,11 +85,11 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
           horasPracticaLaboral: initialData.horasPracticaLaboral,
           horasPracticaProfesional: initialData.horasPracticaProfesional,
         });
-      } else { // Modo creación
+      } else {
         form.reset({
           nombre: "",
-          sedeId: undefined, // Para que el placeholder del combobox funcione
-          horasPracticaLaboral: undefined,
+          sedeId: undefined,
+          horasPracticaLaboral: undefined, 
           horasPracticaProfesional: undefined,
         });
       }
@@ -104,15 +99,57 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
 
   const onSubmitCarreraForm: SubmitHandler<CarreraInput> = async (data) => {
     setIsSubmitting(true);
-    console.log(`Valores del formulario (Carrera a ${formMode === 'edit' ? 'Editar' : 'Crear'} - UI):`, data);
-    // Lógica de envío a Server Action en el próximo commit
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simular
-    setIsSubmitting(false);
-    onOpenChange(false);
+    try {
+      let result: ActionResponse<FullCarreraType>; 
+
+      if (formMode === 'create') {
+        result = await createCarreraAction(data);
+
+        if (result.success && result.data) {
+          toast.success(`Carrera "${result.data.nombre}" creada exitosamente.`);
+          onOpenChange(false);
+        } else {
+          // Manejo de errores específico para creación
+          if (result.errors && result.errors.length > 0) {
+            result.errors.forEach(err => {
+              const fieldName = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
+              // Asegura que fieldName es una clave válida de CarreraFormInputValues (o CarreraInput)
+              if (Object.prototype.hasOwnProperty.call(form.getValues(), fieldName)) {
+                   form.setError(fieldName as keyof CarreraFormInputValues, {
+                      type: "server",
+                      message: err.message,
+                   });
+              } else {
+                   toast.error(`Error: ${err.message}`);
+              }
+            });
+             if (Object.keys(form.formState.errors).length > 0) {
+                toast.warning("Por favor, corrige los errores en el formulario.");
+             } else if(result.error) {
+                toast.error(result.error);
+             }
+          } else if (result.error) {
+            toast.error(result.error || "No se pudo crear la carrera. Inténtalo de nuevo.");
+          }
+        }
+      } else if (formMode === 'edit' && initialData?.id) {
+        // Lógica de edición (se implementará en el próximo commit)
+        console.log("Modo Edición - Lógica de actualización pendiente:", {id: initialData.id, ...data});
+        toast.info("La funcionalidad de editar se implementará en el siguiente paso.");
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simular
+        onOpenChange(false); // Cierra el diálogo por ahora
+      }
+    } catch (error) {
+      console.error(`Error al enviar el formulario de carrera en modo ${formMode}:`, error);
+      toast.error("Ocurrió un error inesperado. Por favor, inténtalo más tarde.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const dialogTitle = formMode === 'edit' ? "Editar Carrera" : "Crear Nueva Carrera";
   const submitButtonText = formMode === 'edit' ? "Guardar Cambios" : "Guardar Carrera";
+  const submittingButtonText = formMode === 'edit' ? "Guardando Cambios..." : "Guardando...";
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
@@ -167,7 +204,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] max-h-[--radix-popover-content-available-height] p-0">
-                      <Command>
+                      <Command filter={(value, search) => value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0}>
                         <CommandInput placeholder="Buscar sede..." />
                         <CommandList>
                           <CommandEmpty>{isSedesLoading ? "Cargando..." : "No se encontraron sedes."}</CommandEmpty>
@@ -201,7 +238,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Horas P. Laboral</FormLabel>
-                    <FormControl><Input type="number" placeholder="Ej: 240" {...field} value={field.value ?? ''} disabled={isSubmitting} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} /></FormControl>
+                    <FormControl><Input type="number" placeholder="Ej: 240" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} disabled={isSubmitting} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -212,7 +249,7 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Horas P. Profesional</FormLabel>
-                    <FormControl><Input type="number" placeholder="Ej: 360" {...field} value={field.value ?? ''} disabled={isSubmitting} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)}/></FormControl>
+                    <FormControl><Input type="number" placeholder="Ej: 360" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} disabled={isSubmitting} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -222,8 +259,8 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                 <XCircle className="mr-2 h-4 w-4" /> Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting || isSedesLoading}>
-                <Save className="mr-2 h-4 w-4" /> {isSubmitting ? "Guardando..." : submitButtonText}
+              <Button type="submit" disabled={isSubmitting || (formMode === 'create' && isSedesLoading)}>
+                <Save className="mr-2 h-4 w-4" /> {isSubmitting ? submittingButtonText : submitButtonText}
               </Button>
             </DialogFooter>
           </form>
