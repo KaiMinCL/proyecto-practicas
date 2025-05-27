@@ -43,3 +43,12 @@ export async function authorizeSuperAdmin(): Promise<UserJwtPayload> {
 export async function authorizeCoordinador(): Promise<UserJwtPayload> {
   return authorize('COORDINADOR' as RoleName);
 }
+
+/**
+ * Helper específico para autorizar al Alumno.
+ * @returns El payload del token del usuario (UserJwtPayload) si está autorizado como Alumno.
+ * @throws Error si el usuario no está autenticado o no es Alumno.* 
+ */
+export async function authorizeAlumno(): Promise<UserJwtPayload> {
+  return authorize('ALUMNO' as RoleName);
+}
