@@ -6,85 +6,76 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+import { 
+    Card, 
+    CardContent, 
+    CardDescription, 
+    CardFooter, 
+    CardHeader, 
+    CardTitle
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+import { 
+    Form, 
+    FormControl, 
+    FormDescription, 
+    FormField, 
+    FormItem, 
+    FormLabel, 
+    FormMessage 
 } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { 
+    Popover, 
+    PopoverContent, 
+    PopoverTrigger
+ } from "@/components/ui/popover";
+import { 
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList
+ } from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { 
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue 
 } from "@/components/ui/select";
 import { Check, ChevronsUpDown, Save, CalendarIcon, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
-import {
-  iniciarPracticaSchema,
-  type IniciarPracticaInput,
+import { 
+    iniciarPracticaSchema, 
+    type IniciarPracticaInput,
+    type PracticaConDetalles
 } from "@/lib/validators/practica";
-import {
-  getAlumnosParaFormAction,
-  getDocentesParaFormAction,
+import { 
+  getAlumnosParaFormAction, 
+  getDocentesParaFormAction, 
   sugerirFechaTerminoAction,
+  iniciarPracticaAction,
   type AlumnoOption,
   type DocenteOption,
-  // type ActionResponse, // No se usa directamente aquí todavía para el submit
-} from "../actions"; // Ajusta la ruta si es necesario
-import { TipoPractica as PrismaTipoPracticaEnum } from "@prisma/client";
+  type ActionResponse
+} from '../actions';
+import { TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
 
 type IniciarPracticaFormValues = z.input<typeof iniciarPracticaSchema>;
 
 export function IniciarPracticaForm() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
   const [alumnosOptions, setAlumnosOptions] = React.useState<AlumnoOption[]>([]);
-  const [docentesOptions, setDocentesOptions] = React.useState<DocenteOption[]>(
-    []
-  );
-
+  const [docentesOptions, setDocentesOptions] = React.useState<DocenteOption[]>([]);
   const [isLoadingAlumnos, setIsLoadingAlumnos] = React.useState(true);
   const [isLoadingDocentes, setIsLoadingDocentes] = React.useState(false);
-  const [
-    isLoadingSugerenciaFechaTermino,
-    setIsLoadingSugerenciaFechaTermino,
-  ] = React.useState(false);
-
-  const [selectedAlumnoData, setSelectedAlumnoData] =
-    React.useState<AlumnoOption | null>(null);
-  const [suggestedFechaTermino, setSuggestedFechaTermino] =
-    React.useState<Date | null>(null);
-
+  const [isLoadingSugerenciaFechaTermino, setIsLoadingSugerenciaFechaTermino] = React.useState(false);
+  const [selectedAlumnoData, setSelectedAlumnoData] = React.useState<AlumnoOption | null>(null);
+  const [suggestedFechaTermino, setSuggestedFechaTermino] = React.useState<Date | null>(null);
   const [alumnoPopoverOpen, setAlumnoPopoverOpen] = React.useState(false);
   const [docentePopoverOpen, setDocentePopoverOpen] = React.useState(false);
 
@@ -102,13 +93,9 @@ export function IniciarPracticaForm() {
   React.useEffect(() => {
     setIsLoadingAlumnos(true);
     getAlumnosParaFormAction()
-      .then((response) => {
-        if (response.success && response.data) {
-          setAlumnosOptions(response.data);
-        } else {
-          toast.error(response.error || "No se pudieron cargar los alumnos.");
-          setAlumnosOptions([]);
-        }
+      .then(response => {
+        if (response.success && response.data) setAlumnosOptions(response.data);
+        else toast.error(response.error || "No se pudieron cargar los alumnos.");
       })
       .catch(() => toast.error("Error crítico al cargar alumnos."))
       .finally(() => setIsLoadingAlumnos(false));
@@ -120,15 +107,9 @@ export function IniciarPracticaForm() {
     if (selectedAlumnoData?.carreraId) {
       setIsLoadingDocentes(true);
       getDocentesParaFormAction({ carreraId: selectedAlumnoData.carreraId })
-        .then((response) => {
-          if (response.success && response.data) {
-            setDocentesOptions(response.data);
-          } else {
-            toast.error(
-              response.error ||
-                "No se pudieron cargar los docentes para la carrera seleccionada."
-            );
-          }
+        .then(response => {
+          if (response.success && response.data) setDocentesOptions(response.data);
+          else toast.error(response.error || "No se pudieron cargar docentes.");
         })
         .catch(() => toast.error("Error crítico al cargar docentes."))
         .finally(() => setIsLoadingDocentes(false));
@@ -138,75 +119,97 @@ export function IniciarPracticaForm() {
   const watchedFechaInicio = form.watch("fechaInicio");
   const watchedTipoPractica = form.watch("tipoPractica");
 
+  // Efecto para sugerir fecha de término
   React.useEffect(() => {
-    const fechaInicio = watchedFechaInicio
-      ? new Date(watchedFechaInicio)
-      : null;
+    const fechaInicioValue = watchedFechaInicio;
+    let fechaInicioDate: Date | null = null;
+    if (fechaInicioValue) {
+        fechaInicioDate = new Date(fechaInicioValue);
+    }
 
-    if (
-      fechaInicio &&
-      !isNaN(fechaInicio.getTime()) &&
-      watchedTipoPractica &&
-      selectedAlumnoData?.carreraId
-    ) {
+    if (fechaInicioDate && !isNaN(fechaInicioDate.getTime()) && watchedTipoPractica && selectedAlumnoData?.carreraId) {
       setIsLoadingSugerenciaFechaTermino(true);
-      setSuggestedFechaTermino(null);
+      setSuggestedFechaTermino(null); 
 
       sugerirFechaTerminoAction(
-        format(fechaInicio, "yyyy-MM-dd"),
+        format(fechaInicioDate, "yyyy-MM-dd"), // Asegura formato yyyy-MM-dd
         watchedTipoPractica as PrismaTipoPracticaEnum,
         selectedAlumnoData.carreraId
       )
-        .then((response) => {
-          if (response.success && response.data?.fechaTerminoSugerida) {
-            const suggestedDateParts = response.data.fechaTerminoSugerida.split('-').map(Number);
-            // Crear la fecha en UTC para evitar problemas de zona horaria al convertir de string YYYY-MM-DD
-            const utcSuggestedDate = new Date(Date.UTC(suggestedDateParts[0], suggestedDateParts[1] - 1, suggestedDateParts[2]));
-            setSuggestedFechaTermino(utcSuggestedDate);
-            form.setValue("fechaTermino", utcSuggestedDate, {
-              shouldValidate: true,
-            });
-          } else {
-            toast.error(
-              response.error || "No se pudo sugerir la fecha de término."
-            );
-            form.resetField("fechaTermino");
-          }
-        })
-        .catch(() => toast.error("Error crítico al sugerir fecha de término."))
-        .finally(() => setIsLoadingSugerenciaFechaTermino(false));
+      .then(response => {
+        if (response.success && response.data?.fechaTerminoSugerida) {
+          const parts = response.data.fechaTerminoSugerida.split('-');
+          const utcDate = new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
+          setSuggestedFechaTermino(utcDate);
+          form.setValue("fechaTermino", utcDate, { shouldValidate: true });
+        } else {
+          toast.error(response.error || "No se pudo sugerir la fecha de término.");
+          form.resetField("fechaTermino");
+        }
+      })
+      .catch(() => toast.error("Error crítico al sugerir fecha de término."))
+      .finally(() => setIsLoadingSugerenciaFechaTermino(false));
     } else {
       setSuggestedFechaTermino(null);
     }
   }, [watchedFechaInicio, watchedTipoPractica, selectedAlumnoData, form]);
 
-  const onSubmitPractica: SubmitHandler<IniciarPracticaInput> = async (
-    data
-  ) => {
-    if (!selectedAlumnoData) {
-      toast.error("Por favor, seleccione un alumno.");
-      form.setError("alumnoId", {
-        type: "manual",
-        message: "Alumno es requerido.",
-      });
-      return;
+  const onSubmitPractica: SubmitHandler<IniciarPracticaInput> = async (data) => {
+    if (!selectedAlumnoData?.carreraId) {
+        toast.error("Información de carrera del alumno no disponible. Por favor, re-seleccione el alumno.");
+        form.setError("alumnoId", { type: "manual", message: "Información de carrera no encontrada." });
+        return;
     }
     setIsSubmitting(true);
-    const submissionData = { ...data };
-    console.log(
-      "Datos del Formulario (Acta 1 - Coordinador UI):",
-      submissionData
-    );
-    console.log(
-      "Información del Alumno seleccionado:",
-      JSON.stringify(selectedAlumnoData, null, 2)
-    );
-    toast.info(
-      "Funcionalidad de envío pendiente. Datos mostrados en consola."
-    );
+    
+    try {
+      // Llamamos a la Server Action para iniciar la práctica
+      const result: ActionResponse<PracticaConDetalles> = await iniciarPracticaAction(data, selectedAlumnoData.carreraId);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
+      if (result.success && result.data) {
+        toast.success(`Registro de práctica para "${result.data.alumno?.usuario.nombre} ${result.data.alumno?.usuario.apellido}" iniciado exitosamente. Estado: PENDIENTE.`);
+        form.reset({
+            alumnoId: undefined,
+            docenteId: undefined,
+            tipoPractica: undefined,
+            fechaInicio: undefined,
+            fechaTermino: undefined,
+        });
+        // Limpiamos los estados relacionados
+        setSelectedAlumnoData(null);
+        setDocentesOptions([]);
+        setSuggestedFechaTermino(null);
+      } else {
+        // Manejo de errores devueltos por la Server Action
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach(err => {
+            const fieldName = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
+            if (Object.prototype.hasOwnProperty.call(form.getValues(), fieldName)) {
+                 form.setError(fieldName as keyof IniciarPracticaFormValues, {
+                    type: "server",
+                    message: err.message,
+                 });
+            } else {
+                 toast.error(`Error: ${err.message}`);
+            }
+          });
+          if (Object.keys(form.formState.errors).length > 0) {
+              toast.warning("Por favor corrige los errores en el formulario.");
+          } else if(result.error) {
+              toast.error(result.error);
+          }
+        } else if (result.error) {
+          toast.error(result.error || "No se pudo iniciar el registro de la práctica.");
+        } else {
+          toast.error("Ocurrió un error desconocido al iniciar la práctica.");
+        }
+      }
+    } catch (error) {
+      console.error("Error al enviar el formulario de inicio de práctica:", error);
+      toast.error("Ocurrió un error inesperado. Por favor, inténtalo más tarde.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
