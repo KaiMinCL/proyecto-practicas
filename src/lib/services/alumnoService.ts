@@ -115,4 +115,65 @@ export class AlumnoService {
       };
     }
   }
+
+  /**
+   * Obtiene una lista de alumnos formateada para selección en formularios.
+   * Incluye RUT, nombre completo, y detalles de su carrera y sede.
+   */
+  static async getAlumnosParaSeleccion() {
+    try {
+      const alumnos = await prisma.alumno.findMany({
+        where: {
+          usuario: {
+            estado: 'ACTIVO', 
+          },
+        },
+        select: {
+          id: true,
+          usuario: {
+            select: {
+              rut: true,
+              nombre: true,
+              apellido: true,
+            },
+          },
+          carrera: {
+            select: {
+              id: true,
+              nombre: true,
+              horasPracticaLaboral: true,
+              horasPracticaProfesional: true,
+              sede: {
+                select: {
+                  id: true,
+                  nombre: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: [
+          { usuario: { apellido: 'asc' } },
+          { usuario: { nombre: 'asc' } },
+        ],
+      });
+
+      const formattedAlumnos = alumnos.map(a => ({
+        value: a.id,
+        label: `${a.usuario.apellido}, <span class="math-inline">\{a\.usuario\.nombre\} \(</span>{a.usuario.rut}) - Carrera: ${a.carrera.nombre} (Sede: ${a.carrera.sede.nombre})`,
+        rut: a.usuario.rut,
+        nombreCompleto: `${a.usuario.nombre} ${a.usuario.apellido}`,
+        carreraId: a.carrera.id,
+        carreraNombre: a.carrera.nombre,
+        carreraHorasLaboral: a.carrera.horasPracticaLaboral,
+        carreraHorasProfesional: a.carrera.horasPracticaProfesional,
+        sedeIdDeCarrera: a.carrera.sede.id,
+        sedeNombreDeCarrera: a.carrera.sede.nombre,
+      }));
+      return { success: true, data: formattedAlumnos };
+    } catch (error) {
+      console.error('Error al obtener alumnos para selección:', error);
+      return { success: false, error: 'No se pudieron obtener los alumnos.' };
+    }
+  }
 }
