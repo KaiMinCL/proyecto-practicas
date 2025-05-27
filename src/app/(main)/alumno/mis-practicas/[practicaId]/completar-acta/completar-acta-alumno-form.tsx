@@ -1,4 +1,3 @@
-// src/app/(main)/alumno/mis-practicas/[practicaId]/completar-acta/completar-acta-alumno-form.tsx
 "use client";
 
 import React from "react";
@@ -21,7 +20,9 @@ import {
     completarActaAlumnoSchema, 
     type PracticaConDetalles 
 } from "@/lib/validators/practica";
-import { TipoPractica as PrismaTipoPracticaEnum } from "@prisma/client";
+import { submitActaAlumnoAction, type ActionResponse } from "../../../practicas/actions";
+import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoPracticaEnum } from "@prisma/client";
+import router from "next/router";
 
 
 interface CompletarActaAlumnoFormProps {
@@ -33,7 +34,7 @@ type FormInputValues = z.input<typeof completarActaAlumnoSchema>;
 
 export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const formDisabled = practica.fueraDePlazo || practica.estado !== 'PENDIENTE';
+  const formDisabled = practica.fueraDePlazo || practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE;
 
   const form = useForm<FormInputValues, unknown, CompletarActaAlumnoData>({
     resolver: zodResolver(completarActaAlumnoSchema),
@@ -51,17 +52,52 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
   });
 
   const onSubmitActa: SubmitHandler<CompletarActaAlumnoData> = async (data) => {
+    if (formDisabled) {
+      toast.error("El formulario está bloqueado y no se puede enviar.");
+      return;
+    }
     setIsSubmitting(true);
-    console.log("Datos del Acta 1 completados por Alumno (UI Solamente):", data);
-    console.log("Para Práctica ID:", practica.id);
-
-    // Aquí se llamaría a la función de acción para enviar los datos al backend
     
-    toast.info("Funcionalidad de envío pendiente. Datos mostrados en consola.");
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simula un retraso para la demostración
-    setIsSubmitting(false);
-  };
+    try {
+      const result: ActionResponse<PracticaConDetalles> = await submitActaAlumnoAction(practica.id, data);
 
+      if (result.success && result.data) {
+        toast.success(result.message || "Acta 1 completada y enviada para validación del docente.");
+        // Deshabilitar el formulario permanentemente después de un envío exitoso aquí.
+        form.reset(data, { keepValues: true });
+        // Redireccionar al usuario a "Mis Prácticas"
+        router.push('/alumno/mis-practicas');
+      } else {
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach(err => {
+            const fieldName = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
+            if (Object.prototype.hasOwnProperty.call(form.getValues(), fieldName)) {
+                 form.setError(fieldName as keyof FormInputValues, {
+                    type: "server",
+                    message: err.message,
+                 });
+            } else {
+                 toast.error(`Error: ${err.message}`);
+            }
+          });
+          if (Object.keys(form.formState.errors).length > 0) {
+              toast.warning("Por favor corrige los errores en el formulario.");
+          } else if(result.error) { // Si no hay errores de campo pero sí un error general del servidor
+              toast.error(result.error);
+          }
+        } else if (result.error) {
+          toast.error(result.error || "No se pudo guardar la información del acta.");
+        } else {
+          toast.error("Ocurrió un error desconocido al guardar el acta.");
+        }
+      }
+    } catch (error) {
+      console.error("Error al enviar el formulario del Acta 1:", error);
+      toast.error("Ocurrió un error inesperado al enviar el acta. Por favor, inténtalo más tarde.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Form {...form}>
