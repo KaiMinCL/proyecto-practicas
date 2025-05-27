@@ -161,10 +161,9 @@ export async function activateCarreraAction(id: string): Promise<ActionResponse<
     }
 
     const result = await CarreraService.activateCarrera(carreraId);
-
     if (result.success && result.data) {
       revalidatePath('/admin/carreras');
-      return { success: true, data: result.data as Carrera, message: (result as any).message };
+      return { success: true, data: result.data as Carrera, message: result.message };
     }
     return { success: false, error: result.error || 'Error desconocido al activar la carrera.' };
   } catch (error) {
