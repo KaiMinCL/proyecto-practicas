@@ -44,6 +44,15 @@ model Sede {
   documentos DocumentoApoyo[]
 }
 
+model DocenteCarrera {
+  docenteId Int
+  carreraId Int
+  docente   Docente @relation(fields: [docenteId], references: [id], onDelete: Cascade)
+  carrera   Carrera @relation(fields: [carreraId], references: [id], onDelete: Cascade)
+
+  @@id([docenteId, carreraId])
+}
+
 model Carrera {
   id                       Int              @id @default(autoincrement())
   nombre                   String
@@ -52,6 +61,7 @@ model Carrera {
   horasPracticaLaboral     Int
   horasPracticaProfesional Int
   estado                   Estado           @default(ACTIVO)
+  docentes                 DocenteCarrera[]
   alumnos                  Alumno[]
   practicas                Practica[]
   documentos               DocumentoApoyo[]
@@ -74,6 +84,7 @@ model Docente {
   usuarioId Int        @unique
   usuario   Usuario    @relation(fields: [usuarioId], references: [id])
   practicas Practica[]
+  carreras  DocenteCarrera[]
 }
 
 model Empleador {
