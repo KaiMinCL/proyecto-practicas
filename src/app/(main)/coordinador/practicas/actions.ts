@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { ZodError } from 'zod';
-import { TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
+import { Prisma, TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
 
 import { authorizeCoordinador } from '@/lib/auth/checkRole';
 import { PracticaService, calculateFechaTerminoSugerida } from '@/lib/services/practicaService';
@@ -115,7 +115,7 @@ export async function iniciarPracticaAction(
         errors: error.errors.map((e) => ({ field: e.path, message: e.message })),
       };
     }
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2003') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
             const fieldName = (error.meta as { field_name?: string })?.field_name || 'desconocido';
             return { success: false, error: `Error de referencia: El campo '${fieldName}' apunta a un registro inexistente.` };
         }
