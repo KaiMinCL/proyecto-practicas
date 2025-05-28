@@ -146,7 +146,7 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
     formData.append("file", selectedFile);
 
     try {
-      const uploadResponse = await fetch('/api/upload', { // Llama a tu API Route
+      const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -266,21 +266,28 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
                   <FormLabel>Actualizar Foto de Perfil</FormLabel>
                   <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6 p-4 border rounded-lg bg-background">
                     {previewUrl ? (
-                      <Image
-                        src={previewUrl}
-                        alt="Vista previa de foto de perfil"
-                        width={80}
-                        height={80}
-                        className="rounded-full object-cover h-20 w-20 border bg-muted"
+                      <Image 
+                        src={previewUrl} 
+                        alt="Vista previa de foto de perfil" 
+                        width={80} 
+                        height={80} 
+                        className="rounded-full object-cover h-20 w-20 border bg-muted" 
                         onError={() => {
-                          setPreviewUrl(null); 
-                          toast.error("No se pudo cargar la imagen de perfil actual.");
+                            // Si la URL está rota, intenta volver al placeholder
+                            // y si era un blob, ya se habrá revocado o se limpiará.
+                            if (previewUrl !== practica.alumno?.fotoUrl) { // si era un blob y falló
+                                setPreviewUrl(practica.alumno?.fotoUrl || null);
+                            } else { // si la fotoUrl de la BD falló
+                                setPreviewUrl(null);
+                            }
+                            if (selectedFile) toast.error("El archivo seleccionado no se puede previsualizar.");
+                            else toast.error("No se pudo cargar la imagen de perfil actual.");
                         }}
                       />
                     ) : (
                       <UserCircle2 className="h-20 w-20 text-gray-300 dark:text-gray-600 border rounded-full p-1 bg-muted" />
                     )}
-                    <div className="flex-grow space-y-2">
+                     <div className="flex-grow space-y-2">
                       <input
                         type="file"
                         ref={fileInputRef}
@@ -289,7 +296,7 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
                         onChange={handleFileChange}
                         disabled={isOverallDisabled}
                       />
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                         <Button
                           type="button"
                           variant="outline"
@@ -298,7 +305,7 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
                           disabled={isOverallDisabled}
                         >
                           <UploadCloud className="mr-2 h-4 w-4" />
-                          {selectedFile ? "Cambiar Foto" : "Seleccionar Foto"}
+                          {selectedFile ? "Cambiar Selección" : "Seleccionar Foto"}
                         </Button>
                         {selectedFile && (
                           <Button
@@ -307,13 +314,26 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
                             size="sm"
                             onClick={handleRemoveSelectedFile}
                             disabled={isOverallDisabled}
-                            className="text-xs text-muted-foreground hover:text-destructive"
+                            className="text-xs text-muted-foreground hover:text-destructive px-2"
                           >
-                            <Trash2 className="mr-1 h-3 w-3" /> Quitar selección
+                             <Trash2 className="mr-1 h-3 w-3" /> Quitar
                           </Button>
                         )}
                       </div>
-                       <FormDescription className="text-xs">
+                      {/* --- BOTÓN PARA SUBIR LA FOTO SELECCIONADA --- */}
+                      {selectedFile && !fileError && (
+                        <Button 
+                          type="button"
+                          onClick={handlePhotoUpload}
+                          size="sm" 
+                          disabled={isUploadingPhoto || isOverallDisabled} 
+                          className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto mt-2"
+                        >
+                          <UploadCloud className="mr-2 h-4 w-4" />
+                          {isUploadingPhoto ? "Subiendo foto..." : "Confirmar y Subir Foto"}
+                        </Button>
+                      )}
+                       <FormDescription className="text-xs pt-1">
                         {ALLOWED_IMAGE_EXTENSIONS_STRING}. Máx {MAX_FILE_SIZE_KB_FOTO_PERFIL}KB.
                       </FormDescription>
                       {fileError && <p className="text-xs text-destructive mt-1">{fileError}</p>}
