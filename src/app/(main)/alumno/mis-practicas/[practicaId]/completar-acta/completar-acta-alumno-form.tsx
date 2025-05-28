@@ -34,26 +34,20 @@ import {
     UserCircle2, 
     UploadCloud, 
     Trash2, 
-    Settings, 
-    CalendarDays, 
-    ClipboardList,
-    User as UserIcon // Renombrado para evitar conflicto con el hook User
+    User
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 
 import { 
     completarActaAlumnoSchema, 
     type CompletarActaAlumnoData,
     type PracticaConDetalles 
 } from "@/lib/validators/practica";
-// Asegúrate que la ruta a actions sea correcta desde este archivo
-
+ 
 import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoPracticaEnum } from "@prisma/client";
-import { ActionResponse, submitActaAlumnoAction } from "../../../practicas/actions";
+import { ActionResponse, updateAlumnoFotoUrlAction, submitActaAlumnoAction } from "../../../practicas/actions";
 
-// Constantes para validación de la foto de perfil
 const MAX_FILE_SIZE_KB_FOTO_PERFIL = 256;
 const MAX_FILE_SIZE_BYTES_FOTO_PERFIL = MAX_FILE_SIZE_KB_FOTO_PERFIL * 1024;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
@@ -83,19 +77,19 @@ const InfoItem: React.FC<{ label: string; value?: string | number | boolean | nu
   return ( <div className="py-2"> <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</dt> <dd className="mt-1 text-sm text-foreground">{displayValue}</dd> </div> );
 };
 
-export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormProps) {
-  const routerNav = useRouter(); // Renombrado para evitar conflicto con props
-  const [isSubmitting, setIsSubmitting] = React.useState(false); // Para el submit del formulario principal del Acta 1
+export function CompletarActaAlumnoForm({ practica: initialPractica }: CompletarActaAlumnoFormProps) {
+  const routerNav = useRouter();
+  const [practica, setPractica] = React.useState(initialPractica); // Para actualizar fotoUrl localmente
+  const [isSubmittingActa, setIsSubmittingActa] = React.useState(false);
   const formDisabled = practica.fueraDePlazo || practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE;
 
-  // Estados para la foto de perfil
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(practica.alumno?.fotoUrl || null);
   const [fileError, setFileError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  // const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false); // Estado para subida de foto
 
-  const form = useForm<FormInputValues, unknown, CompletarActaAlumnoData>({
+  const form = useForm<FormInputValues, any, CompletarActaAlumnoData>({
     resolver: zodResolver(completarActaAlumnoSchema),
     defaultValues: {
       direccionCentro: practica.direccionCentro || "",
@@ -111,51 +105,83 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
   });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFileError(null); // Limpiar errores previos
+    setFileError(null);
     const file = event.target.files?.[0];
-
-    if (fileInputRef.current) {
-        fileInputRef.current.value = ""; // Permite reseleccionar el mismo archivo
-    }
+    if (fileInputRef.current) { fileInputRef.current.value = ""; }
 
     if (file) {
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
         const errorMsg = `Tipo de archivo no válido. Permitidos: ${ALLOWED_IMAGE_EXTENSIONS_STRING}.`;
-        toast.error(errorMsg);
-        setFileError(errorMsg);
-        setSelectedFile(null);
-        // No revertir previewUrl aquí para que el usuario vea el error
-        return;
+        toast.error(errorMsg); setFileError(errorMsg); setSelectedFile(null); return;
       }
-
       if (file.size > MAX_FILE_SIZE_BYTES_FOTO_PERFIL) {
         const errorMsg = `El archivo excede ${MAX_FILE_SIZE_KB_FOTO_PERFIL} KB. (Actual: ${(file.size / 1024).toFixed(1)} KB)`;
-        toast.error(errorMsg);
-        setFileError(errorMsg);
-        setSelectedFile(null);
-        return;
+        toast.error(errorMsg); setFileError(errorMsg); setSelectedFile(null); return;
       }
-
-      // Si hay una URL de preview anterior (blob), revocarla
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
-      }
-
+      if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
       setSelectedFile(file);
-      const newPreviewUrl = URL.createObjectURL(file);
-      setPreviewUrl(newPreviewUrl);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const handleRemoveSelectedFile = () => {
-    if (previewUrl && previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
     setSelectedFile(null);
-    setPreviewUrl(practica.alumno?.fotoUrl || null); // Volver a la foto guardada o a nada
+    setPreviewUrl(practica.alumno?.fotoUrl || null);
     setFileError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!selectedFile) {
+      toast.error("Por favor, selecciona una foto para subir.");
+      return;
+    }
+    if (fileError) {
+      toast.error(fileError);
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const uploadResponse = await fetch('/api/upload', { // Llama a tu API Route
+        method: 'POST',
+        body: formData,
+      });
+      const uploadResult = await uploadResponse.json();
+
+      if (!uploadResponse.ok || !uploadResult.success || !uploadResult.url) {
+        toast.error(uploadResult.error || "Error al subir la imagen al almacenamiento.");
+        setIsUploadingPhoto(false);
+        return;
+      }
+
+      const blobUrl: string = uploadResult.url;
+      toast.info("Imagen subida correctamente. Actualizando perfil...");
+
+      const updateResult: ActionResponse<{ fotoUrl: string | null }> = await updateAlumnoFotoUrlAction(blobUrl);
+
+      if (updateResult.success && updateResult.data) {
+        toast.success("¡Foto de perfil actualizada exitosamente!");
+        setPreviewUrl(updateResult.data.fotoUrl); // Actualiza la vista previa con la URL final
+        setSelectedFile(null); // Limpia el archivo seleccionado
+        
+        setPractica(prev => ({
+            ...prev,
+            alumno: prev.alumno ? { ...prev.alumno, fotoUrl: updateResult.data?.fotoUrl } : undefined,
+        }));
+        routerNav.refresh(); // Para que el Server Component de la página recargue datos
+      } else {
+        toast.error(updateResult.error || "Error al guardar la URL de la foto en el perfil.");
+      }
+    } catch (error) {
+      console.error("Error en el proceso de subida de foto:", error);
+      toast.error("Error de conexión o inesperado al subir la foto.");
+    } finally {
+      setIsUploadingPhoto(false);
     }
   };
 
@@ -163,19 +189,17 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
     if (formDisabled) {
       toast.error("El formulario está bloqueado y no se puede enviar.");
       return;
-    }
-    setIsSubmitting(true);
+    }    
+    setIsSubmittingActa(true);
     
     try {
-      // El envío de la foto se añadira luego
-
-      // Aquí solo enviamos los datos del Acta 1.
       const result: ActionResponse<PracticaConDetalles> = await submitActaAlumnoAction(practica.id, data);
 
       if (result.success && result.data) {
         toast.success(result.message || "Acta 1 completada y enviada para validación del docente.");
         routerNav.push('/alumno/mis-practicas');
       } else {
+        // ... (manejo de errores como lo tenías) ...
         if (result.errors && result.errors.length > 0) {
           result.errors.forEach(err => {
             const fieldName = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
@@ -196,20 +220,16 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
       console.error("Error al enviar el formulario del Acta 1:", error);
       toast.error("Ocurrió un error inesperado al enviar el acta. Por favor, inténtalo más tarde.");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingActa(false);
     }
   };
   
-  // Limpieza del Object URL cuando el componente se desmonta o el previewUrl cambia
   React.useEffect(() => {
     const currentPreview = previewUrl;
-    return () => {
-      if (currentPreview && currentPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(currentPreview);
-      }
-    };
+    return () => { if (currentPreview && currentPreview.startsWith('blob:')) URL.revokeObjectURL(currentPreview); };
   }, [previewUrl]);
 
+  const isOverallDisabled = formDisabled || isSubmittingActa || isUploadingPhoto;
 
   return (
     <Form {...form}>
@@ -226,8 +246,8 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
               </CardContent>
             </Card>
             <Card className="shadow">
-              <CardHeader><CardTitle className="text-lg">Datos de Práctica (Coordinación)</CardTitle></CardHeader>
-              <CardContent className="space-y-3 text-sm">
+              <CardHeader><CardTitle className="text-base sm:text-lg">Datos de Práctica (Coordinación)</CardTitle></CardHeader>
+              <CardContent className="space-y-2 text-sm">
                 <InfoItem label="Tipo de Práctica" value={practica.tipo === PrismaTipoPracticaEnum.LABORAL ? "Laboral" : "Profesional"} />
                 <InfoItem label="Fecha de Inicio" value={practica.fechaInicio} isDate />
                 <InfoItem label="Fecha de Término" value={practica.fechaTermino} isDate />
@@ -242,10 +262,9 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
                 <CardTitle className="text-lg">Información del Centro de Práctica y Tareas</CardTitle>
                 <CardDescription>Por favor, completa los siguientes campos requeridos.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6"> {/* Aumentado space-y para más separación */}
-                {/* Sección Foto de Perfil */}
+              <CardContent className="space-y-6">
                 <FormItem>
-                  <FormLabel>Foto de Perfil</FormLabel>
+                  <FormLabel>Actualizar Foto de Perfil</FormLabel>
                   <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6 p-4 border rounded-lg bg-background">
                     {previewUrl ? (
                       <Image
@@ -269,7 +288,7 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
                         className="hidden"
                         accept={ALLOWED_IMAGE_TYPES.join(",")}
                         onChange={handleFileChange}
-                        disabled={formDisabled || isSubmitting}
+                        disabled={isOverallDisabled}
                       />
                       <div className="flex flex-col sm:flex-row gap-2">
                         <Button
@@ -277,7 +296,7 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
                           variant="outline"
                           size="sm"
                           onClick={() => fileInputRef.current?.click()}
-                          disabled={formDisabled || isSubmitting}
+                          disabled={isOverallDisabled}
                         >
                           <UploadCloud className="mr-2 h-4 w-4" />
                           {selectedFile ? "Cambiar Foto" : "Seleccionar Foto"}
@@ -288,7 +307,7 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
                             variant="ghost"
                             size="sm"
                             onClick={handleRemoveSelectedFile}
-                            disabled={formDisabled || isSubmitting}
+                            disabled={isOverallDisabled}
                             className="text-xs text-muted-foreground hover:text-destructive"
                           >
                             <Trash2 className="mr-1 h-3 w-3" /> Quitar selección
@@ -299,8 +318,6 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
                         {ALLOWED_IMAGE_EXTENSIONS_STRING}. Máx {MAX_FILE_SIZE_KB_FOTO_PERFIL}KB.
                       </FormDescription>
                       {fileError && <p className="text-xs text-destructive mt-1">{fileError}</p>}
-                       {/* El botón de SUBIR FOTO se conectará despues*/}
-                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">La subida de la foto se activará en un próximo paso (HU-30.4).</p>
                     </div>
                   </div>
                 </FormItem>
@@ -324,9 +341,9 @@ export function CompletarActaAlumnoForm({ practica }: CompletarActaAlumnoFormPro
         </div>
         
         <CardFooter className="flex justify-end mt-6 border-t pt-6">
-          <Button type="submit" disabled={isSubmitting || formDisabled}>
+          <Button type="submit" disabled={isOverallDisabled}>
             <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? "Guardando Acta..." : "Guardar y Enviar Acta 1"}
+            {isSubmittingActa ? "Guardando Acta..." : "Guardar y Enviar Acta 1"}
           </Button>
         </CardFooter>
       </form>
