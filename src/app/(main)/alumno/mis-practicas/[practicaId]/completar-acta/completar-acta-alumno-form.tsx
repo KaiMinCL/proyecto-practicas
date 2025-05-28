@@ -34,7 +34,6 @@ import {
     UserCircle2, 
     UploadCloud, 
     Trash2, 
-    User
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -89,7 +88,7 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false); // Estado para subida de foto
 
-  const form = useForm<FormInputValues, any, CompletarActaAlumnoData>({
+  const form = useForm<FormInputValues, unknown, CompletarActaAlumnoData>({
     resolver: zodResolver(completarActaAlumnoSchema),
     defaultValues: {
       direccionCentro: practica.direccionCentro || "",
