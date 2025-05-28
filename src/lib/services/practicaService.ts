@@ -122,9 +122,9 @@ export class PracticaService {
           estado: PrismaEstadoPracticaEnum.PENDIENTE,
         },
         include: { 
-          alumno: { include: { usuario: { select: { nombre: true, apellido: true, rut: true }}, carrera: { select: {id:true, nombre: true, sede: {select: {nombre: true}}}}} },
+          alumno: { include: { usuario: { select: { nombre: true, apellido: true, rut: true }}}},
           docente: { include: { usuario: { select: { nombre: true, apellido: true }} } },
-          carrera: { select: { nombre: true } },
+          carrera: { select: { id: true, nombre: true, sede: {select: {id: true, nombre: true}}} },
         }
       });
       return { success: true, data: nuevaPractica };

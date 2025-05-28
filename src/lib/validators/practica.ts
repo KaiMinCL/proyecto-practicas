@@ -60,8 +60,8 @@ export const completarActaAlumnoSchema = z.object({
     .min(10, 'Describe brevemente las tareas principales (mínimo 10 caracteres).')
     .max(2000, 'La descripción de tareas no puede exceder los 2000 caracteres.'),
   
-  // practicaId se pasará como parámetro a la acción/servicio, no en el cuerpo del formulario.
 });
+
 export type CompletarActaAlumnoData = z.infer<typeof completarActaAlumnoSchema>;
 
 
