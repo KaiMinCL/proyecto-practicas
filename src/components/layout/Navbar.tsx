@@ -13,8 +13,6 @@ export default function Navbar() {
   // Determinar roles de forma segura
   const isCoordinador = user?.rol === ('COORDINADOR' as RoleName);
   const isAlumno = user?.rol === ('ALUMNO' as RoleName);
-  const isEmpleador = user?.rol === ('EMPLEADOR' as RoleName);
-  const isJefeCarrera = user?.rol === ('JEFE_CARRERA' as RoleName);
 
   return (
     <nav className="bg-gray-800 text-white p-4 shadow-md sticky top-0 z-50">
