@@ -59,3 +59,30 @@ export async function authorizeAlumno(): Promise<UserJwtPayload> {
 export async function authorizeDocente(): Promise<UserJwtPayload> {
   return authorize('DOCENTE' as RoleName);
 }
+
+/**
+ * Verifica si el usuario actual tiene el rol de Super Administrador O Director de Carrera.
+ * Lanza un error si no está autorizado.
+ * @returns El payload del token del usuario (UserJwtPayload) si está autorizado.
+ * @throws Error si el usuario no está autenticado o no tiene uno de los roles requeridos.
+ */
+export async function authorizeSuperAdminOrDirectorCarrera(): Promise<UserJwtPayload> {
+  const userPayload = await getUserSession();
+
+  if (!userPayload) {
+    throw new Error('Acceso denegado. No estás autenticado.');
+  }
+
+  const userRole = userPayload.rol as RoleName;
+  const allowedRoles: RoleName[] = ['SUPERADMIN', 'DIRECTOR_CARRERA'];
+
+   if (!allowedRoles.includes(userRole)) {
+    console.warn(
+      `Intento de acceso no autorizado. Roles requeridos: ${allowedRoles.join(' o ')}, Rol del usuario: ${userRole}, Usuario RUT: ${userPayload.rut}`
+    );
+    throw new Error(
+      `Acceso denegado. Se requiere el rol de ${allowedRoles.join(' o ')}.`
+    );
+  }
+  return userPayload;
+}

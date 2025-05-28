@@ -4,4 +4,5 @@ export type RoleName =
   | 'COORDINADOR'
   | 'DOCENTE'
   | 'ALUMNO'
-  | 'EMPLEADOR';
+  | 'EMPLEADOR'
+  | 'DIRECTOR_CARRERA';
