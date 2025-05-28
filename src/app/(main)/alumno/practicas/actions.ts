@@ -12,7 +12,6 @@ import {
     type CompletarActaAlumnoData,
     type PracticaConDetalles 
 } from '@/lib/validators/practica'; 
-import { AlumnoService } from '@/lib/services/alumnoService';
 
 export type ActionResponse<TData = null> = {
   success: boolean;
@@ -118,49 +117,5 @@ export async function submitActaAlumnoAction(
       return { success: false, error: error.message };
     }
     return { success: false, error: 'Ocurrió un error muy inesperado al guardar el acta.' };
-  }
-}
-
-/**
- * Actualiza la URL de la foto de perfil del Alumno logueado.
- * @param newFotoUrl La URL de la imagen subida a Vercel Blob.
- */
-export async function updateAlumnoFotoUrlAction(newFotoUrl: string): Promise<ActionResponse<{ fotoUrl: string | null }>> {
-  try {
-    const userPayload = await authorizeAlumno(); // Verifica que es un alumno y obtiene sus datos
-
-    // Encuentra el registro Alumno correspondiente al Usuario logueado
-    const alumno = await prismaClient.alumno.findUnique({
-      where: { usuarioId: userPayload.userId },
-      select: { id: true },
-    });
-
-    if (!alumno) {
-      return { success: false, error: "Perfil de alumno no encontrado." };
-    }
-
-    // Validación simple de la URL
-    if (!newFotoUrl || typeof newFotoUrl !== 'string' || !newFotoUrl.startsWith('https://')) {
-        return { success: false, error: "La URL de la foto proporcionada no es válida." };
-    }
-
-    const result = await AlumnoService.updateFotoUrl(alumno.id, newFotoUrl);
-
-    if (result.success && result.data) {
-      // Revalida las rutas donde la foto del alumno podría mostrarse
-      revalidatePath('/(main)/alumno/perfil', 'layout'); // Si tienes una página de perfil
-      revalidatePath('/(main)/alumno/mis-practicas', 'page'); // Si la foto se muestra en esta lista
-      revalidatePath('/(main)/layout', 'layout'); // Para refrescar Navbar si muestra foto
-      
-      return { success: true, data: { fotoUrl: result.data.fotoUrl } };
-    }
-    return { success: false, error: result.error || "No se pudo actualizar la foto de perfil." };
-
-  } catch (error) {
-    console.error("Error en updateAlumnoFotoUrlAction:", error);
-    if (error instanceof Error) {
-      return { success: false, error: error.message };
-    }
-    return { success: false, error: "Ocurrió un error inesperado al actualizar la foto de perfil." };
   }
 }
