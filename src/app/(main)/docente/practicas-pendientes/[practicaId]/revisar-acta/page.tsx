@@ -12,12 +12,13 @@ import { RevisarActaDocenteCliente } from './revisar-acta-docente-client';
 const REQUIRED_ROLE: RoleName = 'DOCENTE';
 
 interface PageProps {
-  params: {
-    practicaId: string; // El ID vendrá como string de la URL
-  };
+  params: Promise<{practicaId: string}>
 }
 
-export default async function RevisarActaPage({ params }: PageProps) {
+export default async function RevisarActaPage({ params: paramsPromise }: PageProps) {
+
+  const params = await paramsPromise;
+
   const userPayload = await getUserSession();
 
   if (!userPayload) {
