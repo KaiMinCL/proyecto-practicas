@@ -11,12 +11,13 @@ import { CompletarActaAlumnoForm } from './completar-acta-alumno-form';
 const REQUIRED_ROLE: RoleName = 'ALUMNO';
 
 interface PageProps {
-  params: {
-    practicaId: string;
-  };
+  params: Promise<{practicaId: string}>
 }
 
-export default async function CompletarActaPage({ params }: PageProps) {
+export default async function CompletarActaPage({ params: paramsPromise }: PageProps) {
+
+  const params = await paramsPromise;
+
   const userPayload = await getUserSession();
 
   if (!userPayload) {
