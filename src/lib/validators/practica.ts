@@ -64,6 +64,23 @@ export const completarActaAlumnoSchema = z.object({
 
 export type CompletarActaAlumnoData = z.infer<typeof completarActaAlumnoSchema>;
 
+export const decisionDocenteActaSchema = z.object({
+  decision: z.enum(['ACEPTADA', 'RECHAZADA'], {
+    required_error: "La decisión (aceptar/rechazar) es requerida.",
+  }),
+  motivoRechazo: z.string().max(1000, "El motivo de rechazo no puede exceder los 1000 caracteres.").optional(),
+}).refine(data => {
+  // Si la decisión es RECHAZADA, el motivoRechazo se vuelve obligatorio y no puede estar vacío.
+  if (data.decision === 'RECHAZADA') {
+    return data.motivoRechazo && data.motivoRechazo.trim().length > 0;
+  }
+  return true; // Si es ACEPTADA, motivoRechazo no se envia)
+}, {
+  message: "El motivo de rechazo es requerido si se rechaza la supervisión.",
+  path: ['motivoRechazo'], // Asocia este error al campo motivoRechazo
+});
+
+export type DecisionDocenteActaData = z.infer<typeof decisionDocenteActaSchema>;
 
 // Interface general para Práctica con detalles
 export interface PracticaConDetalles {
@@ -86,6 +103,8 @@ export interface PracticaConDetalles {
   practicaDistancia?: boolean | null;
   tareasPrincipales?: string | null;
   fechaCompletadoAlumno?: Date | null;
+  motivoRechazoDocente?: string | null;
+
 
   // DATOS RELACIONALES 
   alumno?: { // Datos del alumno asociado
