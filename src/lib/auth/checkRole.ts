@@ -52,3 +52,10 @@ export async function authorizeCoordinador(): Promise<UserJwtPayload> {
 export async function authorizeAlumno(): Promise<UserJwtPayload> {
   return authorize('ALUMNO' as RoleName);
 }
+
+/**
+ * Helper específico para autorizar al Docente.
+ */
+export async function authorizeDocente(): Promise<UserJwtPayload> {
+  return authorize('DOCENTE' as RoleName);
+}

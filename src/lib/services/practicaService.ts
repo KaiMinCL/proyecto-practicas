@@ -6,7 +6,8 @@ import {
 } from '@prisma/client';
 import { 
     type IniciarPracticaInput, 
-    type CompletarActaAlumnoData 
+    type CompletarActaAlumnoData, 
+    DecisionDocenteActaData
 } from '@/lib/validators/practica'; 
 import { isHoliday } from './holidayService';
 
@@ -293,6 +294,115 @@ export class PracticaService {
     } catch (error) {
       console.error(`Error al obtener prácticas para el alumno ${alumnoId}:`, error);
       return { success: false, error: 'Error al obtener las prácticas del alumno.' };
+    }
+  }
+
+  /**
+   * Obtiene los detalles de una práctica para que el Docente la revise.
+   * Verifica que la práctica esté asignada al docente y en estado PENDIENTE_ACEPTACION_DOCENTE.
+   */
+  static async getPracticaParaRevisionDocente(practicaId: number, docenteUsuarioId: number) {
+    try {
+      const docente = await prisma.docente.findUnique({
+        where: { usuarioId: docenteUsuarioId },
+        select: { id: true }
+      });
+
+      if (!docente) {
+        return { success: false, error: "Perfil de docente no encontrado." };
+      }
+
+      const practica = await prisma.practica.findUnique({
+        where: { 
+          id: practicaId,
+          docenteId: docente.id // Asegura que la práctica esté asignada a este docente
+        },
+        include: { // Incluye todos los datos relevantes del Acta 1
+          alumno: { include: { usuario: true, carrera: { include: { sede: true } } } },
+          carrera: { include: { sede: true } },
+          docente: { include: { usuario: true } }, // Para confirmar info del docente actual
+          centroPractica: true, // Si el alumno ya lo asoció (aunque no debería en PENDIENTE_ACEPTACION_DOCENTE)
+        },
+      });
+
+      if (!practica) {
+        return { success: false, error: 'Práctica no encontrada o no asignada a usted.' };
+      }
+
+      if (practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE) {
+        return { success: false, error: `Esta práctica no está pendiente de su aceptación. Estado actual: ${practica.estado}` };
+      }
+
+      return { success: true, data: practica };
+    } catch (error) {
+      console.error("Error en getPracticaParaRevisionDocente:", error);
+      return { success: false, error: "Error al obtener los detalles de la práctica para revisión." };
+    }
+  }
+
+  /**
+   * Procesa la decisión del Docente (Aceptar/Rechazar) sobre la supervisión del Acta 1.
+   */
+  static async procesarDecisionDocenteActa(
+    practicaId: number,
+    docenteUsuarioId: number,
+    decisionData: DecisionDocenteActaData
+  ) {
+    try {
+      const docente = await prisma.docente.findUnique({
+        where: { usuarioId: docenteUsuarioId },
+        select: { id: true }
+      });
+      if (!docente) {
+        return { success: false, error: "Perfil de docente no encontrado." };
+      }
+
+      const practica = await prisma.practica.findUnique({
+        where: { id: practicaId },
+      });
+
+      if (!practica) {
+        return { success: false, error: 'Práctica no encontrada.' };
+      }
+      if (practica.docenteId !== docente.id) {
+        return { success: false, error: 'No tienes permiso para modificar esta práctica.' };
+      }
+      if (practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE) {
+        return { success: false, error: `Esta práctica ya no está en estado 'Pendiente Aceptación Docente'. Estado actual: ${practica.estado}` };
+      }
+
+      let nuevoEstado: PrismaEstadoPracticaEnum;
+      let updateData: Prisma.PracticaUpdateInput = {};
+
+      if (decisionData.decision === 'ACEPTADA') {
+        nuevoEstado = PrismaEstadoPracticaEnum.EN_CURSO;
+        updateData = {
+          estado: nuevoEstado,
+          motivoRechazoDocente: null, // Limpiar cualquier motivo de rechazo previo si existiera
+        };
+      } else if (decisionData.decision === 'RECHAZADA') {
+        if (!decisionData.motivoRechazo || decisionData.motivoRechazo.trim() === '') {
+          // Esta validación ya está en Zod, pero una doble verificación no hace daño.
+          return { success: false, error: 'Se requiere un motivo para el rechazo.' };
+        }
+        nuevoEstado = PrismaEstadoPracticaEnum.RECHAZADA_DOCENTE;
+        updateData = {
+          estado: nuevoEstado,
+          motivoRechazoDocente: decisionData.motivoRechazo,
+        };
+      } else {
+        return { success: false, error: 'Decisión no válida.' };
+      }
+
+      const practicaActualizada = await prisma.practica.update({
+        where: { id: practicaId },
+        data: updateData,
+      });
+
+      return { success: true, data: practicaActualizada };
+    } catch (error) {
+      console.error("Error al procesar decisión del docente sobre el acta:", error);
+      return { success: false, error: 'No se pudo procesar la decisión sobre el acta.' };
     }
   }
 }

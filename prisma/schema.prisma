@@ -146,6 +146,7 @@ model Practica {
   tareasPrincipales    String?        @db.Text
   
   fechaCompletadoAlumno DateTime?     
+  motivoRechazoDocente String? 
   
   // Otros campos
   informeUrl           String?        
@@ -227,14 +228,14 @@ enum TipoPractica {
 }
 
 enum EstadoPractica {
-  PENDIENTE                   // Iniciada por Coord, pendiente que Alumno complete
+  PENDIENTE                     // Iniciada por Coord, pendiente que Alumno complete
   PENDIENTE_ACEPTACION_DOCENTE  // Alumno completó, Docente Tutor debe revisar/aceptar
-  EN_CURSO                    // Docente aceptó/validó, práctica en desarrollo
-  FINALIZADA_PENDIENTE_EVAL   // Práctica terminada, informes/evaluaciones pendientes
-  EVALUACION_COMPLETA         // Todas las evaluaciones completadas
-  CERRADA                     // Proceso de práctica administrativamente cerrado (nota final asignada)
-  ANULADA                     // Práctica anulada
-  RECHAZADA_DOCENTE           // Acta 1 rechazada por el docente (requiere acción del coord/alumno)
+  RECHAZADA_DOCENTE             // Docente rechazó el Acta 1
+  EN_CURSO                      // Docente aceptó/validó, práctica en desarrollo
+  FINALIZADA_PENDIENTE_EVAL     // Práctica terminada, informes/evaluaciones pendientes
+  EVALUACION_COMPLETA           // Todas las evaluaciones completadas
+  CERRADA                       // Proceso de práctica administrativamente cerrado (nota final asignada)
+  ANULADA                       // Práctica anulada
 }
 
 enum EstadoActaFinal {
