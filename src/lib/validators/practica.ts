@@ -103,6 +103,8 @@ export interface PracticaConDetalles {
   practicaDistancia?: boolean | null;
   tareasPrincipales?: string | null;
   fechaCompletadoAlumno?: Date | null;
+  motivoRechazoDocente?: String | null;
+
 
   // DATOS RELACIONALES 
   alumno?: { // Datos del alumno asociado

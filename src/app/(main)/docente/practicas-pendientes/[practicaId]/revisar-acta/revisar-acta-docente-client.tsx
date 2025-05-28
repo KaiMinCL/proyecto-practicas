@@ -2,6 +2,7 @@
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation'; // <--- CAMBIO AQUÍ
 import { Button } from '@/components/ui/button';
 import { 
     Card, 
@@ -14,12 +15,16 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, ExternalLink, Building, User, Settings, CalendarDays, ClipboardList } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import type { PracticaConDetalles } from '@/lib/validators/practica';
+import type { PracticaConDetalles, DecisionDocenteActaData } from '@/lib/validators/practica';
 import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoPracticaEnum } from '@prisma/client';
-import { toast } from 'sonner'; // Para los placeholders de los botones
+import { toast } from 'sonner';
+
+// Asegúrate que la ruta de importación sea correcta
+import { submitDecisionDocenteActaAction, type ActionResponse } from '../../../practicas/actions'; 
+import { RejectionReasonModal } from './rejection-reason-modal';
 
 interface RevisarActaDocenteClienteProps {
-  practica: PracticaConDetalles; // PracticaConDetalles ya incluye fueraDePlazo como opcional
+  practica: PracticaConDetalles;
 }
 
 const InfoItem: React.FC<{ 
@@ -54,30 +59,67 @@ const InfoItem: React.FC<{
   );
 };
 
-
-export function RevisarActaDocenteCliente({ practica }: RevisarActaDocenteClienteProps) {
+export function RevisarActaDocenteCliente({ practica: initialPractica }: RevisarActaDocenteClienteProps) {
+  const router = useRouter();
+  const [practica, setPractica] = React.useState<PracticaConDetalles>(initialPractica);
   const [isProcessing, setIsProcessing] = React.useState(false);
-  // const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false); 
+  const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false);
 
-  const handleAccept = async () => {
+  const handleDecision = async (decision: 'ACEPTADA' | 'RECHAZADA', motivoRechazo?: string) => {
     setIsProcessing(true);
-    toast.info("Funcionalidad 'Aceptar Supervisión' se conectará en el próximo commit.");
-    console.log("Acción: Aceptar Supervisión para práctica ID:", practica.id);
+    
+    const decisionData: DecisionDocenteActaData = { decision };
+    if (decision === 'RECHAZADA' && motivoRechazo) {
+      decisionData.motivoRechazo = motivoRechazo;
+    }
 
-    // TODO: Llamar a submitDecisionDocenteActaAction 
+    try {
+      const result: ActionResponse<PracticaConDetalles> = await submitDecisionDocenteActaAction(practica.id, decisionData);
 
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
-    setIsProcessing(false);
+      if (result.success && result.data) {
+        toast.success(result.message || (decision === 'ACEPTADA' ? "Supervisión aceptada exitosamente." : "Práctica rechazada."));
+        // Actualiza el estado local para reflejar el cambio inmediatamente en la UI de esta página
+        setPractica(prev => ({ 
+            ...prev, 
+            estado: result.data?.estado || prev.estado, 
+            motivoRechazoDocente: result.data?.motivoRechazoDocente || prev.motivoRechazoDocente 
+        }));
+        setIsRejectModalOpen(false); // Cierra el modal de rechazo si estaba abierto y fue exitoso
+        
+        // Redirigir a la lista de pendientes. 
+        router.push('/docente/practicas-pendientes'); 
+
+      } else {
+        toast.error(result.error || "No se pudo procesar la decisión.");
+        if (result.errors) {
+            result.errors.forEach(err => {
+                // Asumimos que el path del error es un string simple para campos del modal de rechazo
+                const fieldPath = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
+                toast.error(`Error en campo ${fieldPath}: ${err.message}`);
+            });
+        }
+      }
+    } catch (error) {
+      console.error(`Error al ${decision.toLowerCase()} la práctica:`, error);
+      toast.error("Ocurrió un error inesperado al procesar su decisión.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleReject = () => {
-    toast.info("Funcionalidad 'Rechazar Supervisión' se conectará en el próximo commit.");
-    console.log("Acción: Rechazar Supervisión para práctica ID:", practica.id);
-    // TODO: Abrir modal de motivo de rechazo
-
-    // setIsRejectModalOpen(true);
+  const handleAccept = () => {
+    handleDecision('ACEPTADA');
   };
 
+  const handleOpenRejectModal = () => {
+    setIsRejectModalOpen(true);
+  };
+
+  const handleConfirmReject = async (reason: string) => {
+    await handleDecision('RECHAZADA', reason);
+  };
+
+  // El docente solo puede decidir si la práctica está pendiente de su aceptación
   const canDecide = practica.estado === PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE;
 
   return (
@@ -88,12 +130,19 @@ export function RevisarActaDocenteCliente({ practica }: RevisarActaDocenteClient
             <CardTitle className="text-xl">Detalles de la Práctica</CardTitle>
             <CardDescription>Información registrada por el Coordinador y el Alumno.</CardDescription>
           </div>
-          <Badge variant={practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? 'destructive' : 'outline'} className="text-sm">
+          <Badge 
+            variant={
+                practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? 'outline' : 
+                practica.estado === 'EN_CURSO' ? 'default' : 
+                practica.estado === 'RECHAZADA_DOCENTE' ? 'destructive' : 
+                'outline'
+            } 
+            className="text-sm capitalize"
+          >
             {practica.estado.replace(/_/g, ' ').toLowerCase()}
           </Badge>
         </CardHeader>
         <CardContent>
-          {/* Sección Coordinador */}
           <div className="mb-6 pb-4 border-b">
             <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><Settings className="mr-2 h-5 w-5"/>Datos Registrados por Coordinación</h3>
             <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6">
@@ -103,7 +152,6 @@ export function RevisarActaDocenteCliente({ practica }: RevisarActaDocenteClient
             </dl>
           </div>
 
-          {/* Sección Alumno */}
           <div className="mb-6 pb-4 border-b">
             <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><User className="mr-2 h-5 w-5"/>Datos del Alumno</h3>
              <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6">
@@ -114,7 +162,6 @@ export function RevisarActaDocenteCliente({ practica }: RevisarActaDocenteClient
             </dl>
           </div>
           
-          {/* Sección Centro de Práctica (Alumno) */}
           <div className="mb-6 pb-4 border-b">
             <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><Building className="mr-2 h-5 w-5"/>Información del Centro de Práctica</h3>
              <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6">
@@ -128,7 +175,6 @@ export function RevisarActaDocenteCliente({ practica }: RevisarActaDocenteClient
             </dl>
           </div>
 
-          {/* Sección Tareas (Alumno) */}
            <div>
             <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><ClipboardList className="mr-2 h-5 w-5"/>Tareas Principales a Desempeñar</h3>
             <div className="p-3 border rounded-md bg-slate-50 dark:bg-slate-800/50 text-sm">
@@ -138,21 +184,30 @@ export function RevisarActaDocenteCliente({ practica }: RevisarActaDocenteClient
         </CardContent>
       </Card>
 
-      {/* Botones de Acción */}
       {canDecide && (
-        <div className="mt-8 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
-          <Button variant="destructive" onClick={handleReject} disabled={isProcessing} className="w-full sm:w-auto">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end sm:space-x-3">
+          <Button variant="destructive" onClick={handleOpenRejectModal} disabled={isProcessing} className="w-full sm:w-auto">
             <XCircle className="mr-2 h-4 w-4" />
             Rechazar Supervisión
           </Button>
-          <Button variant="default" onClick={handleAccept} disabled={isProcessing} className="w-full sm:w-auto bg-green-600 hover:bg-green-700">
+          <Button 
+            variant="default" 
+            onClick={handleAccept} 
+            disabled={isProcessing} 
+            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white dark:text-gray-900"
+          >
             <CheckCircle className="mr-2 h-4 w-4" />
             {isProcessing ? "Procesando..." : "Aceptar Supervisión"}
           </Button>
         </div>
       )}
 
-      {/* Modal para motivo de rechazo se añadirá aquí */}
+      <RejectionReasonModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        onSubmit={handleConfirmReject}
+        isSubmittingReason={isProcessing}
+      />
     </div>
   );
 }
