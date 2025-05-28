@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { ZodError } from 'zod';
-import { Prisma, EstadoPractica as PrismaEstadoPracticaEnum } from '@prisma/client';
+import { EstadoPractica as PrismaEstadoPracticaEnum } from '@prisma/client';
 
 import { authorizeDocente } from '@/lib/auth/checkRole'; 
 import { PracticaService } from '@/lib/services/practicaService';

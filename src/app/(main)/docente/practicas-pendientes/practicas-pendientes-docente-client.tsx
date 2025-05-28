@@ -12,7 +12,7 @@ import {
     CardTitle 
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { FileSpreadsheet, Terminal, Info, UserCheck } from 'lucide-react';
+import { Terminal, Info, UserCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -24,8 +24,8 @@ interface PracticasPendientesDocenteClienteProps {
 }
 
 export function PracticasPendientesDocenteCliente({ initialActionResponse }: PracticasPendientesDocenteClienteProps) {
-  const [practicas, setPracticas] = React.useState<PracticaConDetalles[]>(initialActionResponse.data || []);
-  const [error, setError] = React.useState<string | null>(initialActionResponse.error || null);
+  const [practicas] = React.useState<PracticaConDetalles[]>(initialActionResponse.data || []);
+  const [error] = React.useState<string | null>(initialActionResponse.error || null);
 
   if (error) {
     return (

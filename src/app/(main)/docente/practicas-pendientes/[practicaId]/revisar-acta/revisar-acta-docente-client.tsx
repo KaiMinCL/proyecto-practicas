@@ -12,7 +12,7 @@ import {
     CardTitle 
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, ExternalLink, Building, User, Settings, CalendarDays, ClipboardList } from 'lucide-react';
+import { CheckCircle, XCircle, ExternalLink, Building, User, Settings, ClipboardList } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { PracticaConDetalles, DecisionDocenteActaData } from '@/lib/validators/practica';
