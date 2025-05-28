@@ -3,8 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from 'next/navigation';
-import { useEffect, useTransition } from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState, useEffect, useTransition } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +28,7 @@ const initialFormState: LoginFormState = {
 export default function LoginPage() {
   const router = useRouter(); // Aunque la redirección principal está en la SA
   const [isPending, startTransition] = useTransition();
-  const [formState, formAction] = useFormState(loginUser, initialFormState);
+  const [formState, formAction] = useActionState(loginUser, initialFormState);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
