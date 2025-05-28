@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { CreateAlumnoFormData } from '@/lib/validators';
 import { hashPassword } from '@/lib/auth';
 import { generateSecurePassword } from '@/lib/utils';
+import { Prisma } from '@prisma/client';
 
 export interface CreateAlumnoResponse {
   success: boolean;
@@ -174,6 +175,28 @@ export class AlumnoService {
     } catch (error) {
       console.error('Error al obtener alumnos para selección:', error);
       return { success: false, error: 'No se pudieron obtener los alumnos.' };
+    }
+  }
+
+  /**
+   * Actualiza la URL de la foto de perfil para un Alumno específico.
+   * @param alumnoId El ID del registro Alumno.
+   * @param fotoUrl La nueva URL de la foto.
+   */
+  static async updateFotoUrl(alumnoId: number, fotoUrl: string) {
+    try {
+      const updatedAlumno = await prisma.alumno.update({
+        where: { id: alumnoId },
+        data: { fotoUrl: fotoUrl },
+      });
+      return { success: true, data: updatedAlumno };
+    } catch (error) {
+      console.error(`Error al actualizar foto de perfil para el alumno ID ${alumnoId}:`, error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        // Error de registro no encontrado
+        return { success: false, error: 'Alumno no encontrado para actualizar la foto.' };
+      }
+      return { success: false, error: 'Error al guardar la URL de la foto en la base de datos.' };
     }
   }
 }
