@@ -70,7 +70,6 @@ export async function authorizeCoordinadorOrDirectorCarrera(): Promise<UserJwtPa
   }
 
   const userRole = userPayload.rol as RoleName;
-  // Asegúrate que 'COORDINADOR' y 'DIRECTOR_CARRERA' sean los strings correctos
   const allowedRoles: RoleName[] = ['COORDINADOR', 'DIRECTOR_CARRERA']; 
 
   if (!allowedRoles.includes(userRole)) {
