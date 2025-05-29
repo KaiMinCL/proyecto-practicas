@@ -1,0 +1,250 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Rol {
+  id Int [pk, increment]
+  nombre String [unique, not null]
+  usuarios Usuario [not null]
+}
+
+Table Usuario {
+  id Int [pk, increment]
+  rut String [unique, not null]
+  nombre String [not null]
+  apellido String [not null]
+  email String [unique, not null]
+  password String [not null]
+  claveInicialVisible Boolean [not null, default: true]
+  estado Estado [not null, default: 'ACTIVO']
+  rolId Int [not null]
+  rol Rol [not null]
+  sedeId Int
+  sede Sede
+  alumno Alumno
+  docente Docente
+  empleador Empleador
+}
+
+Table Sede {
+  id Int [pk, increment]
+  nombre String [unique, not null]
+  direccion String
+  estado Estado [not null, default: 'ACTIVO']
+  carreras Carrera [not null]
+  usuarios Usuario [not null]
+  documentos DocumentoApoyo [not null]
+}
+
+Table Carrera {
+  id Int [pk, increment]
+  nombre String [not null]
+  sedeId Int [not null]
+  sede Sede [not null]
+  horasPracticaLaboral Int [not null]
+  horasPracticaProfesional Int [not null]
+  estado Estado [not null, default: 'ACTIVO']
+  alumnos Alumno [not null]
+  practicas Practica [not null]
+  documentos DocumentoApoyo [not null]
+
+  indexes {
+    (nombre, sedeId) [unique]
+  }
+}
+
+Table Alumno {
+  id Int [pk, increment]
+  usuarioId Int [unique, not null]
+  usuario Usuario [not null]
+  carreraId Int [not null]
+  carrera Carrera [not null]
+  practicas Practica [not null]
+  fotoUrl String
+}
+
+Table Docente {
+  id Int [pk, increment]
+  usuarioId Int [unique, not null]
+  usuario Usuario [not null]
+  practicas Practica [not null]
+}
+
+Table Empleador {
+  id Int [pk, increment]
+  usuarioId Int [unique, not null]
+  usuario Usuario [not null]
+  centros EmpleadorCentro [not null]
+}
+
+Table CentroPractica {
+  id Int [pk, increment]
+  nombreEmpresa String [not null]
+  giro String
+  direccion String
+  telefono String
+  emailGerente String
+  nombreContacto String
+  emailContacto String
+  telefonoContacto String
+  empleadores EmpleadorCentro [not null]
+  practicas Practica [not null]
+}
+
+Table EmpleadorCentro {
+  id Int [pk, increment]
+  empleadorId Int [not null]
+  centroPracticaId Int [not null]
+  empleador Empleador [not null]
+  centroPractica CentroPractica [not null]
+
+  indexes {
+    (empleadorId, centroPracticaId) [unique]
+  }
+}
+
+Table Practica {
+  id Int [pk, increment]
+  alumnoId Int [not null]
+  alumno Alumno [not null]
+  docenteId Int [not null]
+  docente Docente [not null]
+  carreraId Int [not null]
+  carrera Carrera [not null]
+  centroPracticaId Int [not null]
+  centroPractica CentroPractica [not null]
+  tipo TipoPractica [not null]
+  fechaInicio DateTime [not null]
+  fechaTermino DateTime [not null]
+  estado EstadoPractica [not null, default: 'PENDIENTE']
+  direccionCentro String
+  departamento String
+  nombreJefeDirecto String
+  cargoJefeDirecto String
+  contactoCorreoJefe String
+  contactoTelefonoJefe String
+  practicaDistancia Boolean [not null, default: false]
+  tareasPrincipales String
+  creadoEn DateTime [default: `now()`, not null]
+  informeUrl String
+  evaluacionDocente EvaluacionInformeDocente
+  evaluacionEmpleador EvaluacionEmpleador
+  actaFinal ActaFinal
+  alertasManuales AlertaManual [not null]
+}
+
+Table DocumentoApoyo {
+  id Int [pk, increment]
+  nombre String [not null]
+  url String [not null]
+  carreraId Int [not null]
+  carrera Carrera [not null]
+  sedeId Int [not null]
+  sede Sede [not null]
+  creadoEn DateTime [default: `now()`, not null]
+}
+
+Table EvaluacionInformeDocente {
+  id Int [pk, increment]
+  practicaId Int [unique, not null]
+  practica Practica [not null]
+  nota Float [not null]
+  comentarios String
+  fecha DateTime [default: `now()`, not null]
+}
+
+Table EvaluacionEmpleador {
+  id Int [pk, increment]
+  practicaId Int [unique, not null]
+  practica Practica [not null]
+  nota Float [not null]
+  comentarios String
+  fecha DateTime [default: `now()`, not null]
+}
+
+Table ActaFinal {
+  id Int [pk, increment]
+  practicaId Int [unique, not null]
+  practica Practica [not null]
+  notaInforme Float [not null]
+  notaEmpleador Float [not null]
+  notaFinal Float [not null]
+  fechaCierre DateTime [default: `now()`, not null]
+  estado EstadoActaFinal [not null, default: 'VALIDADA']
+}
+
+Table ConfiguracionEvaluacion {
+  id Int [pk, default: 1]
+  porcentajeInforme Int [not null]
+  porcentajeEmpleador Int [not null]
+}
+
+Table AlertaManual {
+  id Int [pk, increment]
+  practicaId Int [not null]
+  practica Practica [not null]
+  asunto String
+  mensaje String [not null]
+  enviadoPor String [not null]
+  fecha DateTime [default: `now()`, not null]
+}
+
+Enum Estado {
+  ACTIVO
+  INACTIVO
+}
+
+Enum TipoPractica {
+  LABORAL
+  PROFESIONAL
+}
+
+Enum EstadoPractica {
+  PENDIENTE
+  EN_CURSO
+  FINALIZADA
+  ANULADA
+}
+
+Enum EstadoActaFinal {
+  VALIDADA
+  CERRADA
+}
+
+Ref: Usuario.rolId > Rol.id
+
+Ref: Usuario.sedeId > Sede.id
+
+Ref: Carrera.sedeId > Sede.id
+
+Ref: Alumno.usuarioId - Usuario.id
+
+Ref: Alumno.carreraId > Carrera.id
+
+Ref: Docente.usuarioId - Usuario.id
+
+Ref: Empleador.usuarioId - Usuario.id
+
+Ref: EmpleadorCentro.empleadorId > Empleador.id
+
+Ref: EmpleadorCentro.centroPracticaId > CentroPractica.id
+
+Ref: Practica.alumnoId > Alumno.id
+
+Ref: Practica.docenteId > Docente.id
+
+Ref: Practica.carreraId > Carrera.id
+
+Ref: Practica.centroPracticaId > CentroPractica.id
+
+Ref: DocumentoApoyo.carreraId > Carrera.id
+
+Ref: DocumentoApoyo.sedeId > Sede.id
+
+Ref: EvaluacionInformeDocente.practicaId - Practica.id
+
+Ref: EvaluacionEmpleador.practicaId - Practica.id
+
+Ref: ActaFinal.practicaId - Practica.id
+
+Ref: AlertaManual.practicaId > Practica.id
