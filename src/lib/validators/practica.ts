@@ -101,39 +101,74 @@ export const editarPracticaCoordDCSchema = z.object({
 
   // Campos del Centro de Práctica y Tareas (originalmente llenados por alumno, ahora editables por Coord/DC)
   direccionCentro: z.string()
-    .min(1, {message: "La dirección no puede estar vacía si se modifica."}) // Si se envía, no puede ser vacía
+    .min(1, {message: "La dirección no puede estar vacía si se modifica."})
     .max(255, 'La dirección no puede exceder los 255 caracteres.')
-    .optional().or(z.literal('')).transform(e => e === "" ? null : e), // Permite string o null
+    .optional()
+    .or(z.union([
+      z.literal(''),
+      z.literal(null)
+    ]))
+    .transform(e => (e === "" ? null : e)),
 
   departamento: z.string()
     .max(100, 'El departamento no puede exceder los 100 caracteres.')
-    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+    .optional()
+    .or(z.union([
+      z.literal(''),
+      z.literal(null) 
+    ]))
+    .transform(e => (e === "" ? null : e)),
 
   nombreJefeDirecto: z.string()
     .min(1, {message: "El nombre del jefe no puede estar vacío si se modifica."})
     .max(100, 'El nombre del jefe no puede exceder los 100 caracteres.')
-    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+    .optional()
+    .or(z.union([
+      z.literal(''),
+      z.literal(null)
+    ]))
+    .transform(e => (e === "" ? null : e)),
 
   cargoJefeDirecto: z.string()
     .min(1, {message: "El cargo del jefe no puede estar vacío si se modifica."})
     .max(100, 'El cargo no puede exceder los 100 caracteres.')
-    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+    .optional()
+    .or(z.union([
+      z.literal(''),
+      z.literal(null)
+    ]))
+    .transform(e => (e === "" ? null : e)),
   
   contactoCorreoJefe: z.string()
     .email('Debe ser un correo electrónico válido si se modifica.')
     .max(100, 'El correo no puede exceder los 100 caracteres.')
-    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+    .optional()
+    .or(z.union([
+      z.literal(''),
+      z.literal(null) 
+    ]))
+    .transform(e => (e === "" ? null : e)),
   
   contactoTelefonoJefe: z.string()
     .regex(/^\+?[0-9\s-()]{7,20}$/, 'Número de teléfono inválido si se modifica.')
-    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+    .optional()
+    .or(z.union([
+      z.literal(''),
+      z.literal(null)
+    ]))
+    .transform(e => (e === "" ? null : e)),
   
   practicaDistancia: z.boolean().optional(),
   
   tareasPrincipales: z.string()
-    .min(1, {message: "Las tareas no pueden estar vacías si se modifican."})
+    .min(1, {message: "Las tareas не pueden estar vacías si se modifican."})
     .max(2000, 'La descripción de tareas no puede exceder los 2000 caracteres.')
-    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+    .optional()
+    .or(z.union([
+      z.literal(''),
+      z.literal(null)
+    ]))
+    .transform(e => (e === "" ? null : e)),
 
   // No se permite cambiar: alumnoId, carreraId, tipoPractica
 }).refine(data => {

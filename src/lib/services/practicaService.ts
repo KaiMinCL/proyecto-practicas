@@ -14,43 +14,44 @@ import { isHoliday } from './holidayService';
 
 const HORAS_POR_DIA_LABORAL = 8;
 
-/**
- * Calcula una fecha de término sugerida basada en la fecha de inicio y horas de práctica.
- * Cuenta solo días de Lunes a Viernes y excluye feriados.
- */
-export async function calculateFechaTerminoSugerida(
-  fechaInicio: Date,
-  horasPracticaRequeridas: number
-): Promise<Date> {
-  if (horasPracticaRequeridas <= 0) {
-    throw new Error("Las horas de práctica requeridas deben ser un número positivo.");
-  }
-
-  const diasLaboralesNecesarios = Math.ceil(horasPracticaRequeridas / HORAS_POR_DIA_LABORAL);
-  const fechaActual = new Date(fechaInicio.valueOf());
-  let diasLaboralesContados = 0;
-  let iteracionesSeguridad = 0;
-  const MAX_ITERACIONES = diasLaboralesNecesarios + 365 * 2; // Margen para feriados en 2 años
-
-  while (diasLaboralesContados < diasLaboralesNecesarios && iteracionesSeguridad < MAX_ITERACIONES) {
-    const diaDeLaSemana = fechaActual.getDay();
-    if (diaDeLaSemana !== 0 && diaDeLaSemana !== 6 && !(await isHoliday(fechaActual))) {
-      diasLaboralesContados++;
-    }
-    if (diasLaboralesContados < diasLaboralesNecesarios) {
-      fechaActual.setDate(fechaActual.getDate() + 1);
-    }
-    iteracionesSeguridad++;
-  }
-
-  if (iteracionesSeguridad >= MAX_ITERACIONES) {
-    console.warn("Cálculo de fecha de término excedió iteraciones de seguridad.");
-    throw new Error("No se pudo calcular una fecha de término dentro de un rango razonable.");
-  }
-  return fechaActual;
-}
-
 export class PracticaService {
+
+  /**
+   * Calcula una fecha de término sugerida basada en la fecha de inicio y horas de práctica.
+   * Cuenta solo días de Lunes a Viernes y excluye feriados.
+   */
+  static async calculateFechaTerminoSugerida(
+    fechaInicio: Date,
+    horasPracticaRequeridas: number
+  ): Promise<Date> {
+    if (horasPracticaRequeridas <= 0) {
+      throw new Error("Las horas de práctica requeridas deben ser un número positivo.");
+    }
+
+    const diasLaboralesNecesarios = Math.ceil(horasPracticaRequeridas / HORAS_POR_DIA_LABORAL);
+    const fechaActual = new Date(fechaInicio.valueOf());
+    let diasLaboralesContados = 0;
+    let iteracionesSeguridad = 0;
+    const MAX_ITERACIONES = diasLaboralesNecesarios + 365 * 2; // Margen para feriados en 2 años
+
+    while (diasLaboralesContados < diasLaboralesNecesarios && iteracionesSeguridad < MAX_ITERACIONES) {
+      const diaDeLaSemana = fechaActual.getDay();
+      if (diaDeLaSemana !== 0 && diaDeLaSemana !== 6 && !(await isHoliday(fechaActual))) {
+        diasLaboralesContados++;
+      }
+      if (diasLaboralesContados < diasLaboralesNecesarios) {
+        fechaActual.setDate(fechaActual.getDate() + 1);
+      }
+      iteracionesSeguridad++;
+    }
+
+    if (iteracionesSeguridad >= MAX_ITERACIONES) {
+      console.warn("Cálculo de fecha de término excedió iteraciones de seguridad.");
+      throw new Error("No se pudo calcular una fecha de término dentro de un rango razonable.");
+    }
+    return fechaActual;
+  }
+
   /**
    * Sugiere una fecha de término para una práctica.
    */
@@ -75,17 +76,17 @@ export class PracticaService {
       if (horasRequeridas <= 0) {
         return { 
           success: false, 
-          error: `La carrera "${carrera.nombre}" no tiene horas configuradas para la práctica de tipo ${tipoPractica.toLowerCase()}.` 
+          error: `La carrera "${carrera.nombre}" no tiene horas configuradas para la práctica ${tipoPractica.toLowerCase()}.` 
         };
       }
       
-      const fechaTerminoSugerida = await calculateFechaTerminoSugerida(fechaInicio, horasRequeridas);
+      // Llama al método estático de la clase
+      const fechaTerminoSugerida = await PracticaService.calculateFechaTerminoSugerida(fechaInicio, horasRequeridas);
       return { success: true, data: fechaTerminoSugerida };
 
     } catch (error) {
       console.error('Error al sugerir fecha de término:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error al sugerir fecha de término.';
-      return { success: false, error: errorMessage };
+      return { success: false, error: error instanceof Error ? error.message : 'Error al sugerir fecha de término.' };
     }
   }
 
