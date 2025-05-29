@@ -1,4 +1,3 @@
-// src/app/(main)/coordinador/practicas/gestion/[practicaId]/editar/editar-practica-form.tsx
 "use client";
 
 import React from "react";
@@ -24,7 +23,6 @@ import { cn } from "@/lib/utils";
 
 import { 
     editarPracticaCoordDCSchema, 
-    type EditarPracticaCoordDCInput,
     type PracticaConDetalles 
 } from "@/lib/validators/practica";
 
