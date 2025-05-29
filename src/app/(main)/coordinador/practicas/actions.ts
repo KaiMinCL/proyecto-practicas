@@ -15,6 +15,7 @@ import {
     type EditarPracticaCoordDCInput,
     type PracticaConDetalles 
 } from '@/lib/validators/practica';
+import prismaClient from '@/lib/prisma';
 
 // Definición de ActionResponse
 export type ActionResponse<TData = null> = {
@@ -192,5 +193,36 @@ export async function updatePracticaCoordDCAction(
       return { success: false, error: error.message };
     }
     return { success: false, error: 'Ocurrió un error inesperado al actualizar la práctica.' };
+  }
+}
+
+/**
+ * Obtiene una lista de prácticas para la gestión por Coordinadores o Directores de Carrera.
+ * Filtra por la sede del usuario si está asociada a una.
+ */
+export async function listPracticasGestionAction(): Promise<ActionResponse<PracticaConDetalles[]>> {
+  try {
+    const userPayload = await authorizeCoordinadorOrDirectorCarrera();
+
+    let requestingUserSedeId: number | null | undefined = undefined;
+    const usuarioConSede = await prismaClient.usuario.findUnique({
+        where: { id: userPayload.userId },
+        select: { sedeId: true }
+    });
+    if (usuarioConSede) {
+        requestingUserSedeId = usuarioConSede.sedeId;
+    }
+
+    const result = await PracticaService.getPracticasParaGestion({ requestingUserSedeId });
+    
+    if (result.success && result.data) {
+      return { success: true, data: result.data as unknown as PracticaConDetalles[] };
+    }
+    return { success: false, error: result.error || 'Error al listar las prácticas para gestión.' };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado al listar las prácticas.' };
   }
 }

@@ -482,4 +482,56 @@ export class PracticaService {
       return { success: false, error: 'No se pudo actualizar la información de la práctica.' };
     }
   }
+
+  /**
+   * Obtiene una lista de todas las prácticas con detalles para la gestión por Coord/DC.
+   * Puede filtrar por la sede del usuario solicitante si se proporciona.
+   * @param filters - Opcional: { requestingUserSedeId?: number | null }
+   */
+  static async getPracticasParaGestion(filters?: { requestingUserSedeId?: number | null }) {
+    try {
+      const whereClause: Prisma.PracticaWhereInput = {};
+
+      if (filters?.requestingUserSedeId) {
+        // Filtra prácticas cuya carrera pertenezca a la sede del usuario solicitante
+        whereClause.carrera = {
+          sedeId: filters.requestingUserSedeId,
+        };
+      }
+
+      const practicas = await prisma.practica.findMany({
+        where: whereClause,
+        include: {
+          alumno: { 
+            select: { 
+              id: true, 
+              usuario: { select: { rut: true, nombre: true, apellido: true }},
+            } 
+          },
+          docente: { 
+            select: { 
+              id: true, 
+              usuario: { select: { nombre: true, apellido: true }} 
+            } 
+          },
+          carrera: { 
+            select: { 
+              id: true, 
+              nombre: true, 
+              sede: { select: { id: true, nombre: true } } 
+            } 
+          },
+          // No incluimos centroPractica aquí a menos que sea necesario para la vista de lista general
+        },
+        orderBy: [
+            { estado: 'asc' }, // Agrupar por estado
+            { fechaInicio: 'desc' }, // Luego por fecha de inicio
+        ]
+      });
+      return { success: true, data: practicas };
+    } catch (error) {
+      console.error('Error al obtener prácticas para gestión:', error);
+      return { success: false, error: 'No se pudieron obtener las prácticas para gestión.' };
+    }
+  }
 }
