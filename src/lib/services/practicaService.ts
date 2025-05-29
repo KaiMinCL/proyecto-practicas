@@ -7,6 +7,7 @@ import {
 import { 
     type IniciarPracticaInput, 
     type CompletarActaAlumnoData, 
+    type EditarPracticaCoordDCInput,
     DecisionDocenteActaData
 } from '@/lib/validators/practica'; 
 import { isHoliday } from './holidayService';
@@ -403,6 +404,82 @@ export class PracticaService {
     } catch (error) {
       console.error("Error al procesar decisión del docente sobre el acta:", error);
       return { success: false, error: 'No se pudo procesar la decisión sobre el acta.' };
+    }
+  }
+
+  /**
+   * Obtiene los datos completos de una práctica para ser editada por un Coordinador/DC.
+   */
+  static async getPracticaParaEditarCoordDC(practicaId: number) {
+    try {
+      const practica = await prisma.practica.findUnique({
+        where: { id: practicaId },
+        include: { // Incluir todos los datos relevantes para mostrar y editar
+          alumno: { include: { usuario: true, carrera: { include: { sede: true } } } },
+          carrera: { include: { sede: true } },
+          docente: { include: { usuario: true } },
+          centroPractica: true, // Si está vinculado
+        },
+      });
+
+      if (!practica) {
+        return { success: false, error: 'Práctica no encontrada.' };
+      }
+      // Aquí no se aplican filtros de estado específicos, ya que un Coord/DC podría necesitar editar prácticas en varios estados.
+      return { success: true, data: practica };
+    } catch (error) {
+      console.error("Error en getPracticaParaEditarCoordDC:", error);
+      return { success: false, error: "Error al obtener los detalles de la práctica para edición." };
+    }
+  }
+
+   /**
+   * Actualiza una práctica existente por un Coordinador/DC.
+   * Los datos de entrada ya deben estar validados por Zod.
+   */
+  static async updatePracticaCoordDC(
+    practicaId: number,
+    data: EditarPracticaCoordDCInput
+  ) {
+    try {
+      // Validar que la práctica exista
+      const existingPractica = await prisma.practica.findUnique({ where: { id: practicaId }});
+      if (!existingPractica) {
+        return { success: false, error: "Práctica no encontrada para actualizar." };
+      }
+
+      // Si se modifica fechaIniciola fechaTermino podría necesitar recalcularse o revalidarse.
+      // Si fechaTermino no se provee en 'data', no se actualiza.
+      // El frontend debería manejar la lógica de re-sugerir fechaTermino si fechaInicio cambia.
+
+      const updatedPractica = await prisma.practica.update({
+        where: { id: practicaId },
+        data: {
+          // Solo actualiza los campos que vienen en 'data' (Zod hace que los opcionales no enviados sean undefined)
+          docenteId: data.docenteId,
+          fechaInicio: data.fechaInicio,
+          fechaTermino: data.fechaTermino,
+          estado: data.estado,
+          // Campos del centro de práctica y tareas
+          direccionCentro: data.direccionCentro,
+          departamento: data.departamento,
+          nombreJefeDirecto: data.nombreJefeDirecto,
+          cargoJefeDirecto: data.cargoJefeDirecto,
+          contactoCorreoJefe: data.contactoCorreoJefe,
+          contactoTelefonoJefe: data.contactoTelefonoJefe,
+          practicaDistancia: data.practicaDistancia,
+          tareasPrincipales: data.tareasPrincipales,
+        },
+        include: { // Devuelve la práctica actualizada con detalles
+            alumno: { include: { usuario: true, carrera: {include: {sede: true}} } },
+            docente: { include: { usuario: true } },
+            carrera: { include: { sede: true } },
+        }
+      });
+      return { success: true, data: updatedPractica };
+    } catch (error) {
+      console.error("Error al actualizar la práctica (Coord/DC):", error);
+      return { success: false, error: 'No se pudo actualizar la información de la práctica.' };
     }
   }
 }

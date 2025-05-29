@@ -82,6 +82,73 @@ export const decisionDocenteActaSchema = z.object({
 
 export type DecisionDocenteActaData = z.infer<typeof decisionDocenteActaSchema>;
 
+export const editarPracticaCoordDCSchema = z.object({
+  docenteId: z.coerce.number({
+    invalid_type_error: "ID de docente inválido.",
+  }).int().positive({ message: "ID de docente debe ser positivo." }).optional(),
+
+  fechaInicio: z.coerce.date({
+    invalid_type_error: "Fecha de inicio inválida.",
+  }).optional(),
+
+  fechaTermino: z.coerce.date({
+    invalid_type_error: "Fecha de término inválida.",
+  }).optional(),
+
+  estado: z.nativeEnum(PrismaEstadoPracticaEnum, {
+    invalid_type_error: "Estado de práctica inválido."
+  }).optional(),
+
+  // Campos del Centro de Práctica y Tareas (originalmente llenados por alumno, ahora editables por Coord/DC)
+  direccionCentro: z.string()
+    .min(1, {message: "La dirección no puede estar vacía si se modifica."}) // Si se envía, no puede ser vacía
+    .max(255, 'La dirección no puede exceder los 255 caracteres.')
+    .optional().or(z.literal('')).transform(e => e === "" ? null : e), // Permite string o null
+
+  departamento: z.string()
+    .max(100, 'El departamento no puede exceder los 100 caracteres.')
+    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+
+  nombreJefeDirecto: z.string()
+    .min(1, {message: "El nombre del jefe no puede estar vacío si se modifica."})
+    .max(100, 'El nombre del jefe no puede exceder los 100 caracteres.')
+    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+
+  cargoJefeDirecto: z.string()
+    .min(1, {message: "El cargo del jefe no puede estar vacío si se modifica."})
+    .max(100, 'El cargo no puede exceder los 100 caracteres.')
+    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+  
+  contactoCorreoJefe: z.string()
+    .email('Debe ser un correo electrónico válido si se modifica.')
+    .max(100, 'El correo no puede exceder los 100 caracteres.')
+    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+  
+  contactoTelefonoJefe: z.string()
+    .regex(/^\+?[0-9\s-()]{7,20}$/, 'Número de teléfono inválido si se modifica.')
+    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+  
+  practicaDistancia: z.boolean().optional(),
+  
+  tareasPrincipales: z.string()
+    .min(1, {message: "Las tareas no pueden estar vacías si se modifican."})
+    .max(2000, 'La descripción de tareas no puede exceder los 2000 caracteres.')
+    .optional().or(z.literal('')).transform(e => e === "" ? null : e),
+
+  // No se permite cambiar: alumnoId, carreraId, tipoPractica
+}).refine(data => {
+    if (data.fechaInicio && data.fechaTermino) {
+      return data.fechaTermino >= data.fechaInicio;
+    }
+    return true;
+  }, {
+    message: "La fecha de término no puede ser anterior a la fecha de inicio.",
+    path: ["fechaTermino"], 
+});
+
+export type EditarPracticaCoordDCInput = z.infer<typeof editarPracticaCoordDCSchema>;
+
+
 // Interface general para Práctica con detalles
 export interface PracticaConDetalles {
   id: number;

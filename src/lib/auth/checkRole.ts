@@ -59,3 +59,27 @@ export async function authorizeAlumno(): Promise<UserJwtPayload> {
 export async function authorizeDocente(): Promise<UserJwtPayload> {
   return authorize('DOCENTE' as RoleName);
 }
+
+/**
+ * Verifica si el usuario actual tiene el rol de Coordinador O Director de Carrera.
+ */
+export async function authorizeCoordinadorOrDirectorCarrera(): Promise<UserJwtPayload> {
+  const userPayload = await getUserSession();
+  if (!userPayload) {
+    throw new Error('Acceso denegado. No estás autenticado.');
+  }
+
+  const userRole = userPayload.rol as RoleName;
+  // Asegúrate que 'COORDINADOR' y 'DIRECTOR_CARRERA' sean los strings correctos
+  const allowedRoles: RoleName[] = ['COORDINADOR', 'DIRECTOR_CARRERA']; 
+
+  if (!allowedRoles.includes(userRole)) {
+    console.warn(
+      `Intento de acceso no autorizado. Roles requeridos: ${allowedRoles.join(' o ')}, Rol del usuario: ${userRole}, Usuario RUT: ${userPayload.rut}`
+    );
+    throw new Error(
+      `Acceso denegado. Se requiere el rol de ${allowedRoles.join(' o ')}.`
+    );
+  }
+  return userPayload;
+}
