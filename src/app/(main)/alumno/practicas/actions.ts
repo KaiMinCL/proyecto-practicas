@@ -10,7 +10,9 @@ import prismaClient from '@/lib/prisma';
 import { 
     completarActaAlumnoSchema,
     type CompletarActaAlumnoData,
-    type PracticaConDetalles 
+    type PracticaConDetalles,
+    subirInformePracticaSchema,
+    type SubirInformePracticaData
 } from '@/lib/validators/practica'; 
 import { AlumnoService } from '@/lib/services/alumnoService';
 
@@ -162,5 +164,95 @@ export async function updateAlumnoFotoUrlAction(newFotoUrl: string): Promise<Act
       return { success: false, error: error.message };
     }
     return { success: false, error: "Ocurrió un error inesperado al actualizar la foto de perfil." };
+  }
+}
+
+/**
+ * Permite al alumno subir su informe de práctica.
+ * Valida los datos usando Zod antes de pasarlos al servicio.
+ */
+export async function subirInformePracticaAction(
+  practicaId: number,
+  informeData: SubirInformePracticaData
+): Promise<ActionResponse<PracticaConDetalles>> {
+  try {
+    const userPayload = await authorizeAlumno();
+
+    // Validar los datos del formulario con Zod ANTES de llamar al servicio
+    const validationResult = subirInformePracticaSchema.safeParse(informeData);
+    if (!validationResult.success) {
+      return {
+        success: false,
+        error: 'Error de validación. Por favor, revisa la URL del informe.',
+        errors: validationResult.error.errors.map((e) => ({ field: e.path, message: e.message })),
+      };
+    }
+
+    // Llama al servicio con los datos ya validados
+    const result = await PracticaService.subirInformePractica(
+      practicaId,
+      userPayload.userId,
+      validationResult.data.informeUrl
+    );
+
+    if (result.success && result.data) {
+      revalidatePath(`/alumno/mis-practicas`); // Para actualizar la lista de prácticas del alumno
+      revalidatePath(`/alumno/mis-practicas/${practicaId}/subir-informe`); // Para la página del formulario
+
+      // TODO: Notificación al Docente Tutor sobre el informe subido
+
+      return { 
+        success: true, 
+        data: result.data as unknown as PracticaConDetalles, 
+        message: "Informe de práctica subido exitosamente." 
+      };
+    }
+
+    // Si el servicio devuelve un error específico, se pasa
+    return { success: false, error: result.error || 'Error desconocido al subir el informe.' };
+  } catch (error) {
+    // Captura errores inesperados del proceso
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Ocurrió un error muy inesperado al subir el informe.' };
+  }
+}
+
+/**
+ * Obtiene las prácticas del alumno logueado que están en estado EN_CURSO o FINALIZADA_PENDIENTE_EVAL
+ * para permitir la subida de informes.
+ */
+export async function getMisPracticasParaInformeAction(): Promise<ActionResponse<PracticaConDetalles[]>> {
+  try {
+    const userPayload = await authorizeAlumno(); 
+    
+    // Obtener el alumnoId a partir del usuarioId
+    const alumno = await prismaClient.alumno.findUnique({
+      where: { usuarioId: userPayload.userId },
+      select: { id: true },
+    });
+
+    if (!alumno) {
+      return { success: false, error: "Perfil de alumno no encontrado." };
+    }
+    
+    const result = await PracticaService.getPracticasPorAlumno(alumno.id);
+
+    if (result.success && result.data) {
+      // Filtrar solo las prácticas que pueden subir informe
+      const practicasValidas = (result.data as unknown as PracticaConDetalles[]).filter(practica => 
+        practica.estado === PrismaEstadoPracticaEnum.EN_CURSO || 
+        practica.estado === PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL
+      );
+      
+      return { success: true, data: practicasValidas };
+    }
+    return { success: false, error: result.error };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo tus prácticas para subir informe.' };
   }
 }
