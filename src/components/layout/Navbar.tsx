@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FilePlus2, ListChecks, LogIn } from 'lucide-react';
+import { FilePlus2, ListChecks, LogIn, Star } from 'lucide-react';
 import type { RoleName } from '@/types/roles';
 
 export default function Navbar() {
@@ -42,14 +42,22 @@ export default function Navbar() {
                     <span className="hidden sm:inline">Iniciar Práctica</span>
                   </Link>
                 </Button>
-              )}
-
-              {/* Botón para Mis Prácticas (solo para Alumno) */}
+              )}              {/* Botón para Mis Prácticas (solo para Alumno) */}
               {isAlumno && (
                 <Button asChild variant="default" size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
                   <Link href="/alumno/mis-practicas">
                     <ListChecks className="mr-0 sm:mr-2 h-4 w-4" />
                     <span className="hidden sm:inline">Mis Prácticas</span>
+                  </Link>
+                </Button>
+              )}
+
+              {/* Botón para Evaluaciones de Empleador (solo para Alumno) */}
+              {isAlumno && (
+                <Button asChild variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                  <Link href="/alumno/evaluaciones-empleador">
+                    <Star className="mr-0 sm:mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Evaluaciones</span>
                   </Link>
                 </Button>
               )}

@@ -256,3 +256,49 @@ export async function getMisPracticasParaInformeAction(): Promise<ActionResponse
     return { success: false, error: 'Error inesperado obteniendo tus prácticas para subir informe.' };
   }
 }
+
+/**
+ * Obtiene todas las prácticas del alumno que tienen evaluación de empleador disponible.
+ */
+export async function getMisPracticasConEvaluacionEmpleadorAction(): Promise<ActionResponse<unknown[]>> {
+  try {
+    const userPayload = await authorizeAlumno();
+
+    const result = await PracticaService.getPracticasConEvaluacionEmpleadorDisponible(userPayload.userId);
+    
+    if (result.success && result.data) {
+      return { success: true, data: result.data };
+    }
+    return { success: false, error: result.error || 'No se pudieron obtener las evaluaciones de empleador.' };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo las evaluaciones de empleador.' };
+  }
+}
+
+/**
+ * Obtiene la evaluación de empleador específica para una práctica.
+ */
+export async function getEvaluacionEmpleadorAction(practicaId: number): Promise<ActionResponse<unknown>> {
+  try {
+    const userPayload = await authorizeAlumno();
+
+    if (!practicaId || isNaN(practicaId)) {
+      return { success: false, error: 'ID de práctica inválido.' };
+    }
+
+    const result = await PracticaService.getEvaluacionEmpleadorPorPractica(practicaId, userPayload.userId);
+    
+    if (result.success && result.data) {
+      return { success: true, data: result.data };
+    }
+    return { success: false, error: result.error || 'No se pudo obtener la evaluación del empleador.' };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo la evaluación del empleador.' };
+  }
+}
