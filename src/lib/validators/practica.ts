@@ -213,12 +213,11 @@ export interface PracticaConDetalles {
   contactoCorreoJefe?: string | null;  
   contactoTelefonoJefe?: string | null;
   practicaDistancia?: boolean | null;
-  tareasPrincipales?: string | null;
-  fechaCompletadoAlumno?: Date | null;
+  tareasPrincipales?: string | null;  fechaCompletadoAlumno?: Date | null;
   motivoRechazoDocente?: string | null;
+  informeUrl?: string | null; // URL del informe de práctica subido por el alumno
 
-
-  // DATOS RELACIONALES 
+  // DATOS RELACIONALES
   alumno?: { // Datos del alumno asociado
     id: number; 
     usuario: { 

@@ -8,8 +8,7 @@ import {
     type IniciarPracticaInput, 
     type CompletarActaAlumnoData, 
     type EditarPracticaCoordDCInput,
-    DecisionDocenteActaData,
-    type SubirInformePracticaData
+    DecisionDocenteActaData
 } from '@/lib/validators/practica';
 import { isHoliday } from './holidayService';
 
