@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { useRouter } from 'next/navigation'; // <--- CAMBIO AQUÍ
+import { useRouter } from 'next/navigation'; 
 import { Button } from '@/components/ui/button';
 import { 
     Card, 
@@ -12,7 +12,7 @@ import {
     CardTitle 
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, ExternalLink, Building, User, Settings, ClipboardList } from 'lucide-react';
+import { CheckCircle, XCircle, ExternalLink, Building, User, Settings, ClipboardList, Download, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { PracticaConDetalles, DecisionDocenteActaData } from '@/lib/validators/practica';
@@ -181,6 +181,35 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
                 <InfoItem label="" value={practica.tareasPrincipales} isList />
             </div>
           </div>
+
+          {/* Sección Informe de Práctica */}
+          {practica.informeUrl && (
+            <div className="mt-6 pt-6 border-t">
+              <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center">
+                <FileText className="mr-2 h-5 w-5"/>Informe Final de Práctica
+              </h3>
+              <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6">
+                <div> {/* Envuelve el botón en un div o usa InfoItem si prefieres consistencia */}
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Archivo Subido</dt>
+                  <dd className="mt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(practica.informeUrl!, '_blank')}
+                      className="w-full sm:w-auto"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Descargar Informe
+                    </Button>
+                  </dd>
+                </div>
+                {practica.fechaSubidaInforme && (
+                   <InfoItem label="Fecha de Subida" value={practica.fechaSubidaInforme} isDate />
+                )}
+              </dl>
+            </div>
+          )}
+          {/* Sección Informe de Práctica */}
         </CardContent>
       </Card>
 
