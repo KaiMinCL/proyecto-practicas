@@ -9,7 +9,7 @@ import {
     type CompletarActaAlumnoData, 
     type EditarPracticaCoordDCInput,
     DecisionDocenteActaData
-} from '@/lib/validators/practica'; 
+} from '@/lib/validators/practica';
 import { isHoliday } from './holidayService';
 
 const HORAS_POR_DIA_LABORAL = 8;
@@ -533,6 +533,83 @@ export class PracticaService {
     } catch (error) {
       console.error('Error al obtener prácticas para gestión:', error);
       return { success: false, error: 'No se pudieron obtener las prácticas para gestión.' };
+    }
+  }
+
+  /**
+   * Permite a un alumno subir su informe de práctica.
+   * Valida que la práctica esté en estado apropiado y actualiza la URL del informe.
+   */
+  static async subirInformePractica(
+    practicaId: number,
+    alumnoUsuarioId: number,
+    informeUrl: string
+  ) {
+    try {
+      const alumno = await prisma.alumno.findUnique({
+        where: { usuarioId: alumnoUsuarioId },
+        select: { id: true }
+      });
+
+      if (!alumno) {
+        return { success: false, error: "Perfil de alumno no encontrado." };
+      }
+
+      const practica = await prisma.practica.findUnique({
+        where: { id: practicaId },
+        select: { 
+          id: true, 
+          alumnoId: true, 
+          estado: true, 
+          fechaTermino: true,
+          informeUrl: true 
+        }
+      });
+
+      if (!practica) {
+        return { success: false, error: 'Práctica no encontrada.' };
+      }
+
+      if (practica.alumnoId !== alumno.id) {
+        return { success: false, error: 'No tienes permiso para subir el informe de esta práctica.' };
+      }      // Verificar que la práctica esté en un estado válido para subir informe
+      if (practica.estado !== PrismaEstadoPracticaEnum.EN_CURSO && 
+          practica.estado !== PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL) {
+        return { 
+          success: false, 
+          error: `No puedes subir el informe en el estado actual: ${practica.estado}. La práctica debe estar en curso o finalizada pendiente de evaluación.` 
+        };
+      }
+
+      // Validar que la fecha de término haya pasado para permitir la subida
+      const hoy = new Date();
+      const fechaTermino = new Date(practica.fechaTermino);
+      
+      if (hoy < fechaTermino) {
+        return { 
+          success: false, 
+          error: 'No puedes subir el informe antes de la fecha de término de la práctica.' 
+        };
+      }      const updatedPractica = await prisma.practica.update({
+        where: { id: practicaId },
+        data: {
+          informeUrl: informeUrl,
+          // Si es la primera vez que sube el informe y está en curso, cambiar estado
+          ...(practica.estado === PrismaEstadoPracticaEnum.EN_CURSO && !practica.informeUrl && {
+            estado: PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL
+          })
+        },
+        include: {
+          alumno: { include: { usuario: true, carrera: { include: { sede: true } } } },
+          docente: { include: { usuario: true } },
+          carrera: { include: { sede: true } },
+        }
+      });
+
+      return { success: true, data: updatedPractica };
+    } catch (error) {
+      console.error("Error al subir informe de práctica:", error);
+      return { success: false, error: 'No se pudo subir el informe de práctica.' };
     }
   }
 }

@@ -82,6 +82,16 @@ export const decisionDocenteActaSchema = z.object({
 
 export type DecisionDocenteActaData = z.infer<typeof decisionDocenteActaSchema>;
 
+// Schema para subir informe de práctica
+export const subirInformePracticaSchema = z.object({
+  informeUrl: z.string({
+    required_error: "La URL del informe es requerida.",
+  }).url("Debe ser una URL válida del informe subido."),
+});
+
+export type SubirInformePracticaData = z.infer<typeof subirInformePracticaSchema>;
+
+// Schema para editar práctica por el Coordinador o Docente de Carrera
 export const editarPracticaCoordDCSchema = z.object({
   docenteId: z.coerce.number({
     invalid_type_error: "ID de docente inválido.",
@@ -203,12 +213,11 @@ export interface PracticaConDetalles {
   contactoCorreoJefe?: string | null;  
   contactoTelefonoJefe?: string | null;
   practicaDistancia?: boolean | null;
-  tareasPrincipales?: string | null;
-  fechaCompletadoAlumno?: Date | null;
+  tareasPrincipales?: string | null;  fechaCompletadoAlumno?: Date | null;
   motivoRechazoDocente?: string | null;
+  informeUrl?: string | null; // URL del informe de práctica subido por el alumno
 
-
-  // DATOS RELACIONALES 
+  // DATOS RELACIONALES
   alumno?: { // Datos del alumno asociado
     id: number; 
     usuario: { 
