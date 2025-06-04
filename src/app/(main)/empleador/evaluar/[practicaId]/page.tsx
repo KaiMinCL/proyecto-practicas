@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { useAuth } from '@/hooks/useAuth';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -70,7 +70,7 @@ export default function EvaluarPracticaPage() {
     }
   }, [criteriosValues, form]);
 
-  const cargarEvaluacionExistente = async (empleadorId: number, practicaId: number) => {
+  const cargarEvaluacionExistente = useCallback(async (empleadorId: number, practicaId: number) => {
     try {
       const evaluacion = await EmpleadorService.getEvaluacion(empleadorId, practicaId);
       
@@ -101,7 +101,7 @@ export default function EvaluarPracticaPage() {
       console.error('Error al cargar evaluación existente:', error);
       toast.error('Error al cargar la evaluación existente');
     }
-  };
+  }, [form]); // Added form as a dependency for form.setValue
 
   useEffect(() => {
     const fetchPractica = async () => {

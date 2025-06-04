@@ -71,7 +71,7 @@ export async function PUT(
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'documentos');
     try {
       await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
+    } catch (_error) {
       // Ignorar si el directorio ya existe
     }
 

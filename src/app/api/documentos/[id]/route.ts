@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, unlink, mkdir } from 'fs/promises';
+import { unlink } from 'fs/promises'; // Removed writeFile, mkdir
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { verifyUserSession } from '@/lib/auth';
