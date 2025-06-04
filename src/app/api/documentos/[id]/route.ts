@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { unlink } from 'fs/promises'; // Removed writeFile, mkdir
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { del } from '@vercel/blob';
 import { verifyUserSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { UpdateDocumentoSchema } from '@/lib/validators/documento';
@@ -193,15 +191,14 @@ export async function DELETE(
       );
     }
 
-    // Eliminar el archivo físico si existe
-    try {
-      const filePath = join(process.cwd(), 'public', documento.url);
-      if (existsSync(filePath)) {
-        await unlink(filePath);
+    // Eliminar el archivo de Vercel Blob si existe
+    if (documento.url) {
+      try {
+        await del(documento.url);
+      } catch (fileError) {
+        console.warn('Error deleting file from Vercel Blob:', fileError);
+        // Continuar con la eliminación del registro incluso si falla la eliminación del archivo
       }
-    } catch (fileError) {
-      console.warn('Error deleting file:', fileError);
-      // Continuar con la eliminación del registro incluso si falla la eliminación del archivo
     }
 
     // Eliminar el registro de la base de datos

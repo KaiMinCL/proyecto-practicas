@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, unlink, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { put, del } from '@vercel/blob';
 import { verifyUserSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
@@ -67,40 +65,31 @@ export async function PUT(
       );
     }
 
-    // Crear directorio si no existe
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'documentos');
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (_error) {
-      // Ignorar si el directorio ya existe
-    }
-
     // Generar nombre único para el archivo
     const timestamp = Date.now();
-    const fileExtension = 'pdf';
-    const fileName = `documento_${timestamp}.${fileExtension}`;
-    const filePath = join(uploadDir, fileName);
-    const fileUrl = `/uploads/documentos/${fileName}`;
+    const fileName = `documento_${timestamp}.pdf`;
 
-    // Guardar el nuevo archivo
-    const bytes = await archivo.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    // Subir el nuevo archivo a Vercel Blob
+    const blob = await put(fileName, archivo, {
+      access: 'public',
+      contentType: 'application/pdf',
+    });
 
-    // Eliminar el archivo anterior si existe
-    try {
-      const oldFilePath = join(process.cwd(), 'public', documentoExistente.url);
-      if (existsSync(oldFilePath)) {
-        await unlink(oldFilePath);
+    // Eliminar el archivo anterior de Vercel Blob si existe
+    if (documentoExistente.url) {
+      try {
+        await del(documentoExistente.url);
+      } catch (deleteError) {
+        console.warn('Error deleting old file from Vercel Blob:', deleteError);
+        // Continuar aunque falle la eliminación del archivo anterior
       }
-    } catch (fileError) {
-      console.warn('Error deleting old file:', fileError);
-      // Continuar aunque falle la eliminación del archivo anterior
-    }    // Actualizar el documento en la base de datos
+    }
+
+    // Actualizar el documento en la base de datos
     const documentoActualizado = await prisma.documentoApoyo.update({
       where: { id: documentoId },
       data: {
-        url: fileUrl,
+        url: blob.url,
       },
       include: {
         carrera: {
@@ -123,7 +112,6 @@ export async function PUT(
       message: 'Archivo reemplazado exitosamente',
       documento: documentoActualizado,
     });
-
   } catch (error) {
     console.error('Error replacing file:', error);
     return NextResponse.json(
