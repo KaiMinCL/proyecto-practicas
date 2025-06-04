@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, User, Building, Award, Eye, AlertTriangle } from 'lucide-react';
+import { Calendar, User, Building, Award, Eye, AlertTriangle, Clock, CheckCircle2, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 const EstadoColors = {
@@ -240,22 +240,27 @@ export default function EmpleadorDashboard() {
                     <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center text-green-800">
-                          <Award className="h-4 w-4 mr-2" />
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
                           <span className="text-sm font-medium">
                             Evaluación Completada
                           </span>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-green-700">
+                          <div className={`text-lg font-bold px-2 py-1 rounded ${
+                            practica.evaluacionEmpleador.nota >= 5.5 ? 'bg-green-100 text-green-800' :
+                            practica.evaluacionEmpleador.nota >= 4.0 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
                             {practica.evaluacionEmpleador.nota.toFixed(1)}
                           </div>
-                          <div className="text-xs text-green-600">
-                            Nota Final
+                          <div className="text-xs text-green-600 mt-1">
+                            {practica.evaluacionEmpleador.nota >= 4.0 ? 'Aprobado' : 'Reprobado'}
                           </div>
                         </div>
                       </div>
-                      <p className="text-xs text-green-600 mt-2">
-                        📅 Evaluado el {formatDate(practica.evaluacionEmpleador.fecha)}
+                      <p className="text-xs text-green-600 mt-2 flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Evaluado el {formatDate(practica.evaluacionEmpleador.fecha)}
                       </p>
                     </div>
                   )}
@@ -268,11 +273,14 @@ export default function EmpleadorDashboard() {
                       <div className="flex items-center text-amber-800">
                         <AlertTriangle className="h-4 w-4 mr-2" />
                         <span className="text-sm font-medium">
-                          Pendiente de Evaluación
+                          {practica.estado === 'EN_CURSO' ? 'En Curso - Sin Evaluar' : 'Pendiente de Evaluación'}
                         </span>
                       </div>
                       <p className="text-xs text-amber-600 mt-1">
-                        La práctica requiere evaluación de desempeño
+                        {practica.estado === 'EN_CURSO' 
+                          ? 'Práctica en desarrollo, evalúe cuando termine'
+                          : 'La práctica ha finalizado y requiere evaluación'
+                        }
                       </p>
                     </div>
                   )}
@@ -282,10 +290,10 @@ export default function EmpleadorDashboard() {
                       practica.estado === 'FINALIZADA_PENDIENTE_EVAL' || 
                       practica.estado === 'EN_CURSO'
                     ) && (
-                      <Button asChild size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+                      <Button asChild size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
                         <Link href={`/empleador/evaluar/${practica.id}`}>
-                          <Award className="h-4 w-4 mr-2" />
-                          Evaluar Ahora
+                          <FileText className="h-4 w-4 mr-2" />
+                          {practica.estado === 'EN_CURSO' ? 'Evaluar' : 'Evaluar Ahora'}
                         </Link>
                       </Button>
                     )}
@@ -294,7 +302,7 @@ export default function EmpleadorDashboard() {
                       <Button asChild variant="outline" size="sm" className="flex-1 border-green-300 text-green-700 hover:bg-green-50">
                         <Link href={`/empleador/evaluar/${practica.id}`}>
                           <Eye className="h-4 w-4 mr-2" />
-                          Ver/Editar Evaluación
+                          Ver/Editar
                         </Link>
                       </Button>
                     )}
