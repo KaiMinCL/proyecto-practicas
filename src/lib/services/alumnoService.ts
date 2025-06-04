@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { CreateAlumnoFormData } from '@/lib/validators';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth-utils';
 import { generateSecurePassword } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
 

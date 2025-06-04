@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth-utils';
 import { generateInitialPassword } from '@/lib/utils';
 import { CreateUserFormData, UpdateUserFormData } from '@/lib/validators';
 import { Prisma } from '@prisma/client';

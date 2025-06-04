@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { CreateEmpleadorFormData } from '@/lib/validators/empleador';
 import { EvaluacionEmpleadorInput } from '@/lib/validators/evaluacion';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth-utils';
 import { generateSecurePassword } from '@/lib/utils';
 
 export interface CreateEmpleadorResponse {
