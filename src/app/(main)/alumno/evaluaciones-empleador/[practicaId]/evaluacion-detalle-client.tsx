@@ -21,7 +21,6 @@ import {
   Calendar,
   Star,
   User,
-  GraduationCap,
   MapPin,
   Mail,
   Phone,
@@ -112,7 +111,7 @@ export function EvaluacionEmpleadorDetalleClient({ practicaId }: Props) {
         const result = await getEvaluacionEmpleadorAction(practicaId);
         
         if (result.success && result.data) {
-          setData(result.data);
+          setData(result.data as EvaluacionData);
         } else {
           setError(result.error || 'Error al cargar la evaluación');
         }

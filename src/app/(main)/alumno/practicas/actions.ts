@@ -260,7 +260,7 @@ export async function getMisPracticasParaInformeAction(): Promise<ActionResponse
 /**
  * Obtiene todas las prácticas del alumno que tienen evaluación de empleador disponible.
  */
-export async function getMisPracticasConEvaluacionEmpleadorAction(): Promise<ActionResponse<any[]>> {
+export async function getMisPracticasConEvaluacionEmpleadorAction(): Promise<ActionResponse<unknown[]>> {
   try {
     const userPayload = await authorizeAlumno();
 
@@ -281,7 +281,7 @@ export async function getMisPracticasConEvaluacionEmpleadorAction(): Promise<Act
 /**
  * Obtiene la evaluación de empleador específica para una práctica.
  */
-export async function getEvaluacionEmpleadorAction(practicaId: number): Promise<ActionResponse<any>> {
+export async function getEvaluacionEmpleadorAction(practicaId: number): Promise<ActionResponse<unknown>> {
   try {
     const userPayload = await authorizeAlumno();
 

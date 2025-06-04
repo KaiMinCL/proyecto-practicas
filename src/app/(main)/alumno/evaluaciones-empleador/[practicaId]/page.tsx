@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  params: {
+  params: Promise<{
     practicaId: string;
-  };
+  }>;
 }
 
 function EvaluacionDetalleSkeleton() {
@@ -64,8 +64,9 @@ function EvaluacionDetalleSkeleton() {
   );
 }
 
-export default function EvaluacionEmpleadorDetallePage({ params }: PageProps) {
-  const practicaId = parseInt(params.practicaId);
+export default async function EvaluacionEmpleadorDetallePage({ params }: PageProps) {
+  const resolvedParams = await params;
+  const practicaId = parseInt(resolvedParams.practicaId);
   
   if (isNaN(practicaId)) {
     notFound();

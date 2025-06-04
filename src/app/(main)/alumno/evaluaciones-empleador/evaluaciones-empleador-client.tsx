@@ -12,7 +12,6 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   FileText, 
@@ -78,7 +77,7 @@ export function EvaluacionesEmpleadorClient() {
         const result = await getMisPracticasConEvaluacionEmpleadorAction();
         
         if (result.success && result.data) {
-          setPracticas(result.data);
+          setPracticas(result.data as PracticaConEvaluacion[]);
         } else {
           setError(result.error || 'Error al cargar las evaluaciones');
         }

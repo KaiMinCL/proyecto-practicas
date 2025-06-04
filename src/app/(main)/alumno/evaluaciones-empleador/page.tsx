@@ -1,7 +1,7 @@
 // src/app/(main)/alumno/evaluaciones-empleador/page.tsx
 import { Suspense } from 'react';
 import { Metadata } from 'next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EvaluacionesEmpleadorClient } from './evaluaciones-empleador-client';
 
