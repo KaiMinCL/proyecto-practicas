@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { useAuth } from '@/hooks/useAuth';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -67,7 +67,8 @@ export default function EvaluarPracticaPage() {
       const nota = calcularNotaFinal(criteriosValues);
       setNotaCalculada(nota);
       form.setValue('notaFinal', nota);
-    }  }, [criteriosValues, form]);
+    }
+  }, [criteriosValues, form]);
 
   const cargarEvaluacionExistente = useCallback(async (empleadorId: number, practicaId: number) => {
     try {
@@ -100,7 +101,7 @@ export default function EvaluarPracticaPage() {
       console.error('Error al cargar evaluación existente:', error);
       toast.error('Error al cargar la evaluación existente');
     }
-  }, [form]);
+  }, [form]); // Added form as a dependency for form.setValue
 
   useEffect(() => {
     const fetchPractica = async () => {
@@ -141,7 +142,9 @@ export default function EvaluarPracticaPage() {
         setLoading(false);
       }
     };    fetchPractica();
-  }, [user, practicaId, cargarEvaluacionExistente]);const onSubmit = async (data: EvaluacionEmpleadorInput) => {
+  }, [user, practicaId, cargarEvaluacionExistente]);
+  
+  const onSubmit = async (data: EvaluacionEmpleadorInput) => {
     // Validación adicional antes de mostrar el diálogo
     if (!practica?.id) {
       toast.error('Error: No se pudo identificar la práctica');
@@ -421,8 +424,9 @@ export default function EvaluarPracticaPage() {
             {/* Criteria Evaluation */}
             <Card>
               <CardHeader>
-                <CardTitle>Criterios de Evaluación</CardTitle>                <CardDescription>
-                  Evalúe cada criterio utilizando la escala de 1 a 7, donde 1 es &ldquo;Muy Deficiente&rdquo; y 7 es &ldquo;Excelente&rdquo;
+                <CardTitle>Criterios de Evaluación</CardTitle>
+                <CardDescription>
+                  Evalúe cada criterio utilizando la escala de 1 a 7, donde 1 es &quot;Muy Deficiente&quot; y 7 es &quot;Excelente&quot;
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -625,8 +629,8 @@ export default function EvaluarPracticaPage() {
                   {pendingFormData.comentarios && (
                     <div className="mt-3 p-2 bg-white rounded border">                      <span className="text-gray-600 font-medium">Comentarios:</span>
                       <p className="text-gray-800 text-xs mt-1 italic">
-                        &ldquo;{pendingFormData.comentarios.substring(0, 150)}
-                        {pendingFormData.comentarios.length > 150 ? '...' : ''}&rdquo;
+                        &quot;{pendingFormData.comentarios.substring(0, 150)}
+                        {pendingFormData.comentarios.length > 150 ? '...' : ''}&quot;
                       </p>
                     </div>
                   )}

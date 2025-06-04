@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyUserSession } from '@/lib/auth';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
@@ -16,11 +16,10 @@ export async function GET(
       );
     }
 
-    const { userId: userIdParam } = await params;
-    const userId = parseInt(userIdParam);
+    const { userId } = await params;
 
     // 2. Verificar que el usuario solo pueda acceder a su propia información o que sea admin
-    if (user.userId !== userId && user.rol !== 'SA' && user.rol !== 'Coordinador') {
+    if (user.userId !== parseInt(userId) && user.rol !== 'SA' && user.rol !== 'Coordinador') {
       return NextResponse.json(
         { error: 'No autorizado para acceder a esta información' },
         { status: 403 }
@@ -30,7 +29,7 @@ export async function GET(
     // 3. Buscar el empleador asociado al usuario
     const empleador = await prisma.empleador.findUnique({
       where: {
-        usuarioId: userId
+        usuarioId: parseInt(userId)
       },
       select: {
         id: true,
