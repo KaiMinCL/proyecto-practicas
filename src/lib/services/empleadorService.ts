@@ -358,7 +358,6 @@ export class EmpleadorService {
       };
     }
   }
-
   /**
    * Guarda o actualiza una evaluación de empleador para una práctica.
    * @param empleadorId El ID del empleador que realiza la evaluación
@@ -367,6 +366,8 @@ export class EmpleadorService {
    */
   static async guardarEvaluacion(empleadorId: number, evaluacionData: EvaluacionEmpleadorInput): Promise<GuardarEvaluacionResponse> {
     try {
+      console.log(`[EmpleadorService] Guardando evaluación - Empleador: ${empleadorId}, Práctica: ${evaluacionData.practicaId}`);
+      
       // 1. Verificar que el empleador tenga acceso a esta práctica
       const empleadorCentros = await prisma.empleadorCentro.findMany({
         where: {
@@ -378,6 +379,7 @@ export class EmpleadorService {
       });
 
       const centroIds = empleadorCentros.map(ec => ec.centroPracticaId);
+      console.log(`[EmpleadorService] Centros del empleador: ${centroIds.join(', ')}`);
 
       const practica = await prisma.practica.findFirst({
         where: {
@@ -389,6 +391,7 @@ export class EmpleadorService {
       });
 
       if (!practica) {
+        console.log(`[EmpleadorService] Práctica no encontrada o sin acceso - ID: ${evaluacionData.practicaId}`);
         return {
           success: false,
           message: 'Práctica no encontrada o no tiene acceso a ella.',
@@ -401,6 +404,7 @@ export class EmpleadorService {
       // 2. Verificar que la práctica esté en estado válido para evaluación
       const estadosValidos = ['EN_CURSO', 'FINALIZADA_PENDIENTE_EVAL', 'EVALUACION_COMPLETA'];
       if (!estadosValidos.includes(practica.estado)) {
+        console.log(`[EmpleadorService] Estado de práctica inválido: ${practica.estado}`);
         return {
           success: false,
           message: 'La práctica no está en un estado válido para evaluación.',
@@ -410,7 +414,19 @@ export class EmpleadorService {
         };
       }
 
-      // 3. Guardar o actualizar la evaluación
+      // 3. Validar que la nota final esté en rango válido
+      if (evaluacionData.notaFinal < 1 || evaluacionData.notaFinal > 7) {
+        console.log(`[EmpleadorService] Nota final fuera de rango: ${evaluacionData.notaFinal}`);
+        return {
+          success: false,
+          message: 'La nota final debe estar entre 1.0 y 7.0.',
+          errors: {
+            notaFinal: ['La nota final debe estar entre 1.0 y 7.0.']
+          }
+        };
+      }
+
+      // 4. Guardar o actualizar la evaluación
       const evaluacionGuardada = await prisma.evaluacionEmpleador.upsert({
         where: {
           practicaId: evaluacionData.practicaId
@@ -426,12 +442,15 @@ export class EmpleadorService {
         }
       });
 
-      // 4. Actualizar el estado de la práctica si es necesario
+      console.log(`[EmpleadorService] Evaluación guardada con ID: ${evaluacionGuardada.id}`);
+
+      // 5. Actualizar el estado de la práctica si es necesario
       if (practica.estado === 'FINALIZADA_PENDIENTE_EVAL') {
         await prisma.practica.update({
           where: { id: evaluacionData.practicaId },
           data: { estado: 'EVALUACION_COMPLETA' }
         });
+        console.log(`[EmpleadorService] Estado de práctica actualizado a EVALUACION_COMPLETA`);
       }
 
       return {
@@ -441,7 +460,7 @@ export class EmpleadorService {
       };
 
     } catch (error) {
-      console.error('Error al guardar evaluación:', error);
+      console.error('[EmpleadorService] Error al guardar evaluación:', error);
       return {
         success: false,
         message: 'Error al guardar la evaluación.',
