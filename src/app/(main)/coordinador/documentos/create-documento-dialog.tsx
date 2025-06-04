@@ -45,6 +45,7 @@ const initialState = {
   message: '',
   errors: {},
   success: false,
+  documento: null as Documento | null,
 };
 
 export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDialogProps) {
@@ -86,17 +87,19 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
   }, []);
 
   // Cerrar diálogo y resetear estado cuando se crea exitosamente
-  if (state.success && open) {
-    setOpen(false);
-    setSelectedFile(null);
-    setFileError('');
-    if (state.documento) {
-      onDocumentoCreated(state.documento);
+  useEffect(() => {
+    if (state.success && open) {
+      setOpen(false);
+      setSelectedFile(null);
+      setFileError('');
+      if (state.documento) {
+        onDocumentoCreated(state.documento as Documento);
+      }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
+  }, [state.success, state.documento, open, onDocumentoCreated]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
