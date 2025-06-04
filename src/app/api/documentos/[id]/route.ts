@@ -7,7 +7,7 @@ import { UpdateDocumentoSchema } from '@/lib/validators/documento';
 // GET: Obtener un documento específico
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación
@@ -19,6 +19,7 @@ export async function GET(
       );
     }
 
+    const params = await context.params;
     const documentoId = parseInt(params.id);
     if (isNaN(documentoId)) {
       return NextResponse.json(
@@ -70,7 +71,7 @@ export async function GET(
 // PUT: Actualizar un documento
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación y rol
@@ -82,6 +83,7 @@ export async function PUT(
       );
     }
 
+    const params = await context.params;
     const documentoId = parseInt(params.id);
     if (isNaN(documentoId)) {
       return NextResponse.json(
@@ -159,7 +161,7 @@ export async function PUT(
 // DELETE: Eliminar un documento
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación y rol
@@ -171,6 +173,7 @@ export async function DELETE(
       );
     }
 
+    const params = await context.params;
     const documentoId = parseInt(params.id);
     if (isNaN(documentoId)) {
       return NextResponse.json(

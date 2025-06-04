@@ -6,7 +6,7 @@ import prisma from '@/lib/prisma';
 // PUT: Reemplazar el archivo de un documento
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación y rol
@@ -18,6 +18,7 @@ export async function PUT(
       );
     }
 
+    const params = await context.params;
     const documentoId = parseInt(params.id);
     if (isNaN(documentoId)) {
       return NextResponse.json(
