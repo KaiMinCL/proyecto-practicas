@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyUserSession } from '@/lib/auth';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { userId: string } }
+  request: Request,
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     // 1. Verificar autenticación
@@ -16,7 +16,8 @@ export async function GET(
       );
     }
 
-    const userId = parseInt(params.userId);
+    const { userId: userIdParam } = await params;
+    const userId = parseInt(userIdParam);
 
     // 2. Verificar que el usuario solo pueda acceder a su propia información o que sea admin
     if (user.userId !== userId && user.rol !== 'SA' && user.rol !== 'Coordinador') {
