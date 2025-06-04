@@ -31,7 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ChevronsUpDown, Save, CalendarIcon, ExternalLink, Settings, User as UserIcon, Building, ClipboardList } from "lucide-react";
+import { Check, ChevronsUpDown, Save, CalendarIcon, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -42,11 +42,10 @@ import {
     type PracticaConDetalles 
 } from "@/lib/validators/practica";
 
-// Asegúrate que la ruta a las actions sea correcta
 import { 
     getDocentesParaFormAction,
     sugerirFechaTerminoAction,   
-    updatePracticaCoordDCAction, // <--- Acción para actualizar la práctica
+    updatePracticaCoordDCAction,
     type DocenteOption,
     type ActionResponse 
 } from '../../../actions'; 
@@ -94,7 +93,7 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
   const tipoPracticaActual = practicaOriginal.tipo;
   const carreraIdActual = practicaOriginal.carreraId;
 
-  const form = useForm<FormInputValues, any, EditarPracticaCoordDCInput>({
+  const form = useForm<FormInputValues, unknown, EditarPracticaCoordDCInput>({
     resolver: zodResolver(editarPracticaCoordDCSchema),
     defaultValues: {
       docenteId: practicaOriginal.docenteId ?? undefined,

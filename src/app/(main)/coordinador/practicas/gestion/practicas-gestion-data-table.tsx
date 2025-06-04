@@ -49,7 +49,7 @@ export function PracticasGestionDataTable<TData, TValue>({
   });
   
   const getColumnName = (columnId: string) => { // Nombres para las columnas de Gestión de Prácticas
-    const column = columns.find(col => col.id === columnId || (col as any).accessorKey === columnId);
+    const column = columns.find(col => col.id === columnId || ('accessorKey' in col && col.accessorKey === columnId));
     if (typeof column?.header === 'string') return column.header;
     const map: Record<string, string> = {
         'alumno': 'Alumno',
