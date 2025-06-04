@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -7,8 +7,7 @@ import prisma from '@/lib/prisma';
 
 // GET: Descargar un documento
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verificar autenticación
@@ -20,7 +19,8 @@ export async function GET(
       );
     }
 
-    const documentoId = parseInt(params.id);
+    const { id } = await params;
+    const documentoId = parseInt(id);
     if (isNaN(documentoId)) {
       return NextResponse.json(
         { message: 'ID de documento inválido' },
