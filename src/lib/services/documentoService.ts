@@ -1,6 +1,6 @@
 import { CreateDocumentoData, UpdateDocumentoData } from '@/lib/validators/documento';
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;

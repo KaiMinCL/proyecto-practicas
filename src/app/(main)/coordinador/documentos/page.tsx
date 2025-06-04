@@ -3,16 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks';
 import { useRouter } from 'next/navigation';
-import { Trash2, Download, Upload, FileText, Search, Filter, Plus } from 'lucide-react';
+import { Download, FileText, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { DocumentoService } from '@/lib/services/documentoService';
 import { CarreraService } from '@/lib/services/carreraService';
@@ -98,10 +94,9 @@ export default function DocumentosPage() {
       } finally {
         setLoading(false);
       }
-    }
-
+    }    
     loadData();
-  }, [mounted, user, toast]);
+  }, [mounted, user]);
   // Filtrar y buscar documentos
   useEffect(() => {
     let filtered = [...documentos];

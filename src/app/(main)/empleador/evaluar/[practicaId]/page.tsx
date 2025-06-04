@@ -141,10 +141,10 @@ export default function EvaluarPracticaPage() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchPractica();
-  }, [user, practicaId]);  const onSubmit = async (data: EvaluacionEmpleadorInput) => {
+    };    fetchPractica();
+  }, [user, practicaId, cargarEvaluacionExistente]);
+  
+  const onSubmit = async (data: EvaluacionEmpleadorInput) => {
     // Validación adicional antes de mostrar el diálogo
     if (!practica?.id) {
       toast.error('Error: No se pudo identificar la práctica');
@@ -426,7 +426,7 @@ export default function EvaluarPracticaPage() {
               <CardHeader>
                 <CardTitle>Criterios de Evaluación</CardTitle>
                 <CardDescription>
-                  Evalúe cada criterio utilizando la escala de 1 a 7, donde 1 es "Muy Deficiente" y 7 es "Excelente"
+                  Evalúe cada criterio utilizando la escala de 1 a 7, donde 1 es &quot;Muy Deficiente&quot; y 7 es &quot;Excelente&quot;
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -627,11 +627,10 @@ export default function EvaluarPracticaPage() {
                     <span className="font-medium">{pendingFormData.criterios.length} de {CRITERIOS_EVALUACION_EMPLEADOR.length}</span>
                   </div>
                   {pendingFormData.comentarios && (
-                    <div className="mt-3 p-2 bg-white rounded border">
-                      <span className="text-gray-600 font-medium">Comentarios:</span>
+                    <div className="mt-3 p-2 bg-white rounded border">                      <span className="text-gray-600 font-medium">Comentarios:</span>
                       <p className="text-gray-800 text-xs mt-1 italic">
-                        "{pendingFormData.comentarios.substring(0, 150)}
-                        {pendingFormData.comentarios.length > 150 ? '...' : ''}"
+                        &quot;{pendingFormData.comentarios.substring(0, 150)}
+                        {pendingFormData.comentarios.length > 150 ? '...' : ''}&quot;
                       </p>
                     </div>
                   )}

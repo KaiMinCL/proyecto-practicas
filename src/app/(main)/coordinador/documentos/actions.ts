@@ -9,7 +9,7 @@ interface CreateDocumentoFormState {
   message?: string;
   errors?: Record<string, string[]>;
   success: boolean;
-  documento?: any;
+  documento?: unknown;
 }
 
 export async function createDocumentoAction(

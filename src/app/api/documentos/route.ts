@@ -19,10 +19,11 @@ export async function GET(request: NextRequest) {
     // Obtener parámetros de consulta para filtros opcionales
     const searchParams = request.nextUrl.searchParams;
     const carreraId = searchParams.get('carreraId');
-    const sedeId = searchParams.get('sedeId');
-
-    // Construir filtros
-    const where: any = {};
+    const sedeId = searchParams.get('sedeId');    // Construir filtros
+    const where: {
+      carreraId?: number;
+      sedeId?: number;
+    } = {};
     
     if (carreraId && carreraId !== '0') {
       where.carreraId = parseInt(carreraId);
