@@ -12,7 +12,7 @@ import {
     CardTitle 
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Edit3, Terminal, Info } from 'lucide-react';
+import { Edit3, Terminal, Info, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -27,6 +27,17 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
   // El estado se inicializa con los datos pasados desde el Server Component
   const [practicas] = React.useState<PracticaConDetalles[]>(initialActionResponse.data || []);
   const [error] = React.useState<string | null>(initialActionResponse.error || null);
+
+  //  efinir estados de práctica donde se puede subir informe
+  const puedeSubirInforme = (estado: PracticaConDetalles['estado']): boolean => {
+    return [
+      'EN_CURSO',
+      'INFORME_RECHAZADO', // Si el informe fue rechazado, puede subir uno nuevo
+      'EVALUADA_CON_PENDENCIAS', // Si fue evaluada con pendencias, podría necesitar subir correcciones
+      'APROBADA', // Permitir ver el informe aunque esté aprobada
+      'REPROBADA', // Permitir ver el informe aunque esté reprobada
+    ].includes(estado);
+  };
 
   if (error) {
     return (
@@ -73,13 +84,26 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
             <p><strong>Fecha de Término Estimada:</strong> {format(new Date(practica.fechaTermino), "PPP", { locale: es })}</p>
             <p><strong>Docente Tutor Asignado:</strong> {practica.docente?.usuario?.nombre || ''} {practica.docente?.usuario?.apellido || 'No asignado'}</p>
           </CardContent>
-          <CardFooter className="border-t pt-4">
-            <Button asChild size="sm" className="ml-auto">
-              <Link href={`/alumno/mis-practicas/${practica.id}/completar-acta`}>
-                <Edit3 className="mr-2 h-4 w-4" />
-                Completar Acta 1
-              </Link>
-            </Button>
+          <CardFooter className="border-t pt-4 flex justify-end space-x-2"> 
+            {/* BOTÓN COMPLETAR ACTA 1 (EXISTENTE) */}
+            {practica.estado === 'PENDIENTE' && (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/alumno/mis-practicas/${practica.id}/completar-acta`}>
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  Completar Acta 1
+                </Link>
+              </Button>
+            )}
+            
+            {/* BOTÓN SUBIR/VER INFORME */}
+            {puedeSubirInforme(practica.estado) && (
+              <Button asChild size="sm">
+                <Link href={`/alumno/subir-informe?practicaId=${practica.id}`}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  {practica.informeUrl ? 'Ver/Actualizar Informe' : 'Subir Informe Final'}
+                </Link>
+              </Button>
+            )}
           </CardFooter>
         </Card>
       ))}
