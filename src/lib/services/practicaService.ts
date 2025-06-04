@@ -612,4 +612,100 @@ export class PracticaService {
       return { success: false, error: 'No se pudo subir el informe de práctica.' };
     }
   }
+
+  /**
+   * Obtiene la evaluación de empleador (Acta 2) para una práctica específica.
+   * Valida que el alumno tenga permiso para ver esta evaluación.
+   */
+  static async getEvaluacionEmpleadorPorPractica(
+    practicaId: number,
+    alumnoUsuarioId: number
+  ) {
+    try {
+      const alumno = await prisma.alumno.findUnique({
+        where: { usuarioId: alumnoUsuarioId },
+        select: { id: true }
+      });
+
+      if (!alumno) {
+        return { success: false, error: "Perfil de alumno no encontrado." };
+      }
+
+      const practica = await prisma.practica.findUnique({
+        where: { id: practicaId },
+        include: {
+          alumno: { include: { usuario: true, carrera: { include: { sede: true } } } },
+          carrera: { include: { sede: true } },
+          docente: { include: { usuario: true } },
+          centroPractica: true,
+          evaluacionEmpleador: true
+        }
+      });
+
+      if (!practica) {
+        return { success: false, error: 'Práctica no encontrada.' };
+      }
+
+      if (practica.alumnoId !== alumno.id) {
+        return { success: false, error: 'No tienes permiso para ver la evaluación de esta práctica.' };
+      }
+
+      // Verificar que la práctica esté en un estado donde debería tener evaluación disponible
+      if (!practica.evaluacionEmpleador) {
+        return { success: false, error: 'Esta práctica aún no tiene evaluación de empleador disponible.' };
+      }
+
+      return { success: true, data: { practica, evaluacion: practica.evaluacionEmpleador } };
+    } catch (error) {
+      console.error("Error en getEvaluacionEmpleadorPorPractica:", error);
+      return { success: false, error: "Error al obtener la evaluación del empleador." };
+    }
+  }
+
+  /**
+   * Obtiene todas las prácticas de un alumno que tienen evaluación de empleador disponible.
+   * Solo retorna prácticas donde ya existe una evaluación completada.
+   */
+  static async getPracticasConEvaluacionEmpleadorDisponible(alumnoUsuarioId: number) {
+    try {
+      const alumno = await prisma.alumno.findUnique({
+        where: { usuarioId: alumnoUsuarioId },
+        select: { id: true }
+      });
+
+      if (!alumno) {
+        return { success: false, error: "Perfil de alumno no encontrado." };
+      }
+
+      const practicas = await prisma.practica.findMany({
+        where: {
+          alumnoId: alumno.id,
+          evaluacionEmpleador: {
+            isNot: null // Solo prácticas que tienen evaluación de empleador
+          }
+        },
+        include: {
+          carrera: { select: { id: true, nombre: true, sede: { select: { id: true, nombre: true } } } },
+          docente: { include: { usuario: { select: { id: true, nombre: true, apellido: true } } } },
+          centroPractica: { select: { nombreEmpresa: true } },
+          evaluacionEmpleador: {
+            select: {
+              id: true,
+              nota: true,
+              fecha: true,
+              comentarios: true
+            }
+          }
+        },
+        orderBy: {
+          fechaInicio: 'desc'
+        }
+      });
+
+      return { success: true, data: practicas };
+    } catch (error) {
+      console.error("Error en getPracticasConEvaluacionEmpleadorDisponible:", error);
+      return { success: false, error: "Error al obtener las prácticas con evaluación de empleador." };
+    }
+  }
 }
