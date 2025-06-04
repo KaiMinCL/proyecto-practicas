@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, User, Building, Award, Eye } from 'lucide-react';
+import { Calendar, User, Building, Award, Eye, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 const EstadoColors = {
@@ -236,40 +236,65 @@ export default function EmpleadorDashboard() {
                         {practica.tipo === 'LABORAL' ? 'Práctica Laboral' : 'Práctica Profesional'}
                       </Badge>
                     </div>
-                  </div>
-
-                  {practica.evaluacionEmpleador && (
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <div className="flex items-center text-green-800">
-                        <Award className="h-4 w-4 mr-2" />
-                        <span className="text-sm font-medium">
-                          Evaluado - Nota: {practica.evaluacionEmpleador.nota.toFixed(1)}
-                        </span>
+                  </div>                  {practica.evaluacionEmpleador && (
+                    <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-green-800">
+                          <Award className="h-4 w-4 mr-2" />
+                          <span className="text-sm font-medium">
+                            Evaluación Completada
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-green-700">
+                            {practica.evaluacionEmpleador.nota.toFixed(1)}
+                          </div>
+                          <div className="text-xs text-green-600">
+                            Nota Final
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs text-green-600 mt-1">
-                        Evaluado el {formatDate(practica.evaluacionEmpleador.fecha)}
+                      <p className="text-xs text-green-600 mt-2">
+                        📅 Evaluado el {formatDate(practica.evaluacionEmpleador.fecha)}
                       </p>
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-2">
+                  {!practica.evaluacionEmpleador && (
+                    practica.estado === 'FINALIZADA_PENDIENTE_EVAL' || 
+                    practica.estado === 'EN_CURSO'
+                  ) && (
+                    <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                      <div className="flex items-center text-amber-800">
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        <span className="text-sm font-medium">
+                          Pendiente de Evaluación
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-600 mt-1">
+                        La práctica requiere evaluación de desempeño
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-3">
                     {!practica.evaluacionEmpleador && (
                       practica.estado === 'FINALIZADA_PENDIENTE_EVAL' || 
                       practica.estado === 'EN_CURSO'
                     ) && (
-                      <Button asChild size="sm" className="flex-1">
+                      <Button asChild size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
                         <Link href={`/empleador/evaluar/${practica.id}`}>
                           <Award className="h-4 w-4 mr-2" />
-                          Evaluar
+                          Evaluar Ahora
                         </Link>
                       </Button>
                     )}
                     
                     {practica.evaluacionEmpleador && (
-                      <Button asChild variant="outline" size="sm" className="flex-1">
+                      <Button asChild variant="outline" size="sm" className="flex-1 border-green-300 text-green-700 hover:bg-green-50">
                         <Link href={`/empleador/evaluar/${practica.id}`}>
                           <Eye className="h-4 w-4 mr-2" />
-                          Ver Evaluación
+                          Ver/Editar Evaluación
                         </Link>
                       </Button>
                     )}

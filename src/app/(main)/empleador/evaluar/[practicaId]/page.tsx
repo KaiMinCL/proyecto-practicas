@@ -22,7 +22,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Calculator, Save, User, Calendar, Building } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { ArrowLeft, Calculator, Save, User, Calendar, Building, CheckCircle, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EvaluarPracticaPage() {
@@ -36,6 +44,9 @@ export default function EvaluarPracticaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notaCalculada, setNotaCalculada] = useState<number>(0);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isEditingExisting, setIsEditingExisting] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<EvaluacionEmpleadorInput | null>(null);
   const form = useForm<EvaluacionEmpleadorInput>({
     resolver: zodResolver(evaluacionEmpleadorSchema),
     defaultValues: {
@@ -48,7 +59,6 @@ export default function EvaluarPracticaPage() {
       notaFinal: 4.0
     }
   });
-
   // Observar cambios en los criterios para recalcular la nota
   const criteriosValues = form.watch('criterios');
 
@@ -59,6 +69,39 @@ export default function EvaluarPracticaPage() {
       form.setValue('notaFinal', nota);
     }
   }, [criteriosValues, form]);
+
+  const cargarEvaluacionExistente = async (empleadorId: number, practicaId: number) => {
+    try {
+      const evaluacion = await EmpleadorService.getEvaluacion(empleadorId, practicaId);
+      
+      if (evaluacion) {
+        // Cargar comentarios
+        if (evaluacion.comentarios) {
+          form.setValue('comentarios', evaluacion.comentarios);
+        }        // Como no tenemos los criterios individuales guardados, calculamos hacia atrás
+        // Para simplificar, establecemos todos los criterios en un valor que dé la nota final
+        const notaObjetivo = evaluacion.nota;
+        const valorCriterio = Math.round(notaObjetivo);
+        
+        const criteriosData = CRITERIOS_EVALUACION_EMPLEADOR.map(criterio => ({
+          criterioId: criterio.id,
+          puntaje: valorCriterio
+        }));
+
+        form.setValue('criterios', criteriosData);
+        form.setValue('notaFinal', evaluacion.nota);
+        setNotaCalculada(evaluacion.nota);
+        setIsEditingExisting(true);
+        
+        toast.info('Esta práctica ya ha sido evaluada. Puede modificar la evaluación existente.', {
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error('Error al cargar evaluación existente:', error);
+      toast.error('Error al cargar la evaluación existente');
+    }
+  };
 
   useEffect(() => {
     const fetchPractica = async () => {
@@ -85,12 +128,9 @@ export default function EvaluarPracticaPage() {
         
         if (response.success && response.practicas?.[0]) {
           const practicaData = response.practicas[0];
-          setPractica(practicaData);
-
-          // Si ya está evaluada, cargar los datos de la evaluación
+          setPractica(practicaData);          // Si ya está evaluada, cargar los datos de la evaluación
           if (practicaData.evaluacionEmpleador) {
-            // TODO: Cargar datos de evaluación existente
-            toast.info('Esta práctica ya ha sido evaluada. Puede ver o modificar la evaluación.');
+            await cargarEvaluacionExistente(empleadorId, practicaId);
           }
         } else {
           setError('Práctica no encontrada o no tiene acceso a ella');
@@ -104,22 +144,80 @@ export default function EvaluarPracticaPage() {
     };
 
     fetchPractica();
-  }, [user, practicaId]);
+  }, [user, practicaId]);const onSubmit = async (data: EvaluacionEmpleadorInput) => {
+    // Mostrar diálogo de confirmación
+    setPendingFormData(data);
+    setShowConfirmDialog(true);
+  };
 
-  const onSubmit = async (data: EvaluacionEmpleadorInput) => {
+  const handleConfirmSubmit = async () => {
+    if (!pendingFormData || !user?.userId) {
+      toast.error('No se pudo identificar el usuario');
+      return;
+    }
+
     setSubmitting(true);
+    setShowConfirmDialog(false);
+    
     try {
-      // TODO: Implementar guardado de evaluación
-      console.log('Datos de evaluación:', data);
-      toast.success('Evaluación guardada exitosamente');
-      router.push('/empleador');
+      // Obtener empleadorId
+      const empleadorResponse = await fetch(`/api/empleadores/by-user/${user.userId}`);
+      if (!empleadorResponse.ok) {
+        toast.error('No se pudo obtener la información del empleador');
+        return;
+      }
+
+      const empleadorData = await empleadorResponse.json();
+      const empleadorId = empleadorData.id;
+
+      // Guardar evaluación
+      const response = await EmpleadorService.guardarEvaluacion(empleadorId, pendingFormData);
+      
+      if (response.success) {
+        const message = isEditingExisting 
+          ? 'Evaluación actualizada exitosamente' 
+          : 'Evaluación guardada exitosamente';
+        
+        toast.success(message, {
+          description: `Nota final: ${pendingFormData.notaFinal.toFixed(1)}`,
+          duration: 5000,
+        });
+        
+        // Actualizar el estado de la práctica
+        if (practica) {
+          setPractica({
+            ...practica,
+            evaluacionEmpleador: {
+              id: response.evaluacionId || 0,
+              nota: pendingFormData.notaFinal,
+              fecha: new Date()
+            }
+          });
+        }
+        
+        setIsEditingExisting(true);
+        
+        // Redirigir después de un breve delay para mostrar el mensaje
+        setTimeout(() => {
+          router.push('/empleador');
+        }, 2000);
+      } else {
+        toast.error(response.message || 'Error al guardar la evaluación');
+        if (response.errors) {
+          Object.entries(response.errors).forEach(([field, messages]) => {
+            messages.forEach((message) => {
+              toast.error(`${field}: ${message}`);
+            });
+          });
+        }
+      }
     } catch (error) {
       console.error('Error al guardar evaluación:', error);
-      toast.error('Error al guardar la evaluación');
+      toast.error('Error inesperado al guardar la evaluación');
     } finally {
       setSubmitting(false);
-    }
-  };
+      setPendingFormData(null);
+    }  };
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('es-CL', {
@@ -189,8 +287,7 @@ export default function EvaluarPracticaPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="space-y-6">        {/* Header */}
         <div className="flex items-center gap-4">
           <Button asChild variant="outline" size="sm">
             <Link href="/empleador">
@@ -198,15 +295,35 @@ export default function EvaluarPracticaPage() {
               Volver
             </Link>
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Evaluación de Desempeño
-            </h1>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-gray-900">
+                Evaluación de Desempeño
+              </h1>
+              {isEditingExisting && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Ya Evaluada
+                </Badge>
+              )}
+            </div>
             <p className="text-gray-600 mt-2">
               Acta 2 - Evaluación del Empleador
+              {isEditingExisting && " (Editando evaluación existente)"}
             </p>
           </div>
         </div>
+
+        {/* Alert for existing evaluation */}
+        {isEditingExisting && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <CheckCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              Esta práctica ya ha sido evaluada anteriormente. Puede modificar los criterios y guardar los cambios.
+              La nota actual es: <strong>{practica?.evaluacionEmpleador?.nota.toFixed(1)}</strong>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Student Information */}
         <Card>
@@ -363,20 +480,102 @@ export default function EvaluarPracticaPage() {
                   )}
                 />
               </CardContent>
-            </Card>
-
-            {/* Submit Button */}
+            </Card>            {/* Submit Button */}
             <div className="flex gap-4 justify-end">
               <Button type="button" variant="outline" asChild>
                 <Link href="/empleador">Cancelar</Link>
               </Button>
-              <Button type="submit" disabled={submitting}>
+              <Button 
+                type="submit" 
+                disabled={submitting || !form.formState.isValid}
+                className={isEditingExisting ? "bg-blue-600 hover:bg-blue-700" : ""}
+              >
                 <Save className="h-4 w-4 mr-2" />
-                {submitting ? 'Guardando...' : 'Guardar Evaluación'}
+                {submitting 
+                  ? 'Guardando...' 
+                  : isEditingExisting 
+                    ? 'Actualizar Evaluación' 
+                    : 'Guardar Evaluación'
+                }
               </Button>
             </div>
           </form>
         </Form>
+
+        {/* Confirmation Dialog */}
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Confirmar {isEditingExisting ? 'Actualización' : 'Evaluación'}
+              </DialogTitle>
+              <DialogDescription>
+                {isEditingExisting 
+                  ? 'Está a punto de actualizar la evaluación existente. Esta acción sobrescribirá los datos anteriores.'
+                  : 'Está a punto de guardar la evaluación de desempeño. Una vez guardada, podrá modificarla si es necesario.'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            
+            {pendingFormData && (
+              <div className="my-4 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Resumen de la Evaluación:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Estudiante:</span>
+                    <span className="font-medium">
+                      {practica?.alumno.usuario.nombre} {practica?.alumno.usuario.apellido}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Nota Final:</span>
+                    <span className={`font-bold text-lg ${getNotaColor(pendingFormData.notaFinal)}`}>
+                      {pendingFormData.notaFinal.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Criterios Evaluados:</span>
+                    <span className="font-medium">{pendingFormData.criterios.length}</span>
+                  </div>
+                  {pendingFormData.comentarios && (
+                    <div className="mt-2">
+                      <span className="text-gray-600">Comentarios:</span>
+                      <p className="text-gray-800 text-xs mt-1 italic">
+                        "{pendingFormData.comentarios.substring(0, 100)}
+                        {pendingFormData.comentarios.length > 100 ? '...' : ''}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowConfirmDialog(false)}
+                disabled={submitting}
+              >
+                Revisar
+              </Button>
+              <Button 
+                type="button" 
+                onClick={handleConfirmSubmit}
+                disabled={submitting}
+                className={isEditingExisting ? "bg-blue-600 hover:bg-blue-700" : ""}
+              >
+                {submitting 
+                  ? 'Guardando...' 
+                  : isEditingExisting 
+                    ? 'Confirmar Actualización' 
+                    : 'Confirmar Evaluación'
+                }
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

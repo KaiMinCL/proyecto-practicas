@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { CreateEmpleadorFormData } from '@/lib/validators/empleador';
+import { EvaluacionEmpleadorInput } from '@/lib/validators/evaluacion';
 import { hashPassword } from '@/lib/auth';
 import { generateSecurePassword } from '@/lib/utils';
 
@@ -44,6 +45,13 @@ export interface EmpleadorPracticasResponse {
   success: boolean;
   message: string;
   practicas?: PracticaAsignada[];
+  errors?: Record<string, string[]>;
+}
+
+export interface GuardarEvaluacionResponse {
+  success: boolean;
+  message: string;
+  evaluacionId?: number;
   errors?: Record<string, string[]>;
 }
 
@@ -348,6 +356,151 @@ export class EmpleadorService {
           general: ['Ha ocurrido un error inesperado. Por favor, intente de nuevo.']
         }
       };
+    }
+  }
+
+  /**
+   * Guarda o actualiza una evaluación de empleador para una práctica.
+   * @param empleadorId El ID del empleador que realiza la evaluación
+   * @param evaluacionData Los datos de la evaluación
+   * @returns Objeto con el resultado de la operación
+   */
+  static async guardarEvaluacion(empleadorId: number, evaluacionData: EvaluacionEmpleadorInput): Promise<GuardarEvaluacionResponse> {
+    try {
+      // 1. Verificar que el empleador tenga acceso a esta práctica
+      const empleadorCentros = await prisma.empleadorCentro.findMany({
+        where: {
+          empleadorId
+        },
+        select: {
+          centroPracticaId: true
+        }
+      });
+
+      const centroIds = empleadorCentros.map(ec => ec.centroPracticaId);
+
+      const practica = await prisma.practica.findFirst({
+        where: {
+          id: evaluacionData.practicaId,
+          centroPracticaId: {
+            in: centroIds
+          }
+        }
+      });
+
+      if (!practica) {
+        return {
+          success: false,
+          message: 'Práctica no encontrada o no tiene acceso a ella.',
+          errors: {
+            practica: ['Práctica no encontrada o no tiene acceso a ella.']
+          }
+        };
+      }
+
+      // 2. Verificar que la práctica esté en estado válido para evaluación
+      const estadosValidos = ['EN_CURSO', 'FINALIZADA_PENDIENTE_EVAL', 'EVALUACION_COMPLETA'];
+      if (!estadosValidos.includes(practica.estado)) {
+        return {
+          success: false,
+          message: 'La práctica no está en un estado válido para evaluación.',
+          errors: {
+            estado: ['La práctica no está en un estado válido para evaluación.']
+          }
+        };
+      }
+
+      // 3. Guardar o actualizar la evaluación
+      const evaluacionGuardada = await prisma.evaluacionEmpleador.upsert({
+        where: {
+          practicaId: evaluacionData.practicaId
+        },
+        update: {
+          nota: evaluacionData.notaFinal,
+          comentarios: evaluacionData.comentarios || null
+        },
+        create: {
+          practicaId: evaluacionData.practicaId,
+          nota: evaluacionData.notaFinal,
+          comentarios: evaluacionData.comentarios || null
+        }
+      });
+
+      // 4. Actualizar el estado de la práctica si es necesario
+      if (practica.estado === 'FINALIZADA_PENDIENTE_EVAL') {
+        await prisma.practica.update({
+          where: { id: evaluacionData.practicaId },
+          data: { estado: 'EVALUACION_COMPLETA' }
+        });
+      }
+
+      return {
+        success: true,
+        message: 'Evaluación guardada exitosamente.',
+        evaluacionId: evaluacionGuardada.id
+      };
+
+    } catch (error) {
+      console.error('Error al guardar evaluación:', error);
+      return {
+        success: false,
+        message: 'Error al guardar la evaluación.',
+        errors: {
+          general: ['Ha ocurrido un error inesperado. Por favor, intente de nuevo.']
+        }
+      };
+    }
+  }
+
+  /**
+   * Obtiene una evaluación existente de empleador para una práctica.
+   * @param empleadorId El ID del empleador
+   * @param practicaId El ID de la práctica
+   * @returns Objeto con la evaluación si existe
+   */
+  static async getEvaluacion(empleadorId: number, practicaId: number) {
+    try {
+      // Verificar acceso del empleador a la práctica
+      const empleadorCentros = await prisma.empleadorCentro.findMany({
+        where: {
+          empleadorId
+        },
+        select: {
+          centroPracticaId: true
+        }
+      });
+
+      const centroIds = empleadorCentros.map(ec => ec.centroPracticaId);
+
+      const evaluacion = await prisma.evaluacionEmpleador.findFirst({
+        where: {
+          practicaId,
+          practica: {
+            centroPracticaId: {
+              in: centroIds
+            }
+          }
+        },
+        include: {
+          practica: {
+            include: {
+              alumno: {
+                include: {
+                  usuario: true,
+                  carrera: true
+                }
+              },
+              centroPractica: true
+            }
+          }
+        }
+      });
+
+      return evaluacion;
+
+    } catch (error) {
+      console.error('Error al obtener evaluación:', error);
+      return null;
     }
   }
 }
