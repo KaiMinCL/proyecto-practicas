@@ -7,12 +7,13 @@ import { ActionResponse, getPracticaParaEditarAction } from "../../../actions";
 import { EditarPracticaForm } from "./editar-practica-form";
 
 interface PageProps {
-  params: {
-    practicaId: string;
-  };
+  params: Promise<{practicaId: string}>
 }
 
-export default async function EditarPracticaPage({ params }: PageProps) {
+export default async function EditarPracticaPage({ params: paramsPromise }: PageProps) {
+
+    const params = await paramsPromise;
+
   try {
     await authorizeCoordinadorOrDirectorCarrera();
   } catch (error) {
