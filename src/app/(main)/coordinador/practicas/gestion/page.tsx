@@ -5,9 +5,8 @@ import type { PracticaConDetalles } from '@/lib/validators/practica';
 import { PracticasGestionCliente } from './practicas-gestion-client';
 
 export default async function GestionPracticasPage() {
-  let userPayload;
   try {
-    userPayload = await authorizeCoordinadorOrDirectorCarrera();
+    await authorizeCoordinadorOrDirectorCarrera();
   } catch (error) {
     const redirectUrl = error instanceof Error && error.message.includes("No estás autenticado") 
       ? '/login' 

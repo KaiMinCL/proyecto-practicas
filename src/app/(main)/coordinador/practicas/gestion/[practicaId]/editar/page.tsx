@@ -13,9 +13,8 @@ interface PageProps {
 }
 
 export default async function EditarPracticaPage({ params }: PageProps) {
-  let userPayload;
   try {
-    userPayload = await authorizeCoordinadorOrDirectorCarrera();
+    await authorizeCoordinadorOrDirectorCarrera();
   } catch (error) {
     const redirectUrl = error instanceof Error && error.message.includes("No estás autenticado") 
       ? '/login' 
