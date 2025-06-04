@@ -153,7 +153,7 @@ export async function updatePracticaCoordDCAction(
   data: EditarPracticaCoordDCInput
 ): Promise<ActionResponse<PracticaConDetalles>> {
   try {
-    const userPayload = await authorizeCoordinadorOrDirectorCarrera();
+    await authorizeCoordinadorOrDirectorCarrera();
 
     // Validar los datos con Zod en el servidor ANTES de llamar al servicio
     const validationResult = editarPracticaCoordDCSchema.safeParse(data);
