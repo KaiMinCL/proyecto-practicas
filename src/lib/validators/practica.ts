@@ -216,6 +216,7 @@ export interface PracticaConDetalles {
   tareasPrincipales?: string | null;  fechaCompletadoAlumno?: Date | null;
   motivoRechazoDocente?: string | null;
   informeUrl?: string | null; // URL del informe de práctica subido por el alumno
+  fechaSubidaInforme?: Date | null; // Fecha en que se subió el informe
 
   // DATOS RELACIONALES
   alumno?: { // Datos del alumno asociado
