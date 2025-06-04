@@ -29,7 +29,7 @@ import {
 import { 
     getDocentesParaFormAction,
     sugerirFechaTerminoAction,  
-    // updatePracticaCoordDCAction, // Se usará 
+    updatePracticaCoordDCAction, 
     type DocenteOption,
 } from '../../../actions'; 
 import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoPracticaEnum } from "@prisma/client";
@@ -145,14 +145,22 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsSubmitting(true);
-    // data ya tiene los campos potencialmente como null si Zod los transformó
     
-    console.log("Datos a Actualizar (UI Solamente):", data);
-    console.log("Para Práctica ID:", practicaOriginal.id);
-    
-    toast.info("Funcionalidad de guardado pendiente (HU-24.5). Datos mostrados en consola.");
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const result = await updatePracticaCoordDCAction(practicaOriginal.id, data);
+
+      if (result.success) {
+        toast.success(result.message || "Práctica actualizada correctamente.");
+        router.refresh(); // Refresca los datos de la página actual o la anterior si se navega
+        router.back(); // Volvemos a la página anterior
+      } else {
+        toast.error(result.error || "Error al actualizar la práctica.");
+      }
+    } catch (error) {
+      console.error("Error en el formulario de edición:", error);
+      toast.error("Ocurrió un error inesperado al guardar.");
+    }
+
     setIsSubmitting(false);
   };
 
