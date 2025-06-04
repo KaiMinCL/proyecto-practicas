@@ -76,12 +76,11 @@ export const evaluacionEmpleadorSchema = z.object({
   criterios: z.array(evaluacionCriterioSchema)
     .min(CRITERIOS_EVALUACION_EMPLEADOR.length, 
       `Debe evaluar todos los ${CRITERIOS_EVALUACION_EMPLEADOR.length} criterios`),
-  
-  comentarios: z.string()
+    comentarios: z.string()
     .max(2000, 'Los comentarios no pueden exceder 2000 caracteres')
     .optional()
     .or(z.literal(''))
-    .transform(val => val === '' ? null : val),
+    .transform(val => val === '' ? undefined : val),
     
   notaFinal: z.number()
     .min(1, 'La nota final mínima es 1.0')
