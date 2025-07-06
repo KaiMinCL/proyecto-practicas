@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext"; 
-import { Toaster as SonnerToaster } from 'sonner'; // Si no lo tienes globalmente ya
+import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster as SonnerToaster } from 'sonner';
 import Navbar from "@/components/layout/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider>
           <Navbar />

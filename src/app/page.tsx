@@ -74,11 +74,36 @@ export default function LoginPage() {
   };
 
   return (
-    <> {/* Necesario para Toaster y el div principal */}
-      <Toaster richColors position="top-center" /> {/* Añade el Toaster de Sonner */}
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="p-8 bg-white shadow-md rounded-lg w-full max-w-md">
-          <h1 className="text-2xl font-bold text-center mb-6">Iniciar Sesión</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <Toaster richColors position="top-center" />
+      
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg">
+            <svg 
+              className="w-8 h-8 text-primary-foreground" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Portal de Prácticas
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Sistema de Gestión de Prácticas Profesionales
+          </p>
+        </div>
+
+        {/* Login Form */}
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+            Iniciar Sesión
+          </h2>
+          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -86,11 +111,18 @@ export default function LoginPage() {
                 name="rut"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>RUT</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      RUT
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="12345678-9" {...field} disabled={isPending} />
+                      <Input 
+                        placeholder="12345678-9" 
+                        {...field} 
+                        disabled={isPending}
+                        className="h-11 px-4 border-gray-300 dark:border-gray-600 focus:border-primary focus:ring-primary/20"
+                      />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
                       Ingresa tu RUT con guion y dígito verificador.
                     </FormDescription>
                     <FormMessage />
@@ -102,29 +134,58 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contraseña</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Contraseña
+                    </FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="********" {...field} disabled={isPending} />
+                      <Input 
+                        type="password" 
+                        placeholder="********" 
+                        {...field} 
+                        disabled={isPending}
+                        className="h-11 px-4 border-gray-300 dark:border-gray-600 focus:border-primary focus:ring-primary/20"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* El mensaje de error general del servidor ahora se maneja principalmente con toasts */}
+              {/* Error Message Display */}
               {formState.message && !formState.success && formState.errors?.general && (
-                <div className="text-sm font-medium text-destructive bg-red-100 p-3 rounded-md mt-2">
-                  {formState.errors.general}
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                      {formState.errors.general}
+                    </p>
+                  </div>
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Ingresando..." : "Ingresar"}
+              <Button 
+                type="submit" 
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl" 
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <div className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Ingresando...
+                  </div>
+                ) : (
+                  "Ingresar"
+                )}
               </Button>
             </form>
           </Form>
         </div>
       </div>
-    </>
+    </div>
   );
 }

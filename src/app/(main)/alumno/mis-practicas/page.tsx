@@ -27,16 +27,30 @@ export default async function MisPracticasPage() {
 
   // Llama a la action para obtener las prácticas pendientes del alumno
   const result: ActionResponse<PracticaConDetalles[]> = await getMisPracticasPendientesAction();
+  
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Mis Prácticas Pendientes
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Aquí puedes ver las prácticas que tienes asignadas y que requieren que completes tu información en el Acta 1.
-        </p>
-      </header>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Mis Prácticas
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Gestiona tus prácticas asignadas y completa la información requerida
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <span>Pendiente de completar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
       <MisPracticasCliente initialActionResponse={result} />
     </div>
   );
