@@ -5,7 +5,7 @@ import { listCarrerasAction, type ActionResponse } from './actions';
 import type { Carrera } from '@/lib/validators/carrera';
 import { CarrerasPageClientContent } from './carreras-page-client-content';
 
-const REQUIRED_ROLE: RoleName = 'SUPERADMIN';
+const REQUIRED_ROLE: RoleName = 'SUPER_ADMIN';
 
 export default async function CarrerasAdminPage() {
   const userPayload = await getUserSession();

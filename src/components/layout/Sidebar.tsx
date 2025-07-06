@@ -39,7 +39,13 @@ const navigationItems: NavItem[] = [
     href: '/dashboard',
     icon: Home,
   },
-  // Admin routes
+  // Admin routes (Super Admin)
+  {
+    title: 'Panel de Admin',
+    href: '/admin',
+    icon: Settings,
+    roles: ['SUPER_ADMIN'],
+  },
   {
     title: 'Gestión de Usuarios',
     href: '/admin/usuarios',
@@ -47,9 +53,21 @@ const navigationItems: NavItem[] = [
     roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
   },
   {
+    title: 'Gestión de Sedes',
+    href: '/admin/sedes',
+    icon: Building,
+    roles: ['SUPER_ADMIN'],
+  },
+  {
     title: 'Gestión de Carreras',
     href: '/admin/carreras',
     icon: GraduationCap,
+    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
+  },
+  {
+    title: 'Configuraciones',
+    href: '/admin/configuraciones/evaluaciones',
+    icon: Settings,
     roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
   },
   {

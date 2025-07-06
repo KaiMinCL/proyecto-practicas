@@ -14,7 +14,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Building
+  Building,
+  Settings
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
 
@@ -45,6 +46,44 @@ export function DashboardClient({ user }: DashboardClientProps) {
   const getQuickActions = (): QuickAction[] => {
     switch (user.rol) {
       case 'SUPER_ADMIN':
+        return [
+          {
+            title: 'Panel de Administración',
+            description: 'Acceder al panel completo de administración',
+            href: '/admin',
+            icon: Settings,
+          },
+          {
+            title: 'Crear Usuario',
+            description: 'Crear nuevas cuentas de usuario',
+            href: '/admin/usuarios',
+            icon: Users,
+          },
+          {
+            title: 'Gestión de Sedes',
+            description: 'Administrar sedes de la institución',
+            href: '/admin/sedes',
+            icon: Building,
+          },
+          {
+            title: 'Gestión de Carreras',
+            description: 'Configurar carreras y horas de práctica',
+            href: '/admin/carreras',
+            icon: BookOpen,
+          },
+          {
+            title: 'Configuraciones',
+            description: 'Configurar ponderaciones de evaluaciones',
+            href: '/admin/configuraciones/evaluaciones',
+            icon: Settings,
+          },
+          {
+            title: 'Reportes Generales',
+            description: 'Ver estadísticas del sistema',
+            href: '/admin/reportes',
+            icon: TrendingUp,
+          },
+        ];
       case 'DIRECTOR_CARRERA':
         return [
           {
@@ -61,9 +100,15 @@ export function DashboardClient({ user }: DashboardClientProps) {
           },
           {
             title: 'Gestión de Carreras',
-            description: 'Administrar carreras y sedes',
+            description: 'Administrar carreras de su sede',
             href: '/admin/carreras',
             icon: BookOpen,
+          },
+          {
+            title: 'Configuraciones',
+            description: 'Configurar ponderaciones de evaluaciones',
+            href: '/admin/configuraciones/evaluaciones',
+            icon: Settings,
           },
         ];
       
@@ -157,6 +202,59 @@ export function DashboardClient({ user }: DashboardClientProps) {
   const getStatCards = (): StatCard[] => {
     // En una implementación real, estos datos vendrían de API calls
     switch (user.rol) {
+      case 'SUPER_ADMIN':
+        return [
+          {
+            title: 'Total Usuarios',
+            value: 156,
+            description: 'En el sistema',
+            icon: Users,
+            trend: { value: 8, isPositive: true },
+          },
+          {
+            title: 'Sedes Activas',
+            value: 5,
+            description: 'De la institución',
+            icon: Building,
+          },
+          {
+            title: 'Carreras Configuradas',
+            value: 18,
+            description: 'Con horas definidas',
+            icon: BookOpen,
+            trend: { value: 2, isPositive: true },
+          },
+          {
+            title: 'Prácticas Este Mes',
+            value: 42,
+            description: 'En todas las sedes',
+            icon: TrendingUp,
+            trend: { value: 15, isPositive: true },
+          },
+        ];
+      case 'DIRECTOR_CARRERA':
+        return [
+          {
+            title: 'Usuarios en Mi Sede',
+            value: 32,
+            description: 'Docentes y coordinadores',
+            icon: Users,
+            trend: { value: 3, isPositive: true },
+          },
+          {
+            title: 'Carreras Supervisadas',
+            value: 6,
+            description: 'Bajo mi dirección',
+            icon: BookOpen,
+          },
+          {
+            title: 'Prácticas Activas',
+            value: 18,
+            description: 'En mi sede',
+            icon: Clock,
+            trend: { value: 5, isPositive: true },
+          },
+        ];
       case 'COORDINADOR':
         return [
           {

@@ -5,7 +5,7 @@ import { listSedesAction, type ActionResponse } from './actions';
 import type { Sede } from '@/lib/validators/sede';
 import { SedesPageClientContent } from './sedes-page-client-content';
 
-const REQUIRED_ROLE: RoleName = 'SUPERADMIN';
+const REQUIRED_ROLE: RoleName = 'SUPER_ADMIN';
 
 export default async function SedesAdminPage() {
   const userPayload = await getUserSession();
