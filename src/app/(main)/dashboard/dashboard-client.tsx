@@ -48,14 +48,8 @@ export function DashboardClient({ user }: DashboardClientProps) {
       case 'SUPER_ADMIN':
         return [
           {
-            title: 'Panel de Administración',
-            description: 'Acceder al panel completo de administración',
-            href: '/admin',
-            icon: Settings,
-          },
-          {
-            title: 'Crear Usuario',
-            description: 'Crear nuevas cuentas de usuario',
+            title: 'Gestión de Usuarios',
+            description: 'Crear, editar y desactivar usuarios',
             href: '/admin/usuarios',
             icon: Users,
           },
@@ -72,16 +66,10 @@ export function DashboardClient({ user }: DashboardClientProps) {
             icon: BookOpen,
           },
           {
-            title: 'Configuraciones',
+            title: 'Configuraciones del Sistema',
             description: 'Configurar ponderaciones de evaluaciones',
             href: '/admin/configuraciones/evaluaciones',
             icon: Settings,
-          },
-          {
-            title: 'Reportes Generales',
-            description: 'Ver estadísticas del sistema',
-            href: '/admin/reportes',
-            icon: TrendingUp,
           },
         ];
       case 'DIRECTOR_CARRERA':
