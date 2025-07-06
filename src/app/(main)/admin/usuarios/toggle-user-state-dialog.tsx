@@ -60,7 +60,7 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
         <Button 
           variant="ghost"
           size="sm"
-          className={`hover:${isActive ? 'bg-red-50 hover:text-red-600' : 'bg-green-50 hover:text-green-600'}`}
+          className={isActive ? 'hover:bg-red-50 hover:text-red-600' : 'hover:bg-green-50 hover:text-green-600'}
         >
           <Icon className="h-4 w-4" />
         </Button>
@@ -71,27 +71,16 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
             <Icon className="h-5 w-5" />
             {actionText} Usuario
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <p>
+          <AlertDialogDescription>
+            <p className="mb-2">
               <strong>Usuario:</strong> {userName}
             </p>
             <p>
               {isActive 
-                ? `¿Está seguro que desea desactivar este usuario? Una vez desactivado, el usuario no podrá iniciar sesión en el sistema hasta que sea reactivado.`
-                : `¿Está seguro que desea reactivar este usuario? Una vez reactivado, el usuario podrá volver a iniciar sesión en el sistema.`
+                ? `¿Está seguro que desea desactivar este usuario? No podrá iniciar sesión hasta que sea reactivado.`
+                : `¿Está seguro que desea reactivar este usuario? Podrá volver a iniciar sesión en el sistema.`
               }
             </p>
-            <div className={`p-3 rounded-lg ${isActive ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
-              <p className={`text-sm font-medium ${isActive ? 'text-red-800' : 'text-green-800'}`}>
-                {isActive ? '⚠️ Esta acción es reversible' : '✓ Esta acción es reversible'}
-              </p>
-              <p className={`text-xs mt-1 ${isActive ? 'text-red-600' : 'text-green-600'}`}>
-                {isActive 
-                  ? 'Puede reactivar al usuario en cualquier momento.'
-                  : 'Puede desactivar al usuario nuevamente si es necesario.'
-                }
-              </p>
-            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -105,15 +94,9 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
               className={isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
             >
               {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isActive ? 'Desactivando...' : 'Activando...'}
-                </>
+                `${isActive ? 'Desactivando...' : 'Activando...'}`
               ) : (
-                <>
-                  <Icon className="h-4 w-4 mr-2" />
-                  {actionText}
-                </>
+                `${actionText}`
               )}
             </AlertDialogAction>
           </form>
