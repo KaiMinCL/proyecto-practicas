@@ -5,7 +5,7 @@ import { listSedesAction, type ActionResponse } from './actions';
 import type { Sede } from '@/lib/validators/sede';
 import { SedesPageClientContent } from './sedes-page-client-content';
 
-const REQUIRED_ROLE: RoleName = 'SUPERADMIN';
+const REQUIRED_ROLE: RoleName = 'SUPER_ADMIN';
 
 export default async function SedesAdminPage() {
   const userPayload = await getUserSession();
@@ -40,12 +40,12 @@ export default async function SedesAdminPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-6">
+      <header className="mb-6 rounded-lg bg-card p-6 shadow-lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-primary">
             Gestión de Sedes
           </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-muted-foreground">
             Visualiza y administra las sedes de la institución.
           </p>
         </div>

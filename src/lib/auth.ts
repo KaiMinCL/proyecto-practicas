@@ -1,112 +1,20 @@
-import bcrypt from 'bcryptjs';
-import jwt, { JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
-import prisma from './prisma';
-import { LoginFormData } from './validators';
+import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { 
+  verifyJwtToken,
+  type UserJwtPayload 
+} from './auth-utils';
 
-const SALT_ROUNDS = 10;
 const JWT_SECRET_FROM_ENV = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
 if (!JWT_SECRET_FROM_ENV) {
   console.error("FATAL ERROR: JWT_SECRET no está definido en las variables de entorno.");
   throw new Error('JWT_SECRET no está definido. La autenticación no funcionará.');
 }
-const SIGNING_KEY: Secret = JWT_SECRET_FROM_ENV;
 
-/**
- * Hashes a password using bcrypt.
- * @param password - The password to hash.
- * @returns The hashed password.
- */
-export async function hashPassword(password: string): Promise<string> {
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-  return hashedPassword;
-}
-
-/**
- * Compares a password with a hashed password using bcrypt.
- * @param password - The password to compare.
- * @param hash - The hashed password to compare against.
- * @returns True if the passwords match, false otherwise.
- */
-export async function comparePasswords(password: string, hash: string): Promise<boolean> {
-  const isMatch = await bcrypt.compare(password, hash);
-  return isMatch;
-}
-
-/**
- * Verifies user credentials.
- * @param credentials - The login form data.
- * @returns The user data if credentials are valid, null otherwise.
- */
-export async function verifyCredentials(credentials: LoginFormData) {
-  try {
-    const usuario = await prisma.usuario.findUnique({
-      where: { rut: credentials.rut },
-      include: {
-        rol: true,
-      },
-    });
-
-    if (!usuario) {
-      console.log(`Intento de login fallido: Usuario no encontrado con RUT ${credentials.rut}`);
-      return null;
-    }
-
-    if (usuario.estado !== 'ACTIVO') {
-      console.log(`Intento de login fallido: Usuario ${credentials.rut} no está activo.`);
-      return null;
-    }
-
-    const passwordIsValid = await comparePasswords(credentials.password, usuario.password);
-
-    if (!passwordIsValid) {
-      console.log(`Intento de login fallido: Contraseña incorrecta para RUT ${credentials.rut}`);
-      return null;
-    }
-
-    console.log(`Credenciales verificadas para RUT ${credentials.rut}`);
-    return {
-      id: usuario.id,
-      rut: usuario.rut,
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
-      email: usuario.email,
-      rol: usuario.rol.nombre,
-    };
-
-  } catch (error) {
-    console.error("Error en verifyCredentials:", error);
-    return null;
-  }
-}
-
-// Define un tipo para el payload del token para consistencia
-export interface UserJwtPayload extends JwtPayload {
-  userId: number;
-  rut: string;
-  rol: string;
-  email: string;
-  nombre: string;
-  apellido: string;
-}
-
-/**
- * Generates a JWT token for a user.
- * @param payload - The payload to include in the token.
- * @returns The generated JWT token.
- */
-export function generateJwtToken(payload: { userId: number; rut: string; rol: string; email: string; nombre: string; apellido: string }): string {
-  try {
-    const token = jwt.sign(payload, SIGNING_KEY, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
-    console.log("Token JWT generado.");
-    return token;
-  } catch (error) {
-    console.error("Error al firmar el token JWT:", error);
-    throw new Error("No se pudo generar el token de sesión.");
-  }
-}
+// Re-export functions that can be used in both client and server
+export { hashPassword, comparePasswords, verifyCredentials, generateJwtToken } from './auth-utils';
+export type { UserJwtPayload } from './auth-utils';
 
 /**
  * Establece el token JWT como una cookie HttpOnly segura.
@@ -151,17 +59,7 @@ export async function getUserSession(): Promise<UserJwtPayload | null> {
     return null;
   }
 
-  try {
-    const decoded = jwt.verify(token, SIGNING_KEY) as UserJwtPayload;
-    if (typeof decoded.userId === 'number' && typeof decoded.rut === 'string' && typeof decoded.rol === 'string') {
-      return decoded;
-    }
-    console.error("Payload del token JWT no tiene la estructura esperada después de la verificación.");
-    return null;
-  } catch (error) {
-    console.log("Error al verificar token de sesión (puede haber expirado o ser inválido):", (error as Error).name);
-    return null;
-  }
+  return verifyJwtToken(token);
 }
 
 /**
@@ -185,14 +83,13 @@ export async function clearAuthCookie() {
 export async function verifyUserSession(): Promise<UserJwtPayload | null> {
   try {
     const cookieStore = cookies();
-    const token = (await cookieStore).get('auth-token');
+    const token = (await cookieStore).get('session_token');
     
     if (!token?.value) {
       return null;
     }
 
-    const decoded = jwt.verify(token.value, SIGNING_KEY) as UserJwtPayload;
-    return decoded;
+    return verifyJwtToken(token.value);
   } catch (error) {
     console.error('Error al verificar la sesión:', error);
     return null;

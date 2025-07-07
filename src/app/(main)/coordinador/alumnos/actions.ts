@@ -18,7 +18,7 @@ export async function createAlumnoAction(
 ): Promise<CreateAlumnoFormState> {
   // 1. Verificar que el usuario sea Coordinador
   const session = await verifyUserSession();
-  if (!session || session.rol !== 'Coordinador') {
+  if (!session || session.rol !== 'COORDINADOR') {
     return {
       message: 'No autorizado',
       errors: { general: ['No tiene permiso para realizar esta acción.'] },

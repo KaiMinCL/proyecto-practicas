@@ -325,11 +325,6 @@ export function IniciarPracticaForm() {
                     <strong>Sede:</strong>{" "}
                     {selectedAlumnoData.sedeNombreDeCarrera}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    (ID Carrera: {selectedAlumnoData.carreraId} - Horas Lab:{" "}
-                    {selectedAlumnoData.carreraHorasLaboral}, Prof:{" "}
-                    {selectedAlumnoData.carreraHorasProfesional})
-                  </p>
                 </div>
               </div>
             )}

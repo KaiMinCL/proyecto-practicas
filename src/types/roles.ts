@@ -1,6 +1,6 @@
 export type RoleName =
-  | 'SUPERADMIN'
-  | 'JEFE_CARRERA'
+  | 'SUPER_ADMIN'
+  | 'DIRECTOR_CARRERA'
   | 'COORDINADOR'
   | 'DOCENTE'
   | 'ALUMNO'

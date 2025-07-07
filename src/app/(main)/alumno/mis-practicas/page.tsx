@@ -4,6 +4,7 @@ import type { RoleName } from '@/types/roles';
 import type { PracticaConDetalles } from '@/lib/validators/practica';
 import { ActionResponse, getMisPracticasPendientesAction } from '../practicas/actions';
 import { MisPracticasCliente } from './mis-practicas-client';
+import { BookOpen } from 'lucide-react';
 
 const REQUIRED_ROLE: RoleName = 'ALUMNO';
 
@@ -27,16 +28,30 @@ export default async function MisPracticasPage() {
 
   // Llama a la action para obtener las prácticas pendientes del alumno
   const result: ActionResponse<PracticaConDetalles[]> = await getMisPracticasPendientesAction();
+  
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Mis Prácticas Pendientes
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Aquí puedes ver las prácticas que tienes asignadas y que requieren que completes tu información en el Acta 1.
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-lg bg-card p-6 shadow-lg">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <BookOpen className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-primary">
+              Mis Prácticas
+            </h1>
+            <p className="font-medium text-muted-foreground">
+              {userPayload.nombre} {userPayload.apellido}
+            </p>
+          </div>
+        </div>
+        <p className="mt-4 text-muted-foreground">
+          Gestiona tus prácticas asignadas, completa la información requerida y sube tus informes finales.
         </p>
-      </header>
+      </div>
+
+      {/* Main Content */}
       <MisPracticasCliente initialActionResponse={result} />
     </div>
   );

@@ -6,7 +6,7 @@ export async function GET() {
   try {
     // 1. Verificar autenticación
     const user = await verifyUserSession();
-    if (!user || user.rol !== 'Coordinador') {
+    if (!user || user.rol !== 'COORDINADOR') {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }

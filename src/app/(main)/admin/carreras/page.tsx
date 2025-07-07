@@ -5,7 +5,7 @@ import { listCarrerasAction, type ActionResponse } from './actions';
 import type { Carrera } from '@/lib/validators/carrera';
 import { CarrerasPageClientContent } from './carreras-page-client-content';
 
-const REQUIRED_ROLE: RoleName = 'SUPERADMIN';
+const REQUIRED_ROLE: RoleName = 'SUPER_ADMIN';
 
 export default async function CarrerasAdminPage() {
   const userPayload = await getUserSession();
@@ -39,11 +39,11 @@ export default async function CarrerasAdminPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      <header className="mb-8 rounded-lg bg-card p-6 shadow-lg">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
           Gestión de Carreras
         </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-lg text-muted-foreground">
           Administra las carreras ofrecidas por la institución y su asociación a las sedes.
         </p>
       </header>
