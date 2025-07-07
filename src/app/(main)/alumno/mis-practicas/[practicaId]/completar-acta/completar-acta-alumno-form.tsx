@@ -235,8 +235,13 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
       <form onSubmit={form.handleSubmit(onSubmitActa)}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6 mb-6">
           <div className="md:col-span-1 space-y-6">
-            <Card className="shadow">
-              <CardHeader><CardTitle className="text-lg">Datos del Alumno</CardTitle></CardHeader>
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <UserCircle2 className="h-5 w-5 text-blue-600" />
+                  Datos del Alumno
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <InfoItem label="Nombre Completo" value={`${practica.alumno?.usuario.nombre} ${practica.alumno?.usuario.apellido}`} />
                 <InfoItem label="RUT" value={practica.alumno?.usuario.rut} />
@@ -244,8 +249,13 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
                 <InfoItem label="Sede de Carrera" value={practica.carrera?.sede?.nombre} />
               </CardContent>
             </Card>
-            <Card className="shadow">
-              <CardHeader><CardTitle className="text-base sm:text-lg">Datos de Práctica (Coordinación)</CardTitle></CardHeader>
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <ExternalLink className="h-5 w-5 text-green-600" />
+                  Datos de Práctica (Coordinación)
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <InfoItem label="Tipo de Práctica" value={practica.tipo === PrismaTipoPracticaEnum.LABORAL ? "Laboral" : "Profesional"} />
                 <InfoItem label="Fecha de Inicio" value={practica.fechaInicio} isDate />
