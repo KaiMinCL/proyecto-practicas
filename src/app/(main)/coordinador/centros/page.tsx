@@ -12,7 +12,6 @@ import {
   TableRow,
   Input,
   Badge,
-  Button
 } from '@/components/ui';
 import { CreateCentroDialog } from './create-centro-dialog';
 import { EditCentroDialog } from './edit-centro-dialog';
