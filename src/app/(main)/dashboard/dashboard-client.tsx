@@ -7,7 +7,10 @@ import {
   Users, 
   Building,
   BookOpen, 
-  TrendingUp
+  TrendingUp,
+  GraduationCap,
+  FileCheck,
+  AlertCircle
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
 
@@ -31,8 +34,19 @@ interface AdminStats {
   totalPracticasEsteMes: number;
 }
 
+interface CoordinadorStats {
+  totalAlumnos: number;
+  alumnosConPracticaActiva: number;
+  totalEmpleadores: number;
+  empleadoresActivos: number;
+  practicasEsteMes: number;
+  documentosSubidos: number;
+  practicasPendientesRevision: number;
+}
+
 export function DashboardClient({ user }: DashboardClientProps) {
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [coordinadorStats, setCoordinadorStats] = useState<CoordinadorStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,7 +56,17 @@ export function DashboardClient({ user }: DashboardClientProps) {
           const response = await fetch('/api/admin/stats');
           if (response.ok) {
             const data = await response.json();
-            setStats(data);
+            setAdminStats(data);
+          }
+        } catch (error) {
+          console.error('Error al cargar estadísticas:', error);
+        }
+      } else if (user.rol === 'COORDINADOR') {
+        try {
+          const response = await fetch('/api/coordinador/stats');
+          if (response.ok) {
+            const data = await response.json();
+            setCoordinadorStats(data);
           }
         } catch (error) {
           console.error('Error al cargar estadísticas:', error);
@@ -55,37 +79,78 @@ export function DashboardClient({ user }: DashboardClientProps) {
   }, [user.rol]);
 
   const getStatCards = (): StatCard[] => {
-    if (user.rol === 'SUPER_ADMIN' && stats) {
+    if (user.rol === 'SUPER_ADMIN' && adminStats) {
       return [
         {
           title: 'Total Usuarios',
-          value: stats.totalUsuarios,
+          value: adminStats.totalUsuarios,
           description: 'En el sistema',
           icon: Users,
         },
         {
           title: 'Usuarios Activos',
-          value: stats.usuariosActivos,
+          value: adminStats.usuariosActivos,
           description: 'Con acceso al sistema',
           icon: Users,
         },
         {
           title: 'Sedes Activas',
-          value: stats.sedesActivas,
+          value: adminStats.sedesActivas,
           description: 'De la institución',
           icon: Building,
         },
         {
           title: 'Carreras Activas',
-          value: stats.carrerasActivas,
+          value: adminStats.carrerasActivas,
           description: 'Configuradas',
           icon: BookOpen,
         },
         {
           title: 'Prácticas Este Mes',
-          value: stats.totalPracticasEsteMes,
+          value: adminStats.totalPracticasEsteMes,
           description: 'Iniciadas en el mes actual',
           icon: TrendingUp,
+        },
+      ];
+    }
+    
+    if (user.rol === 'COORDINADOR' && coordinadorStats) {
+      return [
+        {
+          title: 'Total Alumnos',
+          value: coordinadorStats.totalAlumnos,
+          description: 'Registrados en el sistema',
+          icon: GraduationCap,
+        },
+        {
+          title: 'Alumnos en Práctica',
+          value: coordinadorStats.alumnosConPracticaActiva,
+          description: 'Con práctica activa',
+          icon: Users,
+        },
+        {
+          title: 'Empleadores Activos',
+          value: coordinadorStats.empleadoresActivos,
+          description: 'Disponibles para prácticas',
+          icon: Building,
+        },
+        {
+          title: 'Prácticas Este Mes',
+          value: coordinadorStats.practicasEsteMes,
+          description: 'Iniciadas en el mes actual',
+          icon: TrendingUp,
+        },
+        {
+          title: 'Documentos Subidos',
+          value: coordinadorStats.documentosSubidos,
+          description: 'Materiales de apoyo',
+          icon: FileCheck,
+        },
+        {
+          title: 'Prácticas Pendientes',
+          value: coordinadorStats.practicasPendientesRevision,
+          description: 'Requieren revisión',
+          icon: AlertCircle,
         },
       ];
     }
@@ -123,12 +188,12 @@ export function DashboardClient({ user }: DashboardClientProps) {
         </Badge>
       </div>
 
-      {/* Stats Overview - Solo para Super Admin */}
-      {user.rol === 'SUPER_ADMIN' && (
+      {/* Stats Overview - Solo para Super Admin y Coordinador */}
+      {(user.rol === 'SUPER_ADMIN' || user.rol === 'COORDINADOR') && (
         <>
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              {[...Array(5)].map((_, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+              {[...Array(6)].map((_, index) => (
                 <Card key={index} className="animate-pulse">
                   <CardHeader className="pb-2">
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -141,7 +206,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
               ))}
             </div>
           ) : statCards.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
               {statCards.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
@@ -169,7 +234,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
       )}
 
       {/* Message for other roles */}
-      {user.rol !== 'SUPER_ADMIN' && (
+      {user.rol !== 'SUPER_ADMIN' && user.rol !== 'COORDINADOR' && (
         <Card>
           <CardHeader>
             <CardTitle>Panel Principal</CardTitle>
