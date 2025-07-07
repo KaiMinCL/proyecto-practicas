@@ -163,7 +163,7 @@ export default function DocumentosPage() {
     return <div>Cargando...</div>;
   }
 
-  if (user?.rol !== 'Coordinador') {
+  if (user?.rol !== 'COORDINADOR') {
     return <div>Acceso denegado</div>;
   }
 
