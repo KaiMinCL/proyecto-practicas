@@ -14,10 +14,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Obtener parámetros de consulta para filtros opcionales
     const searchParams = request.nextUrl.searchParams;
     const carreraId = searchParams.get('carreraId');
-    const sedeId = searchParams.get('sedeId');    // Construir filtros
+    const sedeId = searchParams.get('sedeId');
+    
+    // Construir filtros
     const where: {
       carreraId?: number;
       sedeId?: number;
@@ -124,13 +125,19 @@ export async function POST(request: NextRequest) {
     });
 
     // Crear registro en la base de datos
-    const data = {
+    const data: any = {
       nombre: nombre,
       url: blob.url,
       creadoEn: new Date(),
-      carrera: carreraId ? { connect: { id: parseInt(carreraId) } } : { disconnect: true },
-      sede: sedeId ? { connect: { id: parseInt(sedeId) } } : { disconnect: true },
     };
+
+    if (carreraId && carreraId !== '0') {
+      data.carreraId = parseInt(carreraId);
+    }
+
+    if (sedeId && sedeId !== '0') {
+      data.sedeId = parseInt(sedeId);
+    }
 
     const documento = await prisma.documentoApoyo.create({
       data,
