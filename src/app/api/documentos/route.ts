@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { verifyUserSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -125,22 +126,28 @@ export async function POST(request: NextRequest) {
     });
 
     // Crear registro en la base de datos
-    const data: any = {
+    const createData: {
+      nombre: string;
+      url: string;
+      creadoEn: Date;
+      carreraId?: number;
+      sedeId?: number;
+    } = {
       nombre: nombre,
       url: blob.url,
       creadoEn: new Date(),
     };
 
     if (carreraId && carreraId !== '0') {
-      data.carreraId = parseInt(carreraId);
+      createData.carreraId = parseInt(carreraId);
     }
 
     if (sedeId && sedeId !== '0') {
-      data.sedeId = parseInt(sedeId);
+      createData.sedeId = parseInt(sedeId);
     }
 
     const documento = await prisma.documentoApoyo.create({
-      data,
+      data: createData as Prisma.DocumentoApoyoCreateInput,
       include: {
         carrera: {
           select: {
