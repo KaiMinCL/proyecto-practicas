@@ -23,11 +23,11 @@ export default async function ConfiguracionEvaluacionPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      <header className="mb-8 rounded-lg bg-card p-6 shadow-lg">
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
           Configuración de Ponderación de Evaluaciones
         </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-lg text-muted-foreground">
           Define los porcentajes para la Nota de Informe del Docente y la Nota de Evaluación del Empleador.
           La suma de ambos debe ser exactamente 100%.
         </p>

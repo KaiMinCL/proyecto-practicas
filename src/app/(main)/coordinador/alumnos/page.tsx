@@ -81,10 +81,17 @@ export default function AlumnosPage() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Gestión de Alumnos</h1>
-        <CreateAlumnoDialog />
-      </div>
+      <header className="mb-8 rounded-lg bg-card p-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight text-primary">
+            Gestión de Alumnos
+          </h1>
+          <CreateAlumnoDialog />
+        </div>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Crea, visualiza y busca alumnos en el sistema.
+        </p>
+      </header>
 
       <div className="relative mb-4">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

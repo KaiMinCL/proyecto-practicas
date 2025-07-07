@@ -119,8 +119,8 @@ export function CarrerasPageClientContent({
                 <DropdownMenuItem
                   onClick={() => handleOpenToggleStateDialog(carrera)} // <--- Conectado
                   className={carrera.estado === "ACTIVO" 
-                    ? "text-red-600 hover:!text-red-600 dark:hover:!text-red-500 focus:text-red-600 dark:focus:text-red-500" 
-                    : "text-green-600 hover:!text-green-600 dark:hover:!text-green-500 focus:text-green-600 dark:focus:text-green-500"}
+                    ? "text-destructive focus:text-destructive dark:focus:text-destructive"
+                    : "text-success focus:text-success dark:focus:text-success"}
                 >
                   {carrera.estado === "ACTIVO" ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
                   {carrera.estado === "ACTIVO" ? "Desactivar" : "Activar"}

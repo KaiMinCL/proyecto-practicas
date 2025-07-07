@@ -169,15 +169,17 @@ export default function DocumentosPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Gestión de Documentos</h1>
-          <p className="text-muted-foreground">
-            Administra documentos de apoyo para estudiantes y empleadores
-          </p>
+      <header className="rounded-lg bg-card p-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight text-primary">
+            Gestión de Documentos
+          </h1>
+          <CreateDocumentoDialog onDocumentoCreated={handleDocumentoCreated} />
         </div>
-        <CreateDocumentoDialog onDocumentoCreated={handleDocumentoCreated} />
-      </div>
+        <p className="mt-2 text-muted-foreground">
+          Administra documentos de apoyo para estudiantes y empleadores
+        </p>
+      </header>
 
       {/* Filtros y Búsqueda */}
       <Card>
@@ -250,7 +252,7 @@ export default function DocumentosPage() {
       <div className="grid gap-4">
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="mt-2 text-muted-foreground">Cargando documentos...</p>
           </div>
         ) : filteredDocumentos.length === 0 ? (
@@ -269,7 +271,7 @@ export default function DocumentosPage() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">                  <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-blue-600" />
+                      <FileText className="h-5 w-5 text-primary" />
                       <h3 className="font-semibold text-lg">{documento.nombre}</h3>
                     </div>
                     
@@ -315,17 +317,17 @@ export default function DocumentosPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{documentos.length}</div>
+                <div className="text-2xl font-bold text-primary">{documentos.length}</div>
                 <div className="text-sm text-muted-foreground">Total Documentos</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-success">
                   {new Set(documentos.map(doc => doc.carreraId)).size}
                 </div>
                 <div className="text-sm text-muted-foreground">Carreras con Documentos</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">
+                <div className="text-2xl font-bold text-accent-foreground">
                   {filteredDocumentos.length}
                 </div>
                 <div className="text-sm text-muted-foreground">Documentos Filtrados</div>
