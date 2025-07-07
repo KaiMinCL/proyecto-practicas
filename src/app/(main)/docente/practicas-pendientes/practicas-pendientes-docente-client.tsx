@@ -8,11 +8,21 @@ import {
     CardContent, 
     CardDescription, 
     CardFooter, 
-    CardHeader, 
     CardTitle 
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal, Info, UserCheck } from 'lucide-react';
+import { 
+    Terminal, 
+    Info, 
+    UserCheck, 
+    Calendar, 
+    User, 
+    MapPin, 
+    BookOpen, 
+    Clock,
+    CheckCircle2,
+    GraduationCap
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -39,39 +49,127 @@ export function PracticasPendientesDocenteCliente({ initialActionResponse }: Pra
 
   if (practicas.length === 0) {
     return (
-      <div className="text-center py-10 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-        <Info className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-        <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No tiene prácticas pendientes de aceptación</h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Cuando un alumno complete su Acta 1 y usted sea el tutor asignado, la práctica aparecerá aquí para su revisión.
+      <div className="text-center py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+        <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <UserCheck className="w-12 h-12" style={{color: '#007F7C'}} />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+          No tienes alumnos pendientes
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 text-lg max-w-md mx-auto leading-relaxed mb-6">
+          Cuando un alumno complete su Acta 1 y seas el tutor asignado, la práctica aparecerá aquí para tu revisión y aceptación.
         </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+          <Button asChild variant="outline" className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
+            <Link href="/dashboard">
+              <Info className="mr-2 h-4 w-4" />
+              Ir al Dashboard
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="text-gray-600 dark:text-gray-400">
+            <Link href="/docente/practicas">
+              <BookOpen className="mr-2 h-4 w-4" />
+              Ver Todas las Prácticas
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {practicas.map((practica) => (
-        <Card key={practica.id} className="flex flex-col shadow-sm hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="text-lg">
-              {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
-            </CardTitle>
-            <CardDescription>
-              RUT: {practica.alumno?.usuario.rut} <br/>
-              Carrera: {practica.carrera?.nombre || 'N/A'} (Sede: {practica.carrera?.sede?.nombre || 'N/A'})
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm space-y-1 flex-grow">
-            <p><strong>Tipo:</strong> {practica.tipo === 'LABORAL' ? 'Laboral' : 'Profesional'}</p>
-            <p><strong>Inicio:</strong> {format(new Date(practica.fechaInicio), "P", { locale: es })}</p>
-            <p><strong>Término (Est.):</strong> {format(new Date(practica.fechaTermino), "P", { locale: es })}</p>
-            {practica.fechaCompletadoAlumno && (
-                <p className="text-xs text-muted-foreground pt-1">Acta completada por alumno: {format(new Date(practica.fechaCompletadoAlumno), "Pp", { locale: es })}</p>
-             )}
+        <Card key={practica.id} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-teal-200 dark:hover:border-teal-800 overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 px-6 py-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform" style={{background: 'linear-gradient(135deg, #007F7C, #005F5C)'}}>
+                  <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg text-gray-900 dark:text-white">
+                    {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
+                  </CardTitle>
+                  <CardDescription className="text-sm font-medium" style={{color: '#007F7C'}}>
+                    {practica.alumno?.usuario.rut}
+                  </CardDescription>
+                </div>
+              </div>
+              <div className="flex items-center space-x-1 px-2 py-1 rounded-full" style={{backgroundColor: '#E8F5F4'}}>
+                <Clock className="w-3 h-3 animate-pulse" style={{color: '#007F7C'}} />
+                <span className="text-xs font-medium" style={{color: '#007F7C'}}>Pendiente</span>
+              </div>
+            </div>
+          </div>
+          
+          <CardContent className="p-6 space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <GraduationCap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Carrera</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {practica.carrera?.nombre || 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sede</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {practica.carrera?.sede?.nombre || 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tipo</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {practica.tipo === 'LABORAL' ? 'Laboral' : 'Profesional'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Inicio</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {format(new Date(practica.fechaInicio), "dd/MM", { locale: es })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {practica.fechaCompletadoAlumno && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <p className="text-xs font-medium text-blue-800 dark:text-blue-300">
+                      Acta completada el {format(new Date(practica.fechaCompletadoAlumno), "dd/MM/yyyy 'a las' HH:mm", { locale: es })}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
-          <CardFooter className="border-t mt-auto">
-            <Button asChild size="sm" className="w-full mt-4">
+          
+          <CardFooter className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-t border-gray-200 dark:border-gray-600 p-6">
+            <Button asChild size="default" className="w-full text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200" style={{background: 'linear-gradient(135deg, #007F7C, #005F5C)', borderColor: '#007F7C'}}>
               <Link href={`/docente/practicas-pendientes/${practica.id}/revisar-acta`}>
                 <UserCheck className="mr-2 h-4 w-4" />
                 Revisar y Decidir Acta 1

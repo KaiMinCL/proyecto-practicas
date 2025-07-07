@@ -4,90 +4,105 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FilePlus2, ListChecks, LogIn, Star } from 'lucide-react';
-import type { RoleName } from '@/types/roles';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  LogIn, 
+  User, 
+  Settings, 
+  LogOut,
+} from 'lucide-react';
 
 export default function Navbar() {
   const { user, isLoading, logout } = useAuth();
 
-  // Determinar roles de forma segura
-  const isCoordinador = user?.rol === ('COORDINADOR' as RoleName);
-  const isAlumno = user?.rol === ('ALUMNO' as RoleName);
-
   return (
-    <nav className="bg-gray-800 text-white p-4 shadow-md sticky top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link href={user ? "/dashboard" : "/"} className="text-xl font-bold hover:text-gray-300 transition-colors">
-          Portal Prácticas
-        </Link>
+    <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link 
+            href={user ? "/dashboard" : "/"} 
+            className="flex items-center space-x-2 font-bold text-xl text-gray-900 dark:text-white hover:text-primary transition-colors"
+          >
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <span>Portal Prácticas</span>
+          </Link>
 
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          {isLoading ? (
-            <>
-              {/* Skeletons para placeholders de botones de rol y usuario */}
-              <Skeleton className="h-9 w-28 sm:w-32 bg-gray-700 rounded-md" /> 
-              <Skeleton className="h-9 w-28 sm:w-32 bg-gray-700 rounded-md" /> 
-              <div className="flex items-center space-x-2">
-                  <Skeleton className="h-5 w-20 bg-gray-700 rounded" />
-                  <Skeleton className="h-9 w-24 bg-gray-700 rounded-md" />
+          {/* Right side */}
+          <div className="flex items-center space-x-4">
+            {isLoading ? (
+              <div className="flex items-center space-x-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-24 rounded-md" />
               </div>
-            </>
-          ) : user ? (
-            <>
-              {/* Botón para Iniciar Práctica (solo para Coordinador) */}
-              {isCoordinador && (
-                <Button asChild variant="default" size="sm" className="bg-sky-600 hover:bg-sky-700 text-white">
-                  <Link href="/coordinador/practicas/iniciar">
-                    <FilePlus2 className="mr-0 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Iniciar Práctica</span>
+            ) : user ? (
+              <>
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center space-x-2 h-9">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="hidden md:block text-left">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {user.nombre} {user.apellido}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {user.rol}
+                        </div>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="px-2 py-1.5">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {user.nombre} {user.apellido}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {user.email || user.rut}
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/perfil" className="flex items-center cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Mi Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={logout}
+                      className="flex items-center cursor-pointer text-red-600 dark:text-red-400"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Cerrar Sesión
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <div className="flex items-center space-x-3">
+                {/* Login Button */}
+                <Button asChild variant="default" size="sm">
+                  <Link href="/login" className="flex items-center">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Iniciar Sesión
                   </Link>
                 </Button>
-              )}              {/* Botón para Mis Prácticas (solo para Alumno) */}
-              {isAlumno && (
-                <Button asChild variant="default" size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                  <Link href="/alumno/mis-practicas">
-                    <ListChecks className="mr-0 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Mis Prácticas</span>
-                  </Link>
-                </Button>
-              )}
-
-              {/* Botón para Evaluaciones de Empleador (solo para Alumno) */}
-              {isAlumno && (
-                <Button asChild variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
-                  <Link href="/alumno/evaluaciones-empleador">
-                    <Star className="mr-0 sm:mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Evaluaciones</span>
-                  </Link>
-                </Button>
-              )}
-              
-              {/* Aquí podrías añadir más botones condicionales para otros roles */}
-
-              <div className="text-sm text-right sm:text-left ml-2"> {/* Margen izquierdo añadido para separar de botones */}
-                <span className="font-semibold block sm:inline">{user.nombre} {user.apellido}</span>
-                <span className="block text-xs text-gray-400 sm:ml-1">({user.rol})</span>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="bg-red-500 hover:bg-red-600 text-white border-red-500 hover:border-red-600 px-2 sm:px-3"
-              >
-                Cerrar Sesión
-              </Button>
-            </>
-          ) : (
-            <>
-              {/* Botón de Login si no hay usuario */}
-              <Button asChild variant="outline" size="sm" className="text-white border-gray-600 hover:bg-gray-700 hover:text-white">
-                <Link href="/login">
-                  <LogIn className="mr-0 sm:mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Iniciar Sesión</span>
-                </Link>
-              </Button>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </nav>

@@ -83,7 +83,7 @@ export async function clearAuthCookie() {
 export async function verifyUserSession(): Promise<UserJwtPayload | null> {
   try {
     const cookieStore = cookies();
-    const token = (await cookieStore).get('auth-token');
+    const token = (await cookieStore).get('session_token');
     
     if (!token?.value) {
       return null;

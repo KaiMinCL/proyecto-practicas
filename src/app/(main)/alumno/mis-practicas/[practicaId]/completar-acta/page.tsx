@@ -4,7 +4,7 @@ import { getUserSession } from '@/lib/auth';
 import type { RoleName } from '@/types/roles';
 import type { PracticaConDetalles } from '@/lib/validators/practica';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, Edit3 } from "lucide-react";
 import { ActionResponse, getDetallesPracticaParaCompletarAction } from '../../../practicas/actions';
 import { CompletarActaAlumnoForm } from './completar-acta-alumno-form';
 
@@ -70,14 +70,22 @@ export default async function CompletarActaPage({ params: paramsPromise }: PageP
   // El servicio getDetallesPracticaParaCompletarAlumno ya incluye el flag `fueraDePlazo`.
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Completar Acta 1: {practica.carrera?.nombre || 'Práctica'}
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <header className="mb-8 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl shadow-lg mb-4">
+          <Edit3 className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-400 bg-clip-text text-transparent mb-3">
+          Completar Acta 1
         </h1>
-        <p className="mt-1 text-muted-foreground">
-          Alumno: {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido} ({practica.alumno?.usuario.rut})
-        </p>
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 max-w-2xl mx-auto">
+          <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+            {practica.carrera?.nombre || 'Práctica'}
+          </p>
+          <p className="text-blue-600 dark:text-blue-400 font-medium">
+            {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido} • {practica.alumno?.usuario.rut}
+          </p>
+        </div>
       </header>
       
       {practica.fueraDePlazo && (

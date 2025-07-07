@@ -32,7 +32,7 @@ export async function authorize(requiredRole: RoleName): Promise<UserJwtPayload>
  * @throws Error si el usuario no está autenticado o no es Super Administrador.
  */
 export async function authorizeSuperAdmin(): Promise<UserJwtPayload> {
-  return authorize('SUPERADMIN' as RoleName); 
+  return authorize('SUPER_ADMIN' as RoleName); 
 }
 
 /**
@@ -74,7 +74,7 @@ export async function authorizeSuperAdminOrDirectorCarrera(): Promise<UserJwtPay
   }
 
   const userRole = userPayload.rol as RoleName;
-  const allowedRoles: RoleName[] = ['SUPERADMIN', 'DIRECTOR_CARRERA'];
+  const allowedRoles: RoleName[] = ['SUPER_ADMIN', 'DIRECTOR_CARRERA'];
 
    if (!allowedRoles.includes(userRole)) {
     console.warn(

@@ -17,7 +17,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { PowerIcon } from 'lucide-react';
+import { UserCheck, UserX } from 'lucide-react';
 
 interface ToggleUserStateDialogProps {
   userId: number;
@@ -50,26 +50,36 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
     setIsSubmitting(false);
   }, [state]);
 
+  const Icon = isActive ? UserX : UserCheck;
+  const actionText = isActive ? 'Desactivar' : 'Activar';
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button 
-          variant={isActive ? "destructive" : "default"}
-          size="icon"
+          variant="ghost"
+          size="sm"
+          className={isActive ? 'hover:bg-red-50 hover:text-red-600' : 'hover:bg-green-50 hover:text-green-600'}
         >
-          <PowerIcon className="h-4 w-4" />
+          <Icon className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {isActive ? "Desactivar" : "Reactivar"} Usuario
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Icon className="h-5 w-5" />
+            {actionText} Usuario
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {isActive 
-              ? `¿Está seguro que desea desactivar al usuario ${userName}? El usuario no podrá iniciar sesión.`
-              : `¿Está seguro que desea reactivar al usuario ${userName}? El usuario podrá volver a iniciar sesión.`
-            }
+            <p className="mb-2">
+              <strong>Usuario:</strong> {userName}
+            </p>
+            <p>
+              {isActive 
+                ? `¿Está seguro que desea desactivar este usuario? No podrá iniciar sesión hasta que sea reactivado.`
+                : `¿Está seguro que desea reactivar este usuario? Podrá volver a iniciar sesión en el sistema.`
+              }
+            </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -80,8 +90,13 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
               type="submit" 
               disabled={isSubmitting}
               onClick={() => setIsSubmitting(true)}
+              className={isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
             >
-              {isActive ? "Desactivar" : "Reactivar"}
+              {isSubmitting ? (
+                `${isActive ? 'Desactivando...' : 'Activando...'}`
+              ) : (
+                `${actionText}`
+              )}
             </AlertDialogAction>
           </form>
         </AlertDialogFooter>

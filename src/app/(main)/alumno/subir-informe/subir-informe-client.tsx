@@ -224,20 +224,20 @@ export function SubirInformeCliente({ initialActionResponse }: SubirInformeClien
                 </span>
                 <div className="flex items-center gap-2">
                   {practica.informeUrl ? (
-                    <span className="text-sm font-normal px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300 flex items-center">
+                    <span className="text-sm font-normal px-2 py-1 rounded-full bg-accent text-accent-foreground flex items-center">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Informe Subido
                     </span>
                   ) : (
-                    <span className="text-sm font-normal px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300 flex items-center">
+                    <span className="text-sm font-normal px-2 py-1 rounded-full bg-orange-500 text-white flex items-center">
                       <AlertCircle className="h-3 w-3 mr-1" />
                       Pendiente Informe
                     </span>
                   )}
                   <span className={`text-sm font-normal px-2 py-1 rounded-full ${
                     practica.estado === 'EN_CURSO' 
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300'
-                      : 'bg-purple-100 text-purple-700 dark:bg-purple-800/30 dark:text-purple-300'
+                      ? 'bg-secondary text-secondary-foreground'
+                      : 'bg-primary text-primary-foreground'
                   }`}>
                     {practica.estado === 'EN_CURSO' ? 'En Curso' : 'Finalizada - Pendiente Eval.'}
                   </span>
