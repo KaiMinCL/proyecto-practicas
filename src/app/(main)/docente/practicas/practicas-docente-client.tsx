@@ -18,7 +18,6 @@ import {
     UserCheck, 
     Calendar, 
     User, 
-    MapPin, 
     BookOpen, 
     Clock,
     CheckCircle2,

@@ -27,7 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { CheckCircle, FileText, User, Calendar } from 'lucide-react'
+import { CheckCircle, FileText, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 
@@ -176,7 +176,7 @@ export default function EvaluarInformePage() {
           }
         } catch (evaluacionError) {
           // Es normal que no exista evaluación aún
-          console.log('No hay evaluación previa')
+          console.log(evaluacionError)
         }
 
       } catch (error) {
