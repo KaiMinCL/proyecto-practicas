@@ -66,9 +66,18 @@ export default function CentrosPracticaPage() {
         throw new Error('Error al cargar centros');
       }
       const data = await response.json();
-      setCentros(data);
+      
+      // Verificar que data sea un array válido
+      if (Array.isArray(data)) {
+        setCentros(data);
+      } else {
+        console.error('La respuesta no es un array:', data);
+        setCentros([]);
+        toast.error('Error en el formato de datos recibidos');
+      }
     } catch (error) {
       console.error('Error al cargar centros:', error);
+      setCentros([]); // Asegurar que centros sea siempre un array
       toast.error('Error al cargar los centros de práctica');
     } finally {
       setLoading(false);
@@ -81,12 +90,12 @@ export default function CentrosPracticaPage() {
     }
   }, [mounted, user]);
 
-  const filteredCentros = centros.filter(centro =>
+  const filteredCentros = Array.isArray(centros) ? centros.filter(centro =>
     centro.nombreEmpresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
     centro.giro?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     centro.direccion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     centro.nombreContacto?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   if (!mounted || !user) {
     return <div>Cargando...</div>;
