@@ -102,6 +102,18 @@ const navigationItems: NavItem[] = [
   },
   // Docente routes
   {
+    title: 'Prácticas Asignadas',
+    href: '/docente/practicas',
+    icon: BookOpen,
+    roles: ['DOCENTE'],
+  },
+  {
+    title: 'Pendientes Aceptación',
+    href: '/docente/practicas-pendientes',
+    icon: UserCheck,
+    roles: ['DOCENTE'],
+  },
+  {
     title: 'Mis Estudiantes',
     href: '/docente/estudiantes',
     icon: Users,
