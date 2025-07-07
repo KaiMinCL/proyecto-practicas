@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { notFound } from 'next/navigation';
+import { jsPDF } from 'jspdf';
 import { 
   Card, 
   CardContent, 
@@ -13,22 +13,25 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft,
-  Building2,
-  Calendar,
+  Building2, 
+  Calendar, 
+  CheckCircle, 
+  FileText, 
   Star,
   User,
-  MapPin,
   Mail,
   Phone,
   AlertCircle,
-  FileText,
-  CheckCircle
+  Download,
+  Printer,
+  MapPin
 } from 'lucide-react';
 import { getEvaluacionEmpleadorAction } from '../../practicas/actions';
+import { notFound } from 'next/navigation';
 
 interface EvaluacionData {
   practica: {
@@ -104,6 +107,7 @@ export function EvaluacionEmpleadorDetalleClient({ practicaId }: Props) {
   const [data, setData] = useState<EvaluacionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   useEffect(() => {
     async function cargarEvaluacion() {
@@ -125,6 +129,164 @@ export function EvaluacionEmpleadorDetalleClient({ practicaId }: Props) {
 
     cargarEvaluacion();
   }, [practicaId]);
+
+  const generarPDF = () => {
+    if (!data) return;
+    
+    setGeneratingPDF(true);
+    
+    try {
+      const { practica, evaluacion } = data;
+      const doc = new jsPDF();
+      
+      // Configuración inicial
+      let yPosition = 20;
+      const pageWidth = doc.internal.pageSize.width;
+      const marginLeft = 20;
+      const marginRight = 20;
+      const textWidth = pageWidth - marginLeft - marginRight;
+      
+      // Título principal
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('EVALUACIÓN DEL EMPLEADOR (ACTA 2)', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 20;
+      
+      // Información de la institución
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${practica.carrera.sede.nombre}`, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+      doc.text(`${practica.carrera.nombre}`, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 20;
+      
+      // Información del estudiante
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('INFORMACIÓN DEL ESTUDIANTE', marginLeft, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Nombre: ${practica.alumno.usuario.nombre} ${practica.alumno.usuario.apellido}`, marginLeft, yPosition);
+      yPosition += 8;
+      doc.text(`RUT: ${practica.alumno.usuario.rut}`, marginLeft, yPosition);
+      yPosition += 8;
+      doc.text(`Carrera: ${practica.carrera.nombre}`, marginLeft, yPosition);
+      yPosition += 15;
+      
+      // Información de la práctica
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('INFORMACIÓN DE LA PRÁCTICA', marginLeft, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Empresa: ${practica.centroPractica?.nombreEmpresa || 'No especificada'}`, marginLeft, yPosition);
+      yPosition += 8;
+      doc.text(`Período: ${format(new Date(practica.fechaInicio), 'dd/MM/yyyy')} - ${format(new Date(practica.fechaTermino), 'dd/MM/yyyy')}`, marginLeft, yPosition);
+      yPosition += 8;
+      if (practica.direccionCentro) {
+        doc.text(`Dirección: ${practica.direccionCentro}`, marginLeft, yPosition);
+        yPosition += 8;
+      }
+      if (practica.nombreJefeDirecto) {
+        doc.text(`Jefe Directo: ${practica.nombreJefeDirecto}${practica.cargoJefeDirecto ? ` - ${practica.cargoJefeDirecto}` : ''}`, marginLeft, yPosition);
+        yPosition += 8;
+      }
+      yPosition += 10;
+      
+      // Nota final
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('NOTA FINAL:', marginLeft, yPosition);
+      doc.setFontSize(20);
+      doc.text(`${evaluacion.nota.toFixed(1)}`, marginLeft + 50, yPosition);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`(${evaluacion.nota >= 4.0 ? 'APROBADO' : 'REPROBADO'})`, marginLeft + 70, yPosition);
+      yPosition += 20;
+      
+      // Fecha de evaluación
+      doc.setFontSize(11);
+      doc.text(`Fecha de evaluación: ${format(new Date(evaluacion.fecha), 'dd \'de\' MMMM \'de\' yyyy', { locale: es })}`, marginLeft, yPosition);
+      yPosition += 15;
+      
+      // Comentarios si existen
+      if (evaluacion.comentarios) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('COMENTARIOS DEL EMPLEADOR:', marginLeft, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const comentariosLines = doc.splitTextToSize(evaluacion.comentarios, textWidth);
+        doc.text(comentariosLines, marginLeft, yPosition);
+        yPosition += comentariosLines.length * 6 + 15;
+      }
+      
+      // Tareas principales si existen
+      if (practica.tareasPrincipales) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TAREAS PRINCIPALES DESARROLLADAS:', marginLeft, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const tareasLines = doc.splitTextToSize(practica.tareasPrincipales, textWidth);
+        doc.text(tareasLines, marginLeft, yPosition);
+        yPosition += tareasLines.length * 6 + 20;
+      }
+      
+      // Verificar si necesitamos nueva página
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      // Espacio para firmas y timbres
+      yPosition += 20;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('FIRMAS Y TIMBRES:', marginLeft, yPosition);
+      yPosition += 20;
+      
+      // Líneas para firmas
+      const firmaWidth = (textWidth - 20) / 2;
+      doc.line(marginLeft, yPosition + 20, marginLeft + firmaWidth, yPosition + 20);
+      doc.line(marginLeft + firmaWidth + 20, yPosition + 20, marginLeft + textWidth, yPosition + 20);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Firma Empleador', marginLeft + firmaWidth / 2, yPosition + 30, { align: 'center' });
+      doc.text('Timbre Empresa', marginLeft + firmaWidth + 20 + firmaWidth / 2, yPosition + 30, { align: 'center' });
+      
+      yPosition += 40;
+      doc.line(marginLeft, yPosition + 20, marginLeft + firmaWidth, yPosition + 20);
+      doc.line(marginLeft + firmaWidth + 20, yPosition + 20, marginLeft + textWidth, yPosition + 20);
+      
+      doc.text('Fecha:', marginLeft + firmaWidth / 2, yPosition + 30, { align: 'center' });
+      doc.text('Nombre y Cargo:', marginLeft + firmaWidth + 20 + firmaWidth / 2, yPosition + 30, { align: 'center' });
+      
+      // Pie de página
+      const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
+      doc.setFontSize(8);
+      doc.text(`Documento generado el ${currentDate}`, pageWidth / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+      
+      // Descargar el PDF
+      const fileName = `evaluacion_empleador_${practica.alumno.usuario.nombre}_${practica.alumno.usuario.apellido}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+      doc.save(fileName);
+      
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Error al generar el PDF. Por favor, inténtelo de nuevo.');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -390,10 +552,37 @@ export function EvaluacionEmpleadorDetalleClient({ practicaId }: Props) {
         </CardContent>
       </Card>
 
+      {/* Información sobre impresión */}
+      <Alert className="bg-blue-50 border-blue-200">
+        <Printer className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          Puedes generar una versión PDF de esta evaluación para imprimir, firmar y timbrar según sea necesario para tu proceso académico.
+        </AlertDescription>
+      </Alert>
+
       {/* Acciones finales */}
-      <div className="flex justify-center pt-4">
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+        <Button 
+          onClick={generarPDF}
+          disabled={generatingPDF}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+          size="lg"
+        >
+          {generatingPDF ? (
+            <>
+              <Download className="w-4 h-4 mr-2 animate-spin" />
+              Generando PDF...
+            </>
+          ) : (
+            <>
+              <Printer className="w-4 h-4 mr-2" />
+              Imprimir / Generar PDF
+            </>
+          )}
+        </Button>
+        
         <Link href="/alumno/evaluaciones-empleador">
-          <Button variant="outline">
+          <Button variant="outline" size="lg">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver a todas las evaluaciones
           </Button>

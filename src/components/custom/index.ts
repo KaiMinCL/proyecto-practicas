@@ -1,1 +1,1 @@
-export {};
+export { DocumentosView } from './DocumentosView';

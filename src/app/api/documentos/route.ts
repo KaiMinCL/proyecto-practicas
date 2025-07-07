@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { verifyUserSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,10 +15,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Obtener parámetros de consulta para filtros opcionales
     const searchParams = request.nextUrl.searchParams;
     const carreraId = searchParams.get('carreraId');
-    const sedeId = searchParams.get('sedeId');    // Construir filtros
+    const sedeId = searchParams.get('sedeId');
+    
+    // Construir filtros
     const where: {
       carreraId?: number;
       sedeId?: number;
@@ -124,16 +126,28 @@ export async function POST(request: NextRequest) {
     });
 
     // Crear registro en la base de datos
-    const data = {
+    const createData: {
+      nombre: string;
+      url: string;
+      creadoEn: Date;
+      carreraId?: number;
+      sedeId?: number;
+    } = {
       nombre: nombre,
       url: blob.url,
       creadoEn: new Date(),
-      carrera: carreraId ? { connect: { id: parseInt(carreraId) } } : { disconnect: true },
-      sede: sedeId ? { connect: { id: parseInt(sedeId) } } : { disconnect: true },
     };
 
+    if (carreraId && carreraId !== '0') {
+      createData.carreraId = parseInt(carreraId);
+    }
+
+    if (sedeId && sedeId !== '0') {
+      createData.sedeId = parseInt(sedeId);
+    }
+
     const documento = await prisma.documentoApoyo.create({
-      data,
+      data: createData as Prisma.DocumentoApoyoCreateInput,
       include: {
         carrera: {
           select: {

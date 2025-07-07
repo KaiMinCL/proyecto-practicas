@@ -163,10 +163,10 @@ model DocumentoApoyo {
   id        Int      @id @default(autoincrement())
   nombre    String
   url       String
-  carreraId Int
-  carrera   Carrera  @relation(fields: [carreraId], references: [id])
-  sedeId    Int
-  sede      Sede     @relation(fields: [sedeId], references: [id])
+  carreraId Int?
+  carrera   Carrera? @relation(fields: [carreraId], references: [id])
+  sedeId    Int?
+  sede      Sede?    @relation(fields: [sedeId], references: [id])
   creadoEn  DateTime @default(now())
 }
 

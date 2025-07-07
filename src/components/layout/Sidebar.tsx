@@ -132,12 +132,19 @@ const navigationItems: NavItem[] = [
     icon: Star,
     roles: ['ALUMNO'],
   },
-  // Docente/Alumno shared routes
+  // Docente routes - Documentos
   {
     title: 'Documentos',
-    href: '/coordinador/documentos',
+    href: '/docente/documentos',
     icon: ClipboardList,
-    roles: ['DOCENTE', 'ALUMNO'],
+    roles: ['DOCENTE'],
+  },
+  // Alumno routes - Documentos
+  {
+    title: 'Documentos',
+    href: '/alumno/documentos',
+    icon: ClipboardList,
+    roles: ['ALUMNO'],
   },
   // Empleador routes
   {
