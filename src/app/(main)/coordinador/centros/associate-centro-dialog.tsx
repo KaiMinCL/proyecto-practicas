@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -80,7 +80,7 @@ export function AssociateCentroDialog({ centro, onSuccess }: AssociateCentroDial
     },
   });
 
-  const fetchEmpleadores = async () => {
+  const fetchEmpleadores = useCallback(async () => {
     setLoadingEmpleadores(true);
     try {
       const response = await fetch('/api/empleadores');
@@ -102,13 +102,13 @@ export function AssociateCentroDialog({ centro, onSuccess }: AssociateCentroDial
     } finally {
       setLoadingEmpleadores(false);
     }
-  };
+  }, [centro.empleadores]);
 
   useEffect(() => {
     if (open) {
       fetchEmpleadores();
     }
-  }, [open, centro.empleadores]);
+  }, [open, centro.empleadores, fetchEmpleadores]);
 
   const onSubmit = async (data: AssociateEmpleadorFormData) => {
     setIsSubmitting(true);
