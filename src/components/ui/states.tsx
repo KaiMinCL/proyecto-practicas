@@ -58,7 +58,7 @@ export function ErrorState({
 }
 
 interface EmptyStateProps {
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<React.ComponentProps<'svg'>>;
   title: string;
   description?: string;
   action?: React.ReactNode;

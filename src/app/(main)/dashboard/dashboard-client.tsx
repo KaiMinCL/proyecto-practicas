@@ -22,7 +22,7 @@ interface StatCard {
   title: string;
   value: string | number;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.ComponentProps<'svg'>>;
 }
 
 interface AdminStats {

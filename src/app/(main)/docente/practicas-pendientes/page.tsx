@@ -5,7 +5,7 @@ import type { RoleName } from '@/types/roles';
 import { getMisPracticasPendientesAceptacionAction, type ActionResponse } from '../practicas/actions'; 
 import type { PracticaConDetalles } from '@/lib/validators/practica';
 import { PracticasPendientesDocenteCliente } from './practicas-pendientes-docente-client';
-import { UserCheck, Clock } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 
 const REQUIRED_ROLE: RoleName = 'DOCENTE';
 

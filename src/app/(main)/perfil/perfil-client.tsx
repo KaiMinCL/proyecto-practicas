@@ -7,9 +7,6 @@ import { Separator } from '@/components/ui/separator';
 import { 
   User, 
   Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
   Briefcase,
   Edit,
   Shield,

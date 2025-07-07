@@ -17,7 +17,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { PowerIcon, UserCheck, UserX } from 'lucide-react';
+import { UserCheck, UserX } from 'lucide-react';
 
 interface ToggleUserStateDialogProps {
   userId: number;
@@ -52,7 +52,6 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
 
   const Icon = isActive ? UserX : UserCheck;
   const actionText = isActive ? 'Desactivar' : 'Activar';
-  const buttonVariant = isActive ? 'destructive' : 'default';
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>

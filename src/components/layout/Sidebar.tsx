@@ -15,7 +15,6 @@ import {
   UserCheck,
   BarChart3,
   GraduationCap,
-  Briefcase,
   Star,
   ClipboardList,
   Upload
@@ -29,7 +28,7 @@ interface SidebarProps {
 interface NavItem {
   title: string;
   href: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.ComponentProps<'svg'>>;
   roles?: string[];
 }
 

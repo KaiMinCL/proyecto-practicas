@@ -14,7 +14,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Edit3, Terminal, Info, FileText, Calendar, MapPin, User, Building, Clock, CheckCircle2, AlertCircle, GraduationCap } from 'lucide-react';
+import { Edit3, Terminal, Info, FileText, Calendar, MapPin, User, Building, Clock, GraduationCap } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 

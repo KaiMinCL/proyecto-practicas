@@ -12,15 +12,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
   Search, 
   Filter, 
   SortAsc, 
   SortDesc,
   MoreHorizontal,
-  Download,
-  Plus
+  Download
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,7 +32,7 @@ interface Column<T> {
   label: string;
   sortable?: boolean;
   filterable?: boolean;
-  render?: (value: any, item: T) => React.ReactNode;
+  render?: (value: unknown, item: T) => React.ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -49,7 +47,7 @@ interface DataTableProps<T> {
   emptyMessage?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   title,

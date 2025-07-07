@@ -8,7 +8,6 @@ import {
     CardContent, 
     CardDescription, 
     CardFooter, 
-    CardHeader, 
     CardTitle 
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -22,8 +21,7 @@ import {
     BookOpen, 
     Clock,
     CheckCircle2,
-    GraduationCap,
-    Building
+    GraduationCap
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
