@@ -4,6 +4,17 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { 
   Dialog, 
   DialogContent, 
   DialogDescription, 
