@@ -55,7 +55,7 @@ export default function DocumentosPage() {
 
   // Proteger la ruta - solo Coordinador puede acceder
   useEffect(() => {
-    if (mounted && user && user.rol !== 'Coordinador') {
+    if (mounted && user && user.rol !== 'COORDINADOR') {
       router.push('/dashboard');
     }
   }, [mounted, user, router]);
@@ -63,7 +63,7 @@ export default function DocumentosPage() {
   // Cargar documentos, carreras y sedes
   useEffect(() => {
     async function loadData() {
-      if (!mounted || !user || user.rol !== 'Coordinador') return;
+      if (!mounted || !user || user.rol !== 'COORDINADOR') return;
       
       try {
         setLoading(true);

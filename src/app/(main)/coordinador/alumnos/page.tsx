@@ -40,7 +40,7 @@ export default function AlumnosPage() {
 
   // Proteger la ruta - solo Coordinador puede acceder
   useEffect(() => {
-    if (mounted && user && user.rol !== 'Coordinador') {
+    if (mounted && user && user.rol !== 'COORDINADOR') {
       router.push('/dashboard');
     }
   }, [mounted, user, router]);
@@ -59,12 +59,12 @@ export default function AlumnosPage() {
       }
     }
 
-    if (mounted && user?.rol === 'Coordinador') {
+    if (mounted && user?.rol === 'COORDINADOR') {
       loadAlumnos();
     }
   }, [mounted, user]);
 
-  if (!mounted || !user || user.rol !== 'Coordinador') {
+  if (!mounted || !user || user.rol !== 'COORDINADOR') {
     return null;
   }
 
