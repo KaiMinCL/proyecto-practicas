@@ -235,10 +235,10 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
       <form onSubmit={form.handleSubmit(onSubmitActa)}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6 mb-6">
           <div className="md:col-span-1 space-y-6">
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-secondary/20 to-primary/20 dark:from-secondary/20 dark:to-primary/20">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <UserCircle2 className="h-5 w-5 text-blue-600" />
+                  <UserCircle2 className="h-5 w-5 text-primary" />
                   Datos del Alumno
                 </CardTitle>
               </CardHeader>

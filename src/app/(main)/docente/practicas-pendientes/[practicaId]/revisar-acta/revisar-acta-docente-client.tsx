@@ -141,7 +141,7 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
   return (
     <div className="space-y-8">
       <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-t-lg">
+        <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-t-lg">
           <div className="flex flex-col md:flex-row md:items-center justify-between">
             <div>
               <CardTitle className="text-2xl text-gray-900 dark:text-white">Revisión de Acta 1</CardTitle>
@@ -156,13 +156,14 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
                   practica.estado === 'RECHAZADA_DOCENTE' ? 'destructive' : 
                   'outline'
               } 
-              className={`text-sm font-semibold px-4 py-2 ${
-                practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' 
-                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-300' 
-                  : practica.estado === 'EN_CURSO'
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-              }`}
+              className="text-sm font-semibold px-4 py-2"
+              style={{
+                backgroundColor: practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? '#FEF3C7' : 
+                                practica.estado === 'EN_CURSO' ? '#00C853' : undefined,
+                color: practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? '#92400E' :
+                       practica.estado === 'EN_CURSO' ? 'white' : undefined,
+                borderColor: practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? '#F59E0B' : undefined
+              }}
             >
               {practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' && <AlertTriangle className="w-4 h-4 mr-1" />}
               {practica.estado === 'EN_CURSO' && <CheckCircle2 className="w-4 h-4 mr-1" />}
@@ -335,7 +336,8 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
             variant="default" 
             onClick={handleAccept} 
             disabled={isProcessing} 
-            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white dark:text-gray-900"
+            className="w-full sm:w-auto text-white"
+            style={{backgroundColor: '#00C853', borderColor: '#00C853'}}
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             {isProcessing ? "Procesando..." : "Aceptar Supervisión"}

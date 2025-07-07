@@ -66,12 +66,19 @@ export function RejectionReasonModal({
         }}
     >
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Indicar Motivo del Rechazo</DialogTitle>
-          <DialogDescription>
-            Por favor, explique brevemente por qué está rechazando la supervisión de esta práctica.
-            Esta información será comunicada al Coordinador.
-          </DialogDescription>
+        <DialogHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-t-lg p-6 -m-6 mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">Indicar Motivo del Rechazo</DialogTitle>
+              <DialogDescription className="mt-1">
+                Por favor, explique brevemente por qué está rechazando la supervisión de esta práctica.
+                Esta información será comunicada al Coordinador.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-2">
@@ -80,11 +87,14 @@ export function RejectionReasonModal({
               name="motivoRechazo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Motivo del Rechazo <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel className="text-sm font-medium" style={{color: '#1E1E1E'}}>
+                    Motivo del Rechazo <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Ej: La descripción de tareas no se alinea con los objetivos de la carrera..."
-                      className="min-h-[120px]"
+                      className="min-h-[120px] border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                      style={{borderColor: '#D0D0D0'}}
                       {...field}
                       disabled={isSubmittingReason}
                     />
@@ -93,12 +103,24 @@ export function RejectionReasonModal({
                 </FormItem>
               )}
             />
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmittingReason}>
+            <DialogFooter className="gap-2 sm:gap-0 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose} 
+                disabled={isSubmittingReason}
+                className="border-gray-300 hover:bg-gray-50"
+                style={{borderColor: '#D0D0D0'}}
+              >
                 <XCircle className="mr-2 h-4 w-4" />
                 Cancelar
               </Button>
-              <Button type="submit" variant="destructive" disabled={isSubmittingReason}>
+              <Button 
+                type="submit" 
+                variant="destructive" 
+                disabled={isSubmittingReason}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
                 <Send className="mr-2 h-4 w-4" />
                 {isSubmittingReason ? "Enviando..." : "Enviar Rechazo"}
               </Button>

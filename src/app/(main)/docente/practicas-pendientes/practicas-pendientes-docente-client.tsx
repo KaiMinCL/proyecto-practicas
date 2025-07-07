@@ -52,8 +52,8 @@ export function PracticasPendientesDocenteCliente({ initialActionResponse }: Pra
   if (practicas.length === 0) {
     return (
       <div className="text-center py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600">
-        <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-          <UserCheck className="w-12 h-12 text-purple-600 dark:text-purple-400" />
+        <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <UserCheck className="w-12 h-12" style={{color: '#007F7C'}} />
         </div>
         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
           No tienes alumnos pendientes
@@ -62,7 +62,7 @@ export function PracticasPendientesDocenteCliente({ initialActionResponse }: Pra
           Cuando un alumno complete su Acta 1 y seas el tutor asignado, la práctica aparecerá aquí para tu revisión y aceptación.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-          <Button asChild variant="outline" className="hover:bg-purple-50 dark:hover:bg-purple-900/20">
+          <Button asChild variant="outline" className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
             <Link href="/dashboard">
               <Info className="mr-2 h-4 w-4" />
               Ir al Dashboard
@@ -82,25 +82,25 @@ export function PracticasPendientesDocenteCliente({ initialActionResponse }: Pra
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {practicas.map((practica) => (
-        <Card key={practica.id} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-purple/20 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 px-6 py-4">
+        <Card key={practica.id} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-teal-200 dark:hover:border-teal-800 overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 px-6 py-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform" style={{background: 'linear-gradient(135deg, #007F7C, #005F5C)'}}>
                   <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-lg text-gray-900 dark:text-white">
                     {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
                   </CardTitle>
-                  <CardDescription className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                  <CardDescription className="text-sm font-medium" style={{color: '#007F7C'}}>
                     {practica.alumno?.usuario.rut}
                   </CardDescription>
                 </div>
               </div>
-              <div className="flex items-center space-x-1 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full">
-                <Clock className="w-3 h-3 text-purple-600 dark:text-purple-400 animate-pulse" />
-                <span className="text-xs font-medium text-purple-600 dark:text-purple-400">Pendiente</span>
+              <div className="flex items-center space-x-1 px-2 py-1 rounded-full" style={{backgroundColor: '#E8F5F4'}}>
+                <Clock className="w-3 h-3 animate-pulse" style={{color: '#007F7C'}} />
+                <span className="text-xs font-medium" style={{color: '#007F7C'}}>Pendiente</span>
               </div>
             </div>
           </div>
@@ -171,7 +171,7 @@ export function PracticasPendientesDocenteCliente({ initialActionResponse }: Pra
           </CardContent>
           
           <CardFooter className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-t border-gray-200 dark:border-gray-600 p-6">
-            <Button asChild size="default" className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+            <Button asChild size="default" className="w-full text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200" style={{background: 'linear-gradient(135deg, #007F7C, #005F5C)', borderColor: '#007F7C'}}>
               <Link href={`/docente/practicas-pendientes/${practica.id}/revisar-acta`}>
                 <UserCheck className="mr-2 h-4 w-4" />
                 Revisar y Decidir Acta 1

@@ -32,13 +32,13 @@ export default async function SubirInformePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg mb-4">
-          <Upload className="w-8 h-8 text-white" />
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-lg mb-4">
+          <Upload className="w-8 h-8 text-primary-foreground" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-3">
+        <h1 className="text-4xl font-bold text-primary dark:text-primary-dark mb-3">
           Subir Informe de Práctica
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-xl text-muted-foreground dark:text-muted-foreground-dark max-w-2xl mx-auto leading-relaxed">
           Sube los informes finales de tus prácticas en curso o finalizadas. Los documentos deben estar en formato PDF, DOC o DOCX.
         </p>
       </header>

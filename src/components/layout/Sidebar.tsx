@@ -169,15 +169,15 @@ export function Sidebar({ user }: SidebarProps) {
   );
 
   return (
-    <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700">
+    <div className="w-64 bg-card dark:bg-card-dark shadow-lg border-r border-border dark:border-border-dark">
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
             <GraduationCap className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 dark:text-white">Portal Prácticas</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{user.rol}</p>
+            <h2 className="font-semibold text-foreground dark:text-foreground-dark">Portal Prácticas</h2>
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground-dark">{user.rol}</p>
           </div>
         </div>
       </div>
@@ -197,7 +197,7 @@ export function Sidebar({ user }: SidebarProps) {
                     'flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                     isActive
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                      : 'text-foreground dark:text-foreground-dark hover:bg-muted dark:hover:bg-muted-dark hover:text-foreground dark:hover:text-foreground-dark'
                   )}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />

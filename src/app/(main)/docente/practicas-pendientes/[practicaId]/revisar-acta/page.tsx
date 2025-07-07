@@ -72,27 +72,27 @@ export default async function RevisarActaPage({ params: paramsPromise }: PagePro
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <header className="mb-8 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-lg mb-4" style={{background: 'linear-gradient(135deg, #007F7C, #005F5C)'}}>
           <FileCheck className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent mb-3">
+        <h1 className="text-4xl font-bold mb-3" style={{color: '#1E1E1E'}}>
           Revisión de Acta 1
         </h1>
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-6 max-w-3xl mx-auto">
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-lg p-6 max-w-3xl mx-auto">
           <div className="flex items-center justify-center space-x-4 mb-3">
             <div className="flex items-center space-x-2">
-              <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <User className="w-5 h-5" style={{color: '#007F7C'}} />
               <span className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
               </span>
             </div>
             <span className="text-gray-400">•</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">
+            <span className="font-medium" style={{color: '#007F7C'}}>
               {practica.alumno?.usuario.rut}
             </span>
           </div>
           <div className="flex items-center justify-center space-x-2">
-            <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <GraduationCap className="w-4 h-4" style={{color: '#00B0FF'}} />
             <span className="text-gray-700 dark:text-gray-300">
               {practica.carrera?.nombre} • {practica.carrera?.sede?.nombre || 'N/A'}
             </span>

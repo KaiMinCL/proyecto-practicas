@@ -63,7 +63,7 @@ export function Breadcrumbs() {
   }
 
   return (
-    <nav className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400" aria-label="Breadcrumbs">
+    <nav className="flex items-center space-x-1 text-sm text-muted-foreground" aria-label="Breadcrumbs">
       {breadcrumbs.map((breadcrumb, index) => (
         <div key={index} className="flex items-center">
           {index > 0 && (
@@ -86,7 +86,7 @@ export function Breadcrumbs() {
               {breadcrumb.label}
             </Link>
           ) : (
-            <span className="font-medium text-gray-900 dark:text-gray-100">
+            <span className="font-medium text-foreground">
               {breadcrumb.label}
             </span>
           )}

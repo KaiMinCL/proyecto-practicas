@@ -12,10 +12,10 @@ import { Calendar, User, Building, Award, Eye, AlertTriangle, Clock, CheckCircle
 import Link from 'next/link';
 
 const EstadoColors = {
-  'EN_CURSO': 'bg-blue-100 text-blue-800',
-  'FINALIZADA_PENDIENTE_EVAL': 'bg-yellow-100 text-yellow-800',
-  'EVALUACION_COMPLETA': 'bg-green-100 text-green-800',
-  'CERRADA': 'bg-gray-100 text-gray-800'
+  'EN_CURSO': 'bg-secondary text-secondary-foreground',
+  'FINALIZADA_PENDIENTE_EVAL': 'bg-orange-500 text-white',
+  'EVALUACION_COMPLETA': 'bg-accent text-accent-foreground',
+  'CERRADA': 'bg-muted text-muted-foreground'
 };
 
 const EstadoLabels = {
@@ -117,10 +117,10 @@ export default function EmpleadorDashboard() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Panel de Evaluaciones
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-muted-foreground mt-2">
             Gestiona las evaluaciones de desempeño de los estudiantes en práctica
           </p>
         </div>
@@ -137,10 +137,10 @@ export default function EmpleadorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <User className="h-8 w-8 text-blue-600" />
+                <User className="h-8 w-8 text-primary" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Estudiantes</p>
-                  <p className="text-2xl font-bold text-gray-900">{practicas.length}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Estudiantes</p>
+                  <p className="text-2xl font-bold text-foreground">{practicas.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -149,10 +149,10 @@ export default function EmpleadorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Calendar className="h-8 w-8 text-green-600" />
+                <Calendar className="h-8 w-8 text-accent" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">En Curso</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-muted-foreground">En Curso</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {practicas.filter(p => p.estado === 'EN_CURSO').length}
                   </p>
                 </div>
@@ -163,10 +163,10 @@ export default function EmpleadorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Award className="h-8 w-8 text-yellow-600" />
+                <Award className="h-8 w-8 text-orange-500" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Pendiente Evaluación</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-muted-foreground">Pendiente Evaluación</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {practicas.filter(p => p.estado === 'FINALIZADA_PENDIENTE_EVAL').length}
                   </p>
                 </div>
@@ -177,10 +177,10 @@ export default function EmpleadorDashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <Building className="h-8 w-8 text-purple-600" />
+                <Building className="h-8 w-8 text-secondary" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Evaluadas</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-muted-foreground">Evaluadas</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {practicas.filter(p => p.evaluacionEmpleador).length}
                   </p>
                 </div>
@@ -193,11 +193,11 @@ export default function EmpleadorDashboard() {
         {practicas.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <User className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
+              <User className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-medium text-foreground">
                 No hay estudiantes asignados
               </h3>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-muted-foreground">
                 Actualmente no tienes estudiantes en práctica asignados para evaluar.
               </p>
             </CardContent>
@@ -212,7 +212,7 @@ export default function EmpleadorDashboard() {
                       {practica.alumno.usuario.nombre} {practica.alumno.usuario.apellido}
                     </CardTitle>
                     <Badge 
-                      className={EstadoColors[practica.estado as keyof typeof EstadoColors] || 'bg-gray-100 text-gray-800'}
+                      className={EstadoColors[practica.estado as keyof typeof EstadoColors] || 'bg-muted text-muted-foreground'}
                     >
                       {EstadoLabels[practica.estado as keyof typeof EstadoLabels] || practica.estado}
                     </Badge>
@@ -223,23 +223,23 @@ export default function EmpleadorDashboard() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center text-gray-600">
+                    <div className="flex items-center text-muted-foreground">
                       <Building className="h-4 w-4 mr-2" />
                       {practica.centroPractica?.nombreEmpresa || 'Sin asignar'}
                     </div>
-                    <div className="flex items-center text-gray-600">
+                    <div className="flex items-center text-muted-foreground">
                       <Calendar className="h-4 w-4 mr-2" />
                       {formatDate(practica.fechaInicio)} - {formatDate(practica.fechaTermino)}
                     </div>
-                    <div className="flex items-center text-gray-600">
+                    <div className="flex items-center text-muted-foreground">
                       <Badge variant="outline" className="text-xs">
                         {practica.tipo === 'LABORAL' ? 'Práctica Laboral' : 'Práctica Profesional'}
                       </Badge>
                     </div>
                   </div>                  {practica.evaluacionEmpleador && (
-                    <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                    <div className="bg-accent/10 border border-accent/20 p-3 rounded-lg">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center text-green-800">
+                        <div className="flex items-center text-accent-foreground">
                           <CheckCircle2 className="h-4 w-4 mr-2" />
                           <span className="text-sm font-medium">
                             Evaluación Completada
@@ -247,18 +247,18 @@ export default function EmpleadorDashboard() {
                         </div>
                         <div className="text-right">
                           <div className={`text-lg font-bold px-2 py-1 rounded ${
-                            practica.evaluacionEmpleador.nota >= 5.5 ? 'bg-green-100 text-green-800' :
-                            practica.evaluacionEmpleador.nota >= 4.0 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
+                            practica.evaluacionEmpleador.nota >= 5.5 ? 'bg-accent text-accent-foreground' :
+                            practica.evaluacionEmpleador.nota >= 4.0 ? 'bg-orange-400 text-orange-900' :
+                            'bg-destructive text-destructive-foreground'
                           }`}>
                             {practica.evaluacionEmpleador.nota.toFixed(1)}
                           </div>
-                          <div className="text-xs text-green-600 mt-1">
+                          <div className="text-xs text-accent/80 mt-1">
                             {practica.evaluacionEmpleador.nota >= 4.0 ? 'Aprobado' : 'Reprobado'}
                           </div>
                         </div>
                       </div>
-                      <p className="text-xs text-green-600 mt-2 flex items-center">
+                      <p className="text-xs text-accent/80 mt-2 flex items-center">
                         <Clock className="h-3 w-3 mr-1" />
                         Evaluado el {formatDate(practica.evaluacionEmpleador.fecha)}
                       </p>
@@ -269,14 +269,14 @@ export default function EmpleadorDashboard() {
                     practica.estado === 'FINALIZADA_PENDIENTE_EVAL' || 
                     practica.estado === 'EN_CURSO'
                   ) && (
-                    <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
-                      <div className="flex items-center text-amber-800">
+                    <div className="bg-orange-500/10 border border-orange-500/20 p-3 rounded-lg">
+                      <div className="flex items-center text-orange-700 dark:text-orange-300">
                         <AlertTriangle className="h-4 w-4 mr-2" />
                         <span className="text-sm font-medium">
                           {practica.estado === 'EN_CURSO' ? 'En Curso - Sin Evaluar' : 'Pendiente de Evaluación'}
                         </span>
                       </div>
-                      <p className="text-xs text-amber-600 mt-1">
+                      <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                         {practica.estado === 'EN_CURSO' 
                           ? 'Práctica en desarrollo, evalúe cuando termine'
                           : 'La práctica ha finalizado y requiere evaluación'
@@ -290,7 +290,7 @@ export default function EmpleadorDashboard() {
                       practica.estado === 'FINALIZADA_PENDIENTE_EVAL' || 
                       practica.estado === 'EN_CURSO'
                     ) && (
-                      <Button asChild size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button asChild size="sm" className="flex-1">
                         <Link href={`/empleador/evaluar/${practica.id}`}>
                           <FileText className="h-4 w-4 mr-2" />
                           {practica.estado === 'EN_CURSO' ? 'Evaluar' : 'Evaluar Ahora'}
@@ -299,7 +299,7 @@ export default function EmpleadorDashboard() {
                     )}
                     
                     {practica.evaluacionEmpleador && (
-                      <Button asChild variant="outline" size="sm" className="flex-1 border-green-300 text-green-700 hover:bg-green-50">
+                      <Button asChild variant="outline" size="sm" className="flex-1 border-accent text-accent hover:bg-accent/10">
                         <Link href={`/empleador/evaluar/${practica.id}`}>
                           <Eye className="h-4 w-4 mr-2" />
                           Ver/Editar

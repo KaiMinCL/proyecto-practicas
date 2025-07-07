@@ -24,14 +24,14 @@ interface PerfilClientProps {
 export function PerfilClient({ user }: PerfilClientProps) {
   const getRoleColor = (role: string) => {
     const colors = {
-      'SUPER_ADMIN': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-      'DIRECTOR_CARRERA': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-      'COORDINADOR': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-      'DOCENTE': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-      'ALUMNO': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-      'EMPLEADOR': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
+      'SUPER_ADMIN': 'bg-destructive text-destructive-foreground',
+      'DIRECTOR_CARRERA': 'bg-primary text-primary-foreground',
+      'COORDINADOR': 'bg-secondary text-secondary-foreground',
+      'DOCENTE': 'bg-accent text-accent-foreground',
+      'ALUMNO': 'bg-orange-500 text-white', // Keeping orange for students for now for variety
+      'EMPLEADOR': 'bg-blue-500 text-white', // Keeping blue for employers for now for variety
     };
-    return colors[role as keyof typeof colors] || colors['ALUMNO'];
+    return colors[role as keyof typeof colors] || 'bg-muted text-muted-foreground';
   };
 
   const formatRole = (role: string) => {
@@ -49,7 +49,7 @@ export function PerfilClient({ user }: PerfilClientProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 rounded-xl p-6 text-white">
+      <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
@@ -59,7 +59,7 @@ export function PerfilClient({ user }: PerfilClientProps) {
               <h1 className="text-2xl font-bold">
                 {user.nombre} {user.apellido}
               </h1>
-              <p className="text-blue-100 dark:text-blue-200">
+              <p className="text-primary-foreground/80">
                 Mi Perfil de Usuario
               </p>
             </div>
@@ -85,10 +85,10 @@ export function PerfilClient({ user }: PerfilClientProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center space-x-3">
-                  <User className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Nombre completo</span>
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">Nombre completo</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                <span className="text-sm font-semibold text-foreground">
                   {user.nombre} {user.apellido}
                 </span>
               </div>
@@ -97,10 +97,10 @@ export function PerfilClient({ user }: PerfilClientProps) {
               
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center space-x-3">
-                  <Shield className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">RUT</span>
+                  <Shield className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">RUT</span>
                 </div>
-                <span className="text-sm font-mono font-semibold text-gray-900 dark:text-white">
+                <span className="text-sm font-mono font-semibold text-foreground">
                   {user.rut}
                 </span>
               </div>
@@ -109,8 +109,8 @@ export function PerfilClient({ user }: PerfilClientProps) {
               
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center space-x-3">
-                  <Briefcase className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Rol</span>
+                  <Briefcase className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">Rol</span>
                 </div>
                 <Badge className={getRoleColor(user.rol)} variant="secondary">
                   {formatRole(user.rol)}
@@ -122,10 +122,10 @@ export function PerfilClient({ user }: PerfilClientProps) {
                   <Separator />
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-3">
-                      <Mail className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Email</span>
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Email</span>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    <span className="text-sm font-semibold text-foreground">
                       {user.email}
                     </span>
                   </div>
@@ -162,14 +162,14 @@ export function PerfilClient({ user }: PerfilClientProps) {
               
               <Separator />
               
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <div className="bg-secondary/20 p-4 rounded-lg">
                 <div className="flex items-center space-x-2">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-medium text-blue-900 dark:text-blue-100">
+                  <Shield className="w-5 h-5 text-secondary-foreground" />
+                  <h3 className="font-medium text-secondary-foreground">
                     Información de Seguridad
                   </h3>
                 </div>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   Tu cuenta está protegida. Si necesitas hacer cambios importantes, contacta al administrador.
                 </p>
               </div>
@@ -189,22 +189,22 @@ export function PerfilClient({ user }: PerfilClientProps) {
         <CardContent>
           <div className="grid md:grid-cols-3 gap-4 text-sm">
             <div className="space-y-1">
-              <span className="font-medium text-gray-600 dark:text-gray-400">Tipo de Usuario</span>
-              <p className="font-semibold text-gray-900 dark:text-white">
+              <span className="font-medium text-muted-foreground">Tipo de Usuario</span>
+              <p className="font-semibold text-foreground">
                 {formatRole(user.rol)}
               </p>
             </div>
             
             <div className="space-y-1">
-              <span className="font-medium text-gray-600 dark:text-gray-400">Estado de Cuenta</span>
-              <p className="font-semibold text-green-600 dark:text-green-400">
+              <span className="font-medium text-muted-foreground">Estado de Cuenta</span>
+              <p className="font-semibold text-accent">
                 Activa
               </p>
             </div>
             
             <div className="space-y-1">
-              <span className="font-medium text-gray-600 dark:text-gray-400">Última Sesión</span>
-              <p className="font-semibold text-gray-900 dark:text-white">
+              <span className="font-medium text-muted-foreground">Última Sesión</span>
+              <p className="font-semibold text-foreground">
                 Ahora
               </p>
             </div>

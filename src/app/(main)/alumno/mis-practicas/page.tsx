@@ -36,7 +36,7 @@ export default async function MisPracticasPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{background: 'linear-gradient(135deg, #007F7C, #00B0FF)'}}>
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <div>
