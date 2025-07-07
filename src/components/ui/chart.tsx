@@ -120,22 +120,34 @@ function ChartTooltipContent({
   labelKey,
 }: {
   active?: boolean
-  payload?: any[]
+  payload?: Array<{
+    value: unknown
+    name: string
+    dataKey: string
+    color?: string
+    payload: Record<string, unknown>
+  }>
   label?: string
   className?: string
   indicator?: "line" | "dot" | "dashed"
   hideLabel?: boolean
   hideIndicator?: boolean
-  labelFormatter?: (label: any, payload: any[]) => React.ReactNode
+  labelFormatter?: (label: unknown, payload: Array<{
+    value: unknown
+    name: string
+    dataKey: string
+    color?: string
+    payload: Record<string, unknown>
+  }>) => React.ReactNode
   labelClassName?: string
-  formatter?: (value: any, name: any, item: any, index: number) => React.ReactNode
+  formatter?: (value: unknown, name: string, item: Record<string, unknown>, index: number) => React.ReactNode
   color?: string
   nameKey?: string
   labelKey?: string
 }) {
   const { config } = useChart()
 
-  const tooltipLabel = React.useMemo(() => {
+  const tooltipLabel: React.ReactNode = React.useMemo(() => {
     if (hideLabel || !payload?.length) {
       return null
     }
@@ -239,9 +251,9 @@ function ChartTooltipContent({
                         {itemConfig?.label || item.name}
                       </span>
                     </div>
-                    {item.value && (
+                    {item.value !== null && item.value !== undefined && (
                       <span className="text-foreground font-mono font-medium tabular-nums">
-                        {item.value.toLocaleString()}
+                        {String(item.value)}
                       </span>
                     )}
                   </div>
@@ -264,7 +276,14 @@ function ChartLegendContent({
   verticalAlign = "bottom",
   nameKey,
 }: React.ComponentProps<"div"> & {
-  payload?: any[]
+  payload?: Array<{
+    value: unknown
+    name?: string
+    dataKey?: string
+    color?: string
+    type?: string
+    payload?: Record<string, unknown>
+  }>
   verticalAlign?: "top" | "bottom"
   hideIcon?: boolean
   nameKey?: string
@@ -283,13 +302,13 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload.map((item: any) => {
+      {payload.map((item) => {
         const key = `${nameKey || item.dataKey || "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
         return (
           <div
-            key={item.value}
+            key={String(item.value) || item.name || item.dataKey || Math.random()}
             className={cn(
               "[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3"
             )}
