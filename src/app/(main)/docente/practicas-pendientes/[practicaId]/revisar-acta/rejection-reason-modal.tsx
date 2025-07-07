@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { XCircle, Send } from "lucide-react";
+import { XCircle, Send, AlertTriangle } from "lucide-react";
 
 // Schema para el formulario de motivo de rechazo
 const rejectionSchema = z.object({

@@ -12,7 +12,23 @@ import {
     CardTitle 
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, ExternalLink, Building, User, Settings, ClipboardList, Download, FileText } from 'lucide-react';
+import { 
+    CheckCircle, 
+    XCircle, 
+    ExternalLink, 
+    Building, 
+    User, 
+    Settings, 
+    ClipboardList, 
+    Download, 
+    FileText,
+    Calendar,
+    MapPin,
+    Phone,
+    Mail,
+    CheckCircle2,
+    AlertTriangle
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { PracticaConDetalles, DecisionDocenteActaData } from '@/lib/validators/practica';
@@ -123,43 +139,139 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
   const canDecide = practica.estado === PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE;
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-xl">Detalles de la Práctica</CardTitle>
-            <CardDescription>Información registrada por el Coordinador y el Alumno.</CardDescription>
+    <div className="space-y-8">
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-t-lg">
+          <div className="flex flex-col md:flex-row md:items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl text-gray-900 dark:text-white">Revisión de Acta 1</CardTitle>
+              <CardDescription className="text-lg mt-1">
+                Información registrada por el Coordinador y completada por el Alumno
+              </CardDescription>
+            </div>
+            <Badge 
+              variant={
+                  practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? 'outline' : 
+                  practica.estado === 'EN_CURSO' ? 'default' : 
+                  practica.estado === 'RECHAZADA_DOCENTE' ? 'destructive' : 
+                  'outline'
+              } 
+              className={`text-sm font-semibold px-4 py-2 ${
+                practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' 
+                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-300' 
+                  : practica.estado === 'EN_CURSO'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+              }`}
+            >
+              {practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' && <AlertTriangle className="w-4 h-4 mr-1" />}
+              {practica.estado === 'EN_CURSO' && <CheckCircle2 className="w-4 h-4 mr-1" />}
+              {practica.estado.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase())}
+            </Badge>
           </div>
-          <Badge 
-            variant={
-                practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? 'outline' : 
-                practica.estado === 'EN_CURSO' ? 'default' : 
-                practica.estado === 'RECHAZADA_DOCENTE' ? 'destructive' : 
-                'outline'
-            } 
-            className="text-sm capitalize"
-          >
-            {practica.estado.replace(/_/g, ' ').toLowerCase()}
-          </Badge>
         </CardHeader>
-        <CardContent>
-          <div className="mb-6 pb-4 border-b">
-            <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><Settings className="mr-2 h-5 w-5"/>Datos Registrados por Coordinación</h3>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6">
-              <InfoItem label="Tipo de Práctica" value={practica.tipo === PrismaTipoPracticaEnum.LABORAL ? "Laboral" : "Profesional"} />
-              <InfoItem label="Fecha de Inicio" value={practica.fechaInicio} isDate />
-              <InfoItem label="Fecha de Término" value={practica.fechaTermino} isDate />
-            </dl>
+        <CardContent className="p-8 space-y-8">
+          
+          {/* Datos Registrados por Coordinación */}
+          <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+            <h3 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-4 flex items-center">
+              <Settings className="mr-2 h-5 w-5"/>
+              Datos Registrados por Coordinación
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <ClipboardList className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tipo de Práctica</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {practica.tipo === PrismaTipoPracticaEnum.LABORAL ? "Práctica Laboral" : "Práctica Profesional"}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Fecha de Inicio</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {format(new Date(practica.fechaInicio), "PPP", { locale: es })}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Fecha de Término</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {format(new Date(practica.fechaTermino), "PPP", { locale: es })}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="mb-6 pb-4 border-b">
-            <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><User className="mr-2 h-5 w-5"/>Datos del Alumno</h3>
-             <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6">
-              <InfoItem label="Nombre Completo" value={`${practica.alumno?.usuario.nombre} ${practica.alumno?.usuario.apellido}`} />
-              <InfoItem label="RUT" value={practica.alumno?.usuario.rut} />
-              <InfoItem label="Carrera" value={practica.carrera?.nombre} />
-              <InfoItem label="Sede de Carrera" value={practica.carrera?.sede?.nombre} />
-            </dl>
+          {/* Datos del Alumno */}
+          <div className="bg-green-50 dark:bg-green-900/10 rounded-xl p-6 border border-green-200 dark:border-green-800">
+            <h3 className="text-lg font-bold text-green-800 dark:text-green-300 mb-4 flex items-center">
+              <User className="mr-2 h-5 w-5"/>
+              Información del Alumno
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <User className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Nombre</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">RUT</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {practica.alumno?.usuario.rut}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                  <ClipboardList className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Carrera</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {practica.carrera?.nombre}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sede</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {practica.carrera?.sede?.nombre}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div className="mb-6 pb-4 border-b">

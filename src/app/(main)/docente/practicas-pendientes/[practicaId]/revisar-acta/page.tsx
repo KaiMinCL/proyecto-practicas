@@ -1,4 +1,3 @@
-// src/app/(main)/docente/practicas-pendientes/[practicaId]/revisar-acta/page.tsx
 import { redirect } from 'next/navigation';
 import { getUserSession } from '@/lib/auth';
 import type { RoleName } from '@/types/roles';
@@ -6,7 +5,7 @@ import type { RoleName } from '@/types/roles';
 import { getDetallesPracticaParaRevisionDocenteAction, type ActionResponse } from '../../../practicas/actions'; 
 import type { PracticaConDetalles } from '@/lib/validators/practica';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, FileCheck, User, GraduationCap } from "lucide-react";
 import { RevisarActaDocenteCliente } from './revisar-acta-docente-client';
 
 const REQUIRED_ROLE: RoleName = 'DOCENTE';
@@ -71,15 +70,34 @@ export default async function RevisarActaPage({ params: paramsPromise }: PagePro
   const practica = result.data;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Revisión Acta 1: Práctica de {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <header className="mb-8 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg mb-4">
+          <FileCheck className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent mb-3">
+          Revisión de Acta 1
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          RUT Alumno: {practica.alumno?.usuario.rut} <br/>
-          Carrera: {practica.carrera?.nombre} (Sede: {practica.carrera?.sede?.nombre || 'N/A'})
-        </p>
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-6 max-w-3xl mx-auto">
+          <div className="flex items-center justify-center space-x-4 mb-3">
+            <div className="flex items-center space-x-2">
+              <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <span className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
+              </span>
+            </div>
+            <span className="text-gray-400">•</span>
+            <span className="text-purple-600 dark:text-purple-400 font-medium">
+              {practica.alumno?.usuario.rut}
+            </span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              {practica.carrera?.nombre} • {practica.carrera?.sede?.nombre || 'N/A'}
+            </span>
+          </div>
+        </div>
       </header>
       <RevisarActaDocenteCliente practica={practica} />
     </div>
