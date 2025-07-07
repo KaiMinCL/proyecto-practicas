@@ -83,6 +83,12 @@ const navigationItems: NavItem[] = [
     roles: ['COORDINADOR'],
   },
   {
+    title: 'Centros de Práctica',
+    href: '/coordinador/centros',
+    icon: Building,
+    roles: ['COORDINADOR'],
+  },
+  {
     title: 'Iniciar Práctica',
     href: '/coordinador/practicas/iniciar',
     icon: FileText,
