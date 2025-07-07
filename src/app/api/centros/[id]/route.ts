@@ -36,9 +36,6 @@ export async function GET(
         direccion: true,
         telefono: true,
         emailGerente: true,
-        nombreContacto: true,
-        emailContacto: true,
-        telefonoContacto: true,
         empleadores: {
           select: {
             empleador: {
@@ -89,9 +86,6 @@ export async function GET(
       direccion: centro.direccion,
       telefono: centro.telefono,
       emailGerente: centro.emailGerente,
-      nombreContacto: centro.nombreContacto,
-      emailContacto: centro.emailContacto,
-      telefonoContacto: centro.telefonoContacto,
       empleadores: centro.empleadores.map(e => ({
         id: e.empleador.id,
         nombre: `${e.empleador.usuario.nombre} ${e.empleador.usuario.apellido}`,
@@ -163,9 +157,6 @@ export async function PUT(
         direccion: validatedData.direccion,
         telefono: validatedData.telefono,
         emailGerente: validatedData.emailGerente,
-        nombreContacto: validatedData.nombreContacto,
-        emailContacto: validatedData.emailContacto,
-        telefonoContacto: validatedData.telefonoContacto,
       },
       select: {
         id: true,
@@ -174,9 +165,6 @@ export async function PUT(
         direccion: true,
         telefono: true,
         emailGerente: true,
-        nombreContacto: true,
-        emailContacto: true,
-        telefonoContacto: true,
       }
     });
 

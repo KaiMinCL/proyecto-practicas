@@ -17,7 +17,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,7 +24,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CreateCentroSchema, type CreateCentroFormData } from '@/lib/validators/centro';
+import { UpdateCentroSchema, type UpdateCentroFormData } from '@/lib/validators/centro';
 
 interface Empleador {
   id: number;
@@ -40,9 +39,6 @@ interface CentroPractica {
   direccion?: string;
   telefono?: string;
   emailGerente?: string;
-  nombreContacto?: string;
-  emailContacto?: string;
-  telefonoContacto?: string;
   empleadores: Empleador[];
   cantidadPracticas: number;
 }
@@ -56,35 +52,31 @@ export function EditCentroDialog({ centro, onSuccess }: EditCentroDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<CreateCentroFormData>({
-    resolver: zodResolver(CreateCentroSchema),
+  const form = useForm<UpdateCentroFormData>({
+    resolver: zodResolver(UpdateCentroSchema),
     defaultValues: {
+      id: centro.id,
       nombreEmpresa: centro.nombreEmpresa,
       giro: centro.giro || '',
       direccion: centro.direccion || '',
       telefono: centro.telefono || '',
       emailGerente: centro.emailGerente || '',
-      nombreContacto: centro.nombreContacto || '',
-      emailContacto: centro.emailContacto || '',
-      telefonoContacto: centro.telefonoContacto || '',
     },
   });
 
   // Actualizar los valores del formulario cuando cambie el centro
   useEffect(() => {
     form.reset({
+      id: centro.id,
       nombreEmpresa: centro.nombreEmpresa,
       giro: centro.giro || '',
       direccion: centro.direccion || '',
       telefono: centro.telefono || '',
       emailGerente: centro.emailGerente || '',
-      nombreContacto: centro.nombreContacto || '',
-      emailContacto: centro.emailContacto || '',
-      telefonoContacto: centro.telefonoContacto || '',
     });
   }, [centro, form]);
 
-  const onSubmit = async (data: CreateCentroFormData) => {
+  const onSubmit = async (data: UpdateCentroFormData) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/centros/${centro.id}`, {
@@ -132,7 +124,7 @@ export function EditCentroDialog({ centro, onSuccess }: EditCentroDialogProps) {
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form id="edit-centro-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <FormField
@@ -207,72 +199,48 @@ export function EditCentroDialog({ centro, onSuccess }: EditCentroDialogProps) {
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="nombreContacto"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre Contacto Práctica</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Juan Pérez" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Persona responsable de las prácticas
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="emailContacto"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Contacto</FormLabel>
-                    <FormControl>
-                      <Input placeholder="contacto@empresa.com" type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="telefonoContacto"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Teléfono Contacto</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: +56 9 8765 4321" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-[#007F7C] hover:bg-[#006B68]"
-              >
-                {isSubmitting ? 'Actualizando...' : 'Actualizar Centro'}
-              </Button>
-            </DialogFooter>
+            {/* Información de empleadores asociados */}
+            {centro.empleadores && centro.empleadores.length > 0 && (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  Empleadores Asociados ({centro.empleadores.length})
+                </h4>
+                <div className="space-y-2">
+                  {centro.empleadores.map((empleador) => (
+                    <div key={empleador.id} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">{empleador.nombre}</span>
+                      <span className="text-gray-500">{empleador.email}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Para gestionar los empleadores asociados, use la función &quot;Asociar Empleador&quot; en la tabla principal.
+                </p>
+              </div>
+            )}
           </form>
         </Form>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            form="edit-centro-form"
+            disabled={isSubmitting}
+            className="bg-[#007F7C] hover:bg-[#006B68]"
+          >
+            {isSubmitting ? 'Actualizando...' : 'Actualizar Centro'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
