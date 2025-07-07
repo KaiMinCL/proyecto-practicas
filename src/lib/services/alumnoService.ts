@@ -161,7 +161,7 @@ export class AlumnoService {
 
       const formattedAlumnos = alumnos.map(a => ({
         value: a.id,
-        label: `${a.usuario.apellido}, <span class="math-inline">\{a\.usuario\.nombre\} \(</span>{a.usuario.rut}) - Carrera: ${a.carrera.nombre} (Sede: ${a.carrera.sede.nombre})`,
+        label: `${a.usuario.nombre} ${a.usuario.apellido} (${a.usuario.rut}) - ${a.carrera.nombre} (${a.carrera.sede.nombre})`,
         rut: a.usuario.rut,
         nombreCompleto: `${a.usuario.nombre} ${a.usuario.apellido}`,
         carreraId: a.carrera.id,
