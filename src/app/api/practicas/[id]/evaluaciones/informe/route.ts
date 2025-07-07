@@ -20,9 +20,10 @@ const evaluacionInformeSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getUserSession();
     if (!session?.userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -36,7 +37,7 @@ export async function POST(
       );
     }
 
-    const practicaId = parseInt(params.id);
+    const practicaId = parseInt(id);
     if (isNaN(practicaId)) {
       return NextResponse.json(
         { error: 'ID de práctica inválido' }, 
@@ -200,15 +201,16 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getUserSession();
     if (!session?.userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const practicaId = parseInt(params.id);
+    const practicaId = parseInt(id);
     if (isNaN(practicaId)) {
       return NextResponse.json(
         { error: 'ID de práctica inválido' }, 
