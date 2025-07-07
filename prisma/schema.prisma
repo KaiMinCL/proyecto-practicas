@@ -102,9 +102,6 @@ model CentroPractica {
   direccion        String?
   telefono         String?
   emailGerente     String?
-  nombreContacto   String?
-  emailContacto    String?
-  telefonoContacto String?
   empleadores      EmpleadorCentro[]
   practicas        Practica[]
 }

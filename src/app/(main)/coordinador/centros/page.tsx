@@ -33,9 +33,6 @@ interface CentroPractica {
   direccion?: string;
   telefono?: string;
   emailGerente?: string;
-  nombreContacto?: string;
-  emailContacto?: string;
-  telefonoContacto?: string;
   empleadores: Empleador[];
   cantidadPracticas: number;
 }
@@ -94,7 +91,7 @@ export default function CentrosPracticaPage() {
     centro.nombreEmpresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
     centro.giro?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     centro.direccion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    centro.nombreContacto?.toLowerCase().includes(searchTerm.toLowerCase())
+    centro.empleadores.some(emp => emp.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
   ) : [];
 
   if (!mounted || !user) {
@@ -124,7 +121,7 @@ export default function CentrosPracticaPage() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder="Buscar por empresa, giro, dirección o contacto..."
+            placeholder="Buscar por empresa, giro, dirección o empleador..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
@@ -191,22 +188,25 @@ export default function CentrosPracticaPage() {
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {centro.nombreContacto && (
-                        <div className="flex items-center gap-1 text-sm font-medium">
-                          <UserCheck className="h-3 w-3" />
-                          {centro.nombreContacto}
-                        </div>
+                      {centro.empleadores.length > 0 ? (
+                        centro.empleadores.slice(0, 2).map((empleador) => (
+                          <div key={empleador.id} className="space-y-1">
+                            <div className="flex items-center gap-1 text-sm font-medium">
+                              <UserCheck className="h-3 w-3" />
+                              {empleador.nombre}
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-gray-500">
+                              <Mail className="h-3 w-3" />
+                              {empleador.email}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-sm text-gray-400">Sin contacto asignado</span>
                       )}
-                      {centro.emailContacto && (
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Mail className="h-3 w-3" />
-                          {centro.emailContacto}
-                        </div>
-                      )}
-                      {centro.telefonoContacto && (
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Phone className="h-3 w-3" />
-                          {centro.telefonoContacto}
+                      {centro.empleadores.length > 2 && (
+                        <div className="text-xs text-gray-500">
+                          +{centro.empleadores.length - 2} más
                         </div>
                       )}
                     </div>
