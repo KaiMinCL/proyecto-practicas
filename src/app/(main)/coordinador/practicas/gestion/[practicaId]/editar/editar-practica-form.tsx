@@ -41,6 +41,23 @@ import {
     type PracticaConDetalles 
 } from "@/lib/validators/practica";
 
+// Definir enums localmente para evitar problemas de importación
+const TipoPracticaEnum = {
+  LABORAL: 'LABORAL',
+  PROFESIONAL: 'PROFESIONAL'
+} as const;
+
+const EstadoPracticaEnum = {
+  PENDIENTE: 'PENDIENTE',
+  PENDIENTE_ACEPTACION_DOCENTE: 'PENDIENTE_ACEPTACION_DOCENTE',
+  RECHAZADA_DOCENTE: 'RECHAZADA_DOCENTE',
+  EN_CURSO: 'EN_CURSO',
+  FINALIZADA_PENDIENTE_EVAL: 'FINALIZADA_PENDIENTE_EVAL',
+  EVALUACION_COMPLETA: 'EVALUACION_COMPLETA',
+  CERRADA: 'CERRADA',
+  ANULADA: 'ANULADA'
+} as const;
+
 import { 
     getDocentesParaFormAction,
     sugerirFechaTerminoAction,   
@@ -48,7 +65,6 @@ import {
     type DocenteOption,
     type ActionResponse 
 } from '../../../actions'; 
-import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoPracticaEnum } from "@prisma/client";
 
 interface EditarPracticaFormProps {
   practicaOriginal: PracticaConDetalles;
@@ -98,7 +114,7 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
       docenteId: practicaOriginal.docenteId ?? undefined,
       fechaInicio: practicaOriginal.fechaInicio ? new Date(practicaOriginal.fechaInicio) : undefined,
       fechaTermino: practicaOriginal.fechaTermino ? new Date(practicaOriginal.fechaTermino) : undefined,
-      estado: practicaOriginal.estado ?? undefined,
+      estado: practicaOriginal.estado as "PENDIENTE" | "PENDIENTE_ACEPTACION_DOCENTE" | "RECHAZADA_DOCENTE" | "EN_CURSO" | "FINALIZADA_PENDIENTE_EVAL" | "EVALUACION_COMPLETA" | "CERRADA" | "ANULADA" | undefined,
       direccionCentro: practicaOriginal.direccionCentro ?? "",
       departamento: practicaOriginal.departamento ?? "",
       nombreJefeDirecto: practicaOriginal.nombreJefeDirecto ?? "",
@@ -162,7 +178,7 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
             docenteId: result.data.docenteId ?? undefined,
             fechaInicio: result.data.fechaInicio ? new Date(result.data.fechaInicio) : undefined,
             fechaTermino: result.data.fechaTermino ? new Date(result.data.fechaTermino) : undefined,
-            estado: result.data.estado ?? undefined,
+            estado: result.data.estado as "PENDIENTE" | "PENDIENTE_ACEPTACION_DOCENTE" | "RECHAZADA_DOCENTE" | "EN_CURSO" | "FINALIZADA_PENDIENTE_EVAL" | "EVALUACION_COMPLETA" | "CERRADA" | "ANULADA" | undefined,
             direccionCentro: result.data.direccionCentro ?? "",
             departamento: result.data.departamento ?? "",
             nombreJefeDirecto: result.data.nombreJefeDirecto ?? "",
@@ -217,7 +233,7 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
               <InfoDisplay label="Alumno" value={`${practicaOriginal.alumno?.usuario.nombre} ${practicaOriginal.alumno?.usuario.apellido} (${practicaOriginal.alumno?.usuario.rut})`} />
               <InfoDisplay label="Carrera" value={practicaOriginal.carrera?.nombre} />
               <InfoDisplay label="Sede" value={practicaOriginal.carrera?.sede?.nombre} />
-              <InfoDisplay label="Tipo de Práctica" value={tipoPracticaActual === PrismaTipoPracticaEnum.LABORAL ? "Laboral" : "Profesional"} />
+              <InfoDisplay label="Tipo de Práctica" value={tipoPracticaActual === TipoPracticaEnum.LABORAL ? "Laboral" : "Profesional"} />
             </dl>
           </CardContent>
         </Card>
@@ -245,7 +261,7 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
                   <Select onValueChange={field.onChange} value={field.value ?? undefined} disabled={isSubmitting}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar estado..." /></SelectTrigger></FormControl>
                     <SelectContent>
-                      {Object.values(PrismaEstadoPracticaEnum).map(s => (
+                      {Object.values(EstadoPracticaEnum).map(s => (
                         <SelectItem key={s} value={s}>{s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
                       ))}
                     </SelectContent>

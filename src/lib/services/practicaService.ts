@@ -1,10 +1,5 @@
 import prisma from '@/lib/prisma';
 import { 
-    Prisma, 
-    EstadoPractica as PrismaEstadoPracticaEnum,
-    TipoPractica as PrismaTipoPracticaEnum
-} from '@prisma/client';
-import { 
     type IniciarPracticaInput, 
     type CompletarActaAlumnoData, 
     type EditarPracticaCoordDCInput,
@@ -57,7 +52,7 @@ export class PracticaService {
    */
   static async sugerirFechaTermino(
     fechaInicio: Date,
-    tipoPractica: PrismaTipoPracticaEnum,
+    tipoPractica: string,
     carreraId: number
   ): Promise<{ success: boolean; data?: Date; error?: string; message?: string }> {
     try {
@@ -69,7 +64,7 @@ export class PracticaService {
         return { success: false, error: 'Carrera no encontrada para calcular horas.' };
       }
 
-      const horasRequeridas = tipoPractica === PrismaTipoPracticaEnum.LABORAL 
+      const horasRequeridas = tipoPractica === 'LABORAL' 
         ? carrera.horasPracticaLaboral 
         : carrera.horasPracticaProfesional;
 
@@ -122,7 +117,7 @@ export class PracticaService {
           tipo: input.tipoPractica,
           fechaInicio: input.fechaInicio,
           fechaTermino: input.fechaTermino,
-          estado: PrismaEstadoPracticaEnum.PENDIENTE,
+          estado: 'PENDIENTE',
         },
         include: { 
           alumno: { include: { usuario: { select: { nombre: true, apellido: true, rut: true }}}},
@@ -131,13 +126,13 @@ export class PracticaService {
         }
       });
       return { success: true, data: nuevaPractica };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error al iniciar práctica (servicio):', error);
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2003') {
-          const fieldName = error.meta?.field_name || 'campo desconocido';
-          return { success: false, error: `Error de referencia: El campo '${fieldName}' apunta a un registro inexistente.` };
-        }
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2003') {
+        const fieldName = ('meta' in error && error.meta && typeof error.meta === 'object' && 'field_name' in error.meta) 
+          ? error.meta.field_name || 'campo desconocido'
+          : 'campo desconocido';
+        return { success: false, error: `Error de referencia: El campo '${fieldName}' apunta a un registro inexistente.` };
       }
       return { success: false, error: 'No se pudo iniciar el registro de la práctica.' };
     }
@@ -175,7 +170,7 @@ export class PracticaService {
         return { success: false, error: 'No tienes permiso para acceder a esta práctica.' };
       }
 
-      if (practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE) {
+      if (practica.estado !== 'PENDIENTE') {
         return { success: false, error: `Esta práctica ya no está en estado pendiente para completar. Estado actual: ${practica.estado}` };
       }
       
@@ -229,7 +224,7 @@ export class PracticaService {
       if (practica.alumnoId !== alumno.id) {
         return { success: false, error: 'No tienes permiso para modificar esta práctica.' };
       }
-      if (practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE) {
+      if (practica.estado !== 'PENDIENTE') {
         return { success: false, error: `Esta práctica no puede ser completada. Estado actual: ${practica.estado}` };
       }
 
@@ -257,7 +252,7 @@ export class PracticaService {
           contactoTelefonoJefe: data.contactoTelefonoJefe,
           practicaDistancia: data.practicaDistancia,
           tareasPrincipales: data.tareasPrincipales,
-          estado: PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE,
+          estado: 'PENDIENTE_ACEPTACION_DOCENTE',
           fechaCompletadoAlumno: new Date(),
         },
         include: { 
@@ -275,13 +270,16 @@ export class PracticaService {
   /**
    * Obtiene las prácticas de un alumno específico, opcionalmente filtradas por estado.
    */
-  static async getPracticasPorAlumno(alumnoId: number, estado?: PrismaEstadoPracticaEnum) {
+  static async getPracticasPorAlumno(alumnoId: number, estado?: string) {
     try {
+      // Construir la condición where dinámicamente
+      const whereCondition = estado 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? { alumnoId, estado: estado as any }
+        : { alumnoId };
+
       const practicas = await prisma.practica.findMany({
-        where: {
-          alumnoId: alumnoId,
-          estado: estado,
-        },
+        where: whereCondition,
         include: {
           carrera: { select: { id: true, nombre: true, sede: { select: { id: true, nombre: true } } } }, 
           docente: { include: { usuario: { select: { id:true, nombre: true, apellido: true } } } },
@@ -331,7 +329,7 @@ export class PracticaService {
         return { success: false, error: 'Práctica no encontrada o no asignada a usted.' };
       }
 
-      if (practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE) {
+      if (practica.estado !== 'PENDIENTE_ACEPTACION_DOCENTE') {
         return { success: false, error: `Esta práctica no está pendiente de su aceptación. Estado actual: ${practica.estado}` };
       }
 
@@ -369,15 +367,15 @@ export class PracticaService {
       if (practica.docenteId !== docente.id) {
         return { success: false, error: 'No tienes permiso para modificar esta práctica.' };
       }
-      if (practica.estado !== PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE) {
+      if (practica.estado !== 'PENDIENTE_ACEPTACION_DOCENTE') {
         return { success: false, error: `Esta práctica ya no está en estado 'Pendiente Aceptación Docente'. Estado actual: ${practica.estado}` };
       }
 
-      let nuevoEstado: PrismaEstadoPracticaEnum;
-      let updateData: Prisma.PracticaUpdateInput = {};
+      let nuevoEstado: string;
+      let updateData: Record<string, unknown> = {};
 
       if (decisionData.decision === 'ACEPTADA') {
-        nuevoEstado = PrismaEstadoPracticaEnum.EN_CURSO;
+        nuevoEstado = 'EN_CURSO';
         updateData = {
           estado: nuevoEstado,
           motivoRechazoDocente: null, // Limpiar cualquier motivo de rechazo previo si existiera
@@ -387,7 +385,7 @@ export class PracticaService {
           // Esta validación ya está en Zod, pero una doble verificación no hace daño.
           return { success: false, error: 'Se requiere un motivo para el rechazo.' };
         }
-        nuevoEstado = PrismaEstadoPracticaEnum.RECHAZADA_DOCENTE;
+        nuevoEstado = 'RECHAZADA_DOCENTE';
         updateData = {
           estado: nuevoEstado,
           motivoRechazoDocente: decisionData.motivoRechazo,
@@ -491,7 +489,7 @@ export class PracticaService {
    */
   static async getPracticasParaGestion(filters?: { requestingUserSedeId?: number | null }) {
     try {
-      const whereClause: Prisma.PracticaWhereInput = {};
+      const whereClause: Record<string, unknown> = {};
 
       if (filters?.requestingUserSedeId) {
         // Filtra prácticas cuya carrera pertenezca a la sede del usuario solicitante
@@ -573,8 +571,8 @@ export class PracticaService {
       if (practica.alumnoId !== alumno.id) {
         return { success: false, error: 'No tienes permiso para subir el informe de esta práctica.' };
       }      // Verificar que la práctica esté en un estado válido para subir informe
-      if (practica.estado !== PrismaEstadoPracticaEnum.EN_CURSO && 
-          practica.estado !== PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL) {
+      if (practica.estado !== 'EN_CURSO' && 
+          practica.estado !== 'FINALIZADA_PENDIENTE_EVAL') {
         return { 
           success: false, 
           error: `No puedes subir el informe en el estado actual: ${practica.estado}. La práctica debe estar en curso o finalizada pendiente de evaluación.` 
@@ -595,8 +593,8 @@ export class PracticaService {
         data: {
           informeUrl: informeUrl,
           // Si es la primera vez que sube el informe y está en curso, cambiar estado
-          ...(practica.estado === PrismaEstadoPracticaEnum.EN_CURSO && !practica.informeUrl && {
-            estado: PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL
+          ...(practica.estado === 'EN_CURSO' && !practica.informeUrl && {
+            estado: 'FINALIZADA_PENDIENTE_EVAL'
           })
         },
         include: {
@@ -706,6 +704,107 @@ export class PracticaService {
     } catch (error) {
       console.error("Error en getPracticasConEvaluacionEmpleadorDisponible:", error);
       return { success: false, error: "Error al obtener las prácticas con evaluación de empleador." };
+    }
+  }
+
+  /**
+   * Obtiene la evaluación de informe (del docente) para una práctica específica.
+   * Valida que el alumno tenga permiso para ver esta evaluación.
+   */
+  static async getEvaluacionInformeDocentePorPractica(
+    practicaId: number,
+    alumnoUsuarioId: number
+  ) {
+    try {
+      const alumno = await prisma.alumno.findUnique({
+        where: { usuarioId: alumnoUsuarioId },
+        select: { id: true }
+      });
+
+      if (!alumno) {
+        return { success: false, error: "Perfil de alumno no encontrado." };
+      }
+
+      const practica = await prisma.practica.findUnique({
+        where: { id: practicaId },
+        include: {
+          alumno: { include: { usuario: true, carrera: { include: { sede: true } } } },
+          carrera: { include: { sede: true } },
+          docente: { include: { usuario: true } },
+          centroPractica: true,
+          evaluacionDocente: true
+        }
+      });
+
+      if (!practica) {
+        return { success: false, error: 'Práctica no encontrada.' };
+      }
+
+      if (practica.alumnoId !== alumno.id) {
+        return { success: false, error: 'No tienes permiso para ver la evaluación de esta práctica.' };
+      }
+
+      // Verificar que la práctica esté en un estado donde debería tener evaluación disponible
+      if (!['EVALUACION_COMPLETA', 'CERRADA'].includes(practica.estado)) {
+        return { success: false, error: 'La evaluación del informe aún no está disponible para esta práctica.' };
+      }
+
+      if (!practica.evaluacionDocente) {
+        return { success: false, error: 'Esta práctica aún no tiene evaluación de informe disponible.' };
+      }
+
+      return { success: true, data: { practica, evaluacion: practica.evaluacionDocente } };
+    } catch (error) {
+      console.error("Error en getEvaluacionInformeDocentePorPractica:", error);
+      return { success: false, error: "Error al obtener la evaluación del informe." };
+    }
+  }
+
+  /**
+   * Obtiene todas las prácticas de un alumno que tienen evaluación de informe disponible.
+   * Solo retorna prácticas donde ya existe una evaluación completada por el docente.
+   */
+  static async getPracticasConEvaluacionInformeDisponible(alumnoUsuarioId: number) {
+    try {
+      const alumno = await prisma.alumno.findUnique({
+        where: { usuarioId: alumnoUsuarioId },
+        select: { id: true }
+      });
+
+      if (!alumno) {
+        return { success: false, error: "Perfil de alumno no encontrado." };
+      }
+
+      const practicas = await prisma.practica.findMany({
+        where: {
+          alumnoId: alumno.id,
+          evaluacionDocente: {
+            isNot: null // Solo prácticas que tienen evaluación de docente
+          }
+        },
+        include: {
+          alumno: { include: { usuario: { select: { nombre: true, apellido: true, rut: true } } } },
+          carrera: { select: { id: true, nombre: true, sede: { select: { id: true, nombre: true } } } },
+          docente: { include: { usuario: { select: { id: true, nombre: true, apellido: true } } } },
+          centroPractica: { select: { nombreEmpresa: true } },
+          evaluacionDocente: {
+            select: {
+              id: true,
+              nota: true,
+              fecha: true,
+              comentarios: true
+            }
+          }
+        },
+        orderBy: {
+          fechaInicio: 'desc'
+        }
+      });
+
+      return { success: true, data: practicas };
+    } catch (error) {
+      console.error("Error en getPracticasConEvaluacionInformeDisponible:", error);
+      return { success: false, error: "Error al obtener las prácticas con evaluación de informe." };
     }
   }
 }

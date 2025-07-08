@@ -1,5 +1,7 @@
 import { z } from 'zod';
-import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoPracticaEnum } from '@prisma/client';
+
+// Definir enums localmente
+const TipoPracticaEnum = z.enum(['LABORAL', 'PROFESIONAL']);
 
 // Schema para cuando el Coordinador inicia la práctica
 export const iniciarPracticaSchema = z.object({
@@ -13,9 +15,7 @@ export const iniciarPracticaSchema = z.object({
     invalid_type_error: "ID de docente inválido.",
   }).int().positive({ message: "ID de docente debe ser positivo." }),
   
-  tipoPractica: z.nativeEnum(PrismaTipoPracticaEnum, {
-    required_error: "Debe seleccionar el tipo de práctica.",
-  }),
+  tipoPractica: TipoPracticaEnum,
 
   fechaInicio: z.coerce.date({
     required_error: "La fecha de inicio es requerida.",
@@ -105,9 +105,16 @@ export const editarPracticaCoordDCSchema = z.object({
     invalid_type_error: "Fecha de término inválida.",
   }).optional(),
 
-  estado: z.nativeEnum(PrismaEstadoPracticaEnum, {
-    invalid_type_error: "Estado de práctica inválido."
-  }).optional(),
+  estado: z.enum([
+    'PENDIENTE',
+    'PENDIENTE_ACEPTACION_DOCENTE', 
+    'RECHAZADA_DOCENTE',
+    'EN_CURSO',
+    'FINALIZADA_PENDIENTE_EVAL',
+    'EVALUACION_COMPLETA',
+    'CERRADA',
+    'ANULADA'
+  ]).optional(),
 
   // Campos del Centro de Práctica y Tareas (originalmente llenados por alumno, ahora editables por Coord/DC)
   direccionCentro: z.string()
@@ -200,10 +207,10 @@ export interface PracticaConDetalles {
   alumnoId: number;
   docenteId: number;
   carreraId: number;
-  tipo: PrismaTipoPracticaEnum;
+  tipo: 'LABORAL' | 'PROFESIONAL';
   fechaInicio: Date;
   fechaTermino: Date;
-  estado: PrismaEstadoPracticaEnum;
+  estado: string;
 
   // Campos del Acta 1 del alumno
   direccionCentro?: string | null;
