@@ -23,6 +23,7 @@ const routeLabels: Record<string, string> = {
   alumnos: 'Alumnos',
   empleadores: 'Empleadores',
   practicas: 'Prácticas',
+  'practicas-pendientes': 'Prácticas Pendientes',
   documentos: 'Documentos',
   estudiantes: 'Estudiantes',
   evaluaciones: 'Evaluaciones',
@@ -30,6 +31,9 @@ const routeLabels: Record<string, string> = {
   'mis-practicas': 'Mis Prácticas',
   'evaluaciones-empleador': 'Evaluaciones Empleador',
   'subir-informe': 'Subir Informe',
+  'evaluar-informe': 'Evaluar Informe',
+  'ver-evaluacion-empleador': 'Ver Evaluación Empleador',
+  'revisar-acta': 'Revisar Acta',
   iniciar: 'Iniciar Práctica',
 };
 

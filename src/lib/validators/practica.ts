@@ -246,4 +246,14 @@ export interface PracticaConDetalles {
   centroPractica?: { // Datos del centro de práctica
     nombreEmpresa: string | null;
   } | null;
+  evaluacionDocente?: { // Evaluación de informe por el docente
+    id: number;
+    nota: number;
+    fecha: Date;
+  } | null;
+  evaluacionEmpleador?: { // Evaluación del empleador
+    id: number;
+    nota: number;
+    fecha: Date;
+  } | null;
 }
