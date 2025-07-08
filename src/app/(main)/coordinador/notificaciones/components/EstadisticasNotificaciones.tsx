@@ -1,6 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Mail, Clock, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle, XCircle, Mail, TrendingUp } from 'lucide-react';
 import { EstadisticasNotificaciones } from '../actions';
 
 interface EstadisticasNotificacionesProps {

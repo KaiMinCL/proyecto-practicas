@@ -29,7 +29,7 @@ export interface EstadisticasNotificaciones {
 }
 
 export async function obtenerNotificacionesEmail(page: number = 1, limit: number = 20) {
-  const authUser = await authorizeCoordinador();
+  await authorizeCoordinador();
 
   try {
     const offset = (page - 1) * limit;
@@ -46,18 +46,18 @@ export async function obtenerNotificacionesEmail(page: number = 1, limit: number
     });
 
     const notificaciones: NotificacionEmail[] = logs.map(log => {
-      const detalles = log.detallesNuevos as any;
+      const detalles = log.detallesNuevos as Record<string, unknown>;
       return {
         id: log.id,
         fecha: log.fecha,
-        tipo: detalles?.tipoNotificacion || 'Desconocido',
+        tipo: (detalles?.tipoNotificacion as string) || 'Desconocido',
         destinatario: {
-          nombre: detalles?.destinatarioNombre || 'Desconocido',
-          email: detalles?.destinatarioEmail || 'Desconocido'
+          nombre: (detalles?.destinatarioNombre as string) || 'Desconocido',
+          email: (detalles?.destinatarioEmail as string) || 'Desconocido'
         },
-        asunto: detalles?.asunto || 'Sin asunto',
-        exitoso: detalles?.exitoso || false,
-        errorMessage: detalles?.errorMessage,
+        asunto: (detalles?.asunto as string) || 'Sin asunto',
+        exitoso: (detalles?.exitoso as boolean) || false,
+        errorMessage: detalles?.errorMessage as string,
         entidadRelacionada: {
           tipo: log.entidad,
           id: log.entidadId
@@ -77,7 +77,7 @@ export async function obtenerNotificacionesEmail(page: number = 1, limit: number
 }
 
 export async function obtenerEstadisticasNotificaciones(): Promise<EstadisticasNotificaciones> {
-  const authUser = await authorizeCoordinador();
+  await authorizeCoordinador();
 
   try {
     const hoy = new Date();
@@ -107,14 +107,14 @@ export async function obtenerEstadisticasNotificaciones(): Promise<EstadisticasN
 
     const enviadasHoy = logsHoy.length;
     const exitosasHoy = logsHoy.filter(log => {
-      const detalles = log.detallesNuevos as any;
+      const detalles = log.detallesNuevos as Record<string, unknown>;
       return detalles?.exitoso === true;
     }).length;
     const fallidasHoy = enviadasHoy - exitosasHoy;
 
     const totalSemana = logsSemana.length;
     const exitosasSemana = logsSemana.filter(log => {
-      const detalles = log.detallesNuevos as any;
+      const detalles = log.detallesNuevos as Record<string, unknown>;
       return detalles?.exitoso === true;
     }).length;
 
