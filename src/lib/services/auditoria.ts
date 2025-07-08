@@ -367,6 +367,56 @@ export class AuditoriaService {
   }
 
   /**
+   * Registra el envío de notificaciones por correo electrónico
+   */
+  static async registrarEnvioEmail(
+    usuarioId: number,
+    destinatarioId: number,
+    tipoNotificacion: string,
+    detallesEmail: {
+      destinatarioEmail: string;
+      destinatarioNombre: string;
+      asunto: string;
+      exitoso: boolean;
+      emailId?: string;
+      errorMessage?: string;
+    },
+    entidadRelacionada?: {
+      tipo: string; // 'Practica', 'Usuario', etc.
+      id: string;
+    },
+    request?: NextRequest
+  ) {
+    await this.registrarAccion({
+      accion: 'ENVIO_NOTIFICACION' as AccionAuditoria,
+      entidad: entidadRelacionada?.tipo || 'Sistema',
+      entidadId: entidadRelacionada?.id || 'N/A',
+      usuarioId,
+      descripcion: detallesEmail.exitoso 
+        ? `Email enviado exitosamente: ${tipoNotificacion} a ${detallesEmail.destinatarioNombre}`
+        : `Error al enviar email: ${tipoNotificacion} a ${detallesEmail.destinatarioNombre}`,
+      detallesNuevos: {
+        tipoNotificacion,
+        destinatarioId,
+        destinatarioEmail: detallesEmail.destinatarioEmail,
+        destinatarioNombre: detallesEmail.destinatarioNombre,
+        asunto: detallesEmail.asunto,
+        exitoso: detallesEmail.exitoso,
+        emailId: detallesEmail.emailId,
+        errorMessage: detallesEmail.errorMessage,
+        fechaEnvio: new Date()
+      },
+      metadatos: {
+        tipoNotificacion,
+        destinatarioId,
+        exitoso: detallesEmail.exitoso,
+        emailId: detallesEmail.emailId
+      },
+      request
+    });
+  }
+
+  /**
    * Obtiene el historial de auditoría filtrado
    */
   static async obtenerHistorial({
