@@ -36,6 +36,7 @@ import { toast } from 'sonner';
 // Asegúrate que la ruta de importación sea correcta
 import { submitDecisionDocenteActaAction, type ActionResponse } from '../../../practicas/actions'; 
 import { RejectionReasonModal } from './rejection-reason-modal';
+import { MapComponent } from '@/components/custom';
 
 interface RevisarActaDocenteClienteProps {
   practica: PracticaConDetalles;
@@ -285,6 +286,17 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
               <InfoItem label="Práctica a Distancia" value={practica.practicaDistancia} isBoolean />
             </dl>
           </div>
+
+          {/* Mapa del centro de práctica */}
+          {practica.direccionCentro && (
+            <div className="mb-6 pb-4 border-b">
+              <MapComponent 
+                address={practica.direccionCentro}
+                title="Ubicación del Centro de Práctica"
+                height="350px"
+              />
+            </div>
+          )}
 
            <div>
             <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><ClipboardList className="mr-2 h-5 w-5"/>Tareas Principales a Desempeñar</h3>

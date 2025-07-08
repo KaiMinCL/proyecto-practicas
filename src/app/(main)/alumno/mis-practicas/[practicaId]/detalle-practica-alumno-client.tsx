@@ -32,6 +32,7 @@ import { es } from 'date-fns/locale';
 
 import type { PracticaConDetalles } from '@/lib/validators/practica';
 import { ActionResponse } from '../../practicas/actions';
+import { MapComponent } from '@/components/custom';
 
 interface DetallePracticaAlumnoClientProps {
   initialActionResponse: ActionResponse<PracticaConDetalles>;
@@ -171,6 +172,15 @@ export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePr
                 )}
               </div>
             </div>
+          )}
+
+          {/* Mapa del centro de práctica */}
+          {practica.direccionCentro && (
+            <MapComponent 
+              address={practica.direccionCentro}
+              title="Ubicación del Centro de Práctica"
+              height="350px"
+            />
           )}
 
           {/* Tareas principales */}
