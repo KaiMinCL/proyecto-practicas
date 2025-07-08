@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getUserSession } from '@/lib/auth';
 import type { RoleName } from '@/types/roles';
 import type { PracticaConDetalles } from '@/lib/validators/practica';
-import { ActionResponse, getMisPracticasPendientesAction } from '../practicas/actions';
+import { ActionResponse, getMisPracticasCompletasAction } from '../practicas/actions';
 import { MisPracticasCliente } from './mis-practicas-client';
 import { BookOpen } from 'lucide-react';
 
@@ -26,8 +26,8 @@ export default async function MisPracticasPage() {
     redirect(dashboardUrl.toString());
   }
 
-  // Llama a la action para obtener las prácticas pendientes del alumno
-  const result: ActionResponse<PracticaConDetalles[]> = await getMisPracticasPendientesAction();
+  // Llama a la action para obtener todas las prácticas del alumno
+  const result: ActionResponse<PracticaConDetalles[]> = await getMisPracticasCompletasAction();
   
   return (
     <div className="space-y-6">
