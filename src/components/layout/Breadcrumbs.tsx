@@ -32,6 +32,7 @@ const routeLabels: Record<string, string> = {
   'evaluaciones-empleador': 'Evaluaciones Empleador',
   'subir-informe': 'Subir Informe',
   'evaluar-informe': 'Evaluar Informe',
+  'ver-evaluacion-empleador': 'Ver Evaluación Empleador',
   'revisar-acta': 'Revisar Acta',
   iniciar: 'Iniciar Práctica',
 };

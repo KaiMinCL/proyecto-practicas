@@ -26,7 +26,8 @@ import {
     ClipboardCheck,
     AlertCircle,
     Star,
-    Download
+    Download,
+    Building
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -352,6 +353,30 @@ function PracticaCard({ practica }: { practica: PracticaConDetalles }) {
                 <span className="text-sm font-bold text-green-800 dark:text-green-300">
                   {practica.evaluacionDocente.nota}
                 </span>
+              </div>
+            </div>
+          )}
+
+          {practica.evaluacionEmpleador && (
+            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Building className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <p className="text-xs font-medium text-purple-800 dark:text-purple-300">
+                    Evaluación Empleador Disponible
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/40"
+                  asChild
+                >
+                  <Link href={`/docente/practicas/${practica.id}/ver-evaluacion-empleador`}>
+                    <FileText className="w-3 h-3 mr-1" />
+                    Ver
+                  </Link>
+                </Button>
               </div>
             </div>
           )}

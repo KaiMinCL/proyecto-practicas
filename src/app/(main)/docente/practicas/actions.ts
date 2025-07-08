@@ -208,6 +208,13 @@ export async function getMisPracticasAction(): Promise<ActionResponse<PracticaCo
                     nota: true,
                     fecha: true
                 }
+            },
+            evaluacionEmpleador: {
+                select: {
+                    id: true,
+                    nota: true,
+                    fecha: true
+                }
             }
         },
         orderBy: [
