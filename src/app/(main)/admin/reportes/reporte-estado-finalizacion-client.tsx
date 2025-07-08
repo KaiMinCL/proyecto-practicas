@@ -6,9 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { CalendarIcon, Download, BarChart3, PieChart, FileText, Loader2 } from 'lucide-react';
+import { CalendarIcon, Download, TrendingUp, FileBarChart, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -26,7 +25,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart as RechartsPieChart,
+  PieChart,
   Pie,
   Cell,
   Legend,
@@ -34,35 +33,33 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type {
-  ResumenVolumenPracticas,
-  OpcionesFiltrosVolumen,
-  FiltrosVolumenPracticas,
-} from '@/lib/services/reporteVolumenPracticasService';
+  ResumenEstadoFinalizacion,
+  OpcionesFiltrosEstado,
+  FiltrosEstadoFinalizacion,
+} from '@/lib/services/reporteEstadoFinalizacionService';
 
-// Colores para los gráficos
-const COLORES_GRAFICOS = [
-  '#3b82f6', // blue-500
-  '#10b981', // emerald-500
-  '#f59e0b', // amber-500
-  '#ef4444', // red-500
-  '#8b5cf6', // violet-500
-  '#06b6d4', // cyan-500
-  '#84cc16', // lime-500
-  '#f97316', // orange-500
-  '#ec4899', // pink-500
-  '#6366f1', // indigo-500
+// Colores para los gráficos - Estados de finalización
+const COLORES_ESTADOS = [
+  '#22c55e', // green-500 - Terminadas
+  '#3b82f6', // blue-500 - En Curso
+  '#ef4444', // red-500 - Anuladas
+  '#f59e0b', // amber-500 - Pendientes
+  '#8b5cf6', // violet-500 - Rechazadas
+  '#06b6d4', // cyan-500 - Otros
+  '#84cc16', // lime-500 - Otros
+  '#f97316', // orange-500 - Otros
 ];
 
-export function ReporteVolumenPracticasClient() {
+export function ReporteEstadoFinalizacionClient() {
   // Estados
-  const [datos, setDatos] = useState<ResumenVolumenPracticas | null>(null);
-  const [opciones, setOpciones] = useState<OpcionesFiltrosVolumen | null>(null);
+  const [datos, setDatos] = useState<ResumenEstadoFinalizacion | null>(null);
+  const [opciones, setOpciones] = useState<OpcionesFiltrosEstado | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exportando, setExportando] = useState(false);
 
   // Filtros
-  const [filtros, setFiltros] = useState<FiltrosVolumenPracticas>({
+  const [filtros, setFiltros] = useState<FiltrosEstadoFinalizacion>({
     fechaDesde: undefined,
     fechaHasta: undefined,
     sedeId: undefined,
@@ -85,7 +82,7 @@ export function ReporteVolumenPracticasClient() {
   const cargarOpciones = async () => {
     try {
       setCargando(true);
-      const response = await fetch('/api/reportes/volumen-practicas/opciones');
+      const response = await fetch('/api/reportes/estado-finalizacion/opciones');
       const result = await response.json();
 
       if (result.success) {
@@ -130,7 +127,7 @@ export function ReporteVolumenPracticasClient() {
         params.append('carreraId', filtros.carreraId.toString());
       }
 
-      const response = await fetch(`/api/reportes/volumen-practicas?${params}`);
+      const response = await fetch(`/api/reportes/estado-finalizacion?${params}`);
       const result = await response.json();
 
       if (result.success) {
@@ -164,14 +161,14 @@ export function ReporteVolumenPracticasClient() {
         params.append('carreraId', filtros.carreraId.toString());
       }
 
-      const response = await fetch(`/api/reportes/volumen-practicas/export?${params}`);
+      const response = await fetch(`/api/reportes/estado-finalizacion/export?${params}`);
       
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `reporte-volumen-practicas-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+        a.download = `reporte-estado-finalizacion-${format(new Date(), 'yyyy-MM-dd')}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -226,7 +223,7 @@ export function ReporteVolumenPracticasClient() {
             <span>Filtros de Búsqueda</span>
           </CardTitle>
           <CardDescription>
-            Seleccione el periodo y filtros para generar el reporte de volumen de prácticas.
+            Seleccione el periodo y filtros para generar el reporte de estado de finalización.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -361,217 +358,134 @@ export function ReporteVolumenPracticasClient() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-center">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-primary mb-2">
+                  <div className="text-3xl font-bold text-primary mb-1">
                     {datos.totalPracticas.toLocaleString()}
                   </div>
-                  <div className="text-muted-foreground">
-                    Total de Prácticas Iniciadas
+                  <div className="text-sm text-muted-foreground">Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600 mb-1">
+                    {datos.detalleEstados.terminadas.toLocaleString()}
                   </div>
+                  <div className="text-sm text-muted-foreground">Terminadas</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600 mb-1">
+                    {datos.detalleEstados.enCurso.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">En Curso</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-600 mb-1">
+                    {datos.detalleEstados.pendientes.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Pendientes</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600 mb-1">
+                    {datos.detalleEstados.anuladas.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Anuladas</div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Gráficos y Tablas */}
-          <Tabs defaultValue="sedes" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="sedes" className="flex items-center space-x-2">
-                <BarChart3 className="h-4 w-4" />
-                <span>Por Sede</span>
-              </TabsTrigger>
-              <TabsTrigger value="carreras" className="flex items-center space-x-2">
-                <PieChart className="h-4 w-4" />
-                <span>Por Carrera</span>
-              </TabsTrigger>
-              <TabsTrigger value="tipos" className="flex items-center space-x-2">
-                <FileText className="h-4 w-4" />
-                <span>Por Tipo</span>
-              </TabsTrigger>
-            </TabsList>
+          {/* Gráficos y Tabla */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Gráfico de Barras */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5" />
+                  <span>Distribución por Estado</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={datos.porEstado}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="descripcion" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      fontSize={12}
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [value, 'Prácticas']}
+                      labelFormatter={(label) => `Estado: ${label}`}
+                    />
+                    <Bar dataKey="cantidad" fill="#3b82f6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-            {/* Tab: Por Sede */}
-            <TabsContent value="sedes" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gráfico de Barras */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Gráfico de Barras - Por Sede</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={datos.porSede}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="nombre" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                          fontSize={12}
-                        />
-                        <YAxis />
-                        <Tooltip 
-                          formatter={(value) => [value, 'Prácticas']}
-                          labelFormatter={(label) => `Sede: ${label}`}
-                        />
-                        <Bar dataKey="cantidad" fill="#3b82f6" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
+            {/* Gráfico Circular */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileBarChart className="h-5 w-5" />
+                  <span>Proporción por Estado</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={datos.porEstado}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ payload }) => payload ? `${payload.porcentaje}%` : ''}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="cantidad"
+                    >
+                      {datos.porEstado.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORES_ESTADOS[index % COLORES_ESTADOS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [value, 'Prácticas']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
 
-                {/* Tabla */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Tabla de Datos - Por Sede</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Sede</TableHead>
-                          <TableHead className="text-right">Cantidad</TableHead>
-                          <TableHead className="text-right">Porcentaje</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {datos.porSede.map((sede) => (
-                          <TableRow key={sede.id}>
-                            <TableCell className="font-medium">{sede.nombre}</TableCell>
-                            <TableCell className="text-right">{sede.cantidad}</TableCell>
-                            <TableCell className="text-right">
-                              <Badge variant="secondary">{sede.porcentaje}%</Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Tab: Por Carrera */}
-            <TabsContent value="carreras" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gráfico de Pie */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Gráfico Circular - Por Carrera</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <RechartsPieChart>
-                        <Pie
-                          data={datos.porCarrera}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ payload }) => payload ? `${payload.porcentaje}%` : ''}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="cantidad"
-                        >
-                          {datos.porCarrera.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORES_GRAFICOS[index % COLORES_GRAFICOS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => [value, 'Prácticas']} />
-                        <Legend />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                {/* Tabla */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Tabla de Datos - Por Carrera</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="max-h-[300px] overflow-y-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Carrera</TableHead>
-                            <TableHead className="text-right">Cantidad</TableHead>
-                            <TableHead className="text-right">Porcentaje</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {datos.porCarrera.map((carrera) => (
-                            <TableRow key={carrera.id}>
-                              <TableCell className="font-medium text-sm">{carrera.nombre}</TableCell>
-                              <TableCell className="text-right">{carrera.cantidad}</TableCell>
-                              <TableCell className="text-right">
-                                <Badge variant="secondary">{carrera.porcentaje}%</Badge>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Tab: Por Tipo */}
-            <TabsContent value="tipos" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gráfico de Barras */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Gráfico de Barras - Por Tipo de Práctica</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={datos.porTipoPractica}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="nombre" />
-                        <YAxis />
-                        <Tooltip 
-                          formatter={(value) => [value, 'Prácticas']}
-                          labelFormatter={(label) => `Tipo: ${label}`}
-                        />
-                        <Bar dataKey="cantidad" fill="#10b981" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                {/* Tabla */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Tabla de Datos - Por Tipo de Práctica</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Tipo de Práctica</TableHead>
-                          <TableHead className="text-right">Cantidad</TableHead>
-                          <TableHead className="text-right">Porcentaje</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {datos.porTipoPractica.map((tipo) => (
-                          <TableRow key={tipo.id}>
-                            <TableCell className="font-medium">{tipo.nombre}</TableCell>
-                            <TableCell className="text-right">{tipo.cantidad}</TableCell>
-                            <TableCell className="text-right">
-                              <Badge variant="secondary">{tipo.porcentaje}%</Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
+          {/* Tabla de Datos */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Tabla de Datos - Estado de Finalización</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Cantidad</TableHead>
+                    <TableHead className="text-right">Porcentaje</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {datos.porEstado.map((estado) => (
+                    <TableRow key={estado.estado}>
+                      <TableCell className="font-medium">{estado.descripcion}</TableCell>
+                      <TableCell className="text-right">{estado.cantidad}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant="secondary">{estado.porcentaje}%</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
       )}
 
