@@ -251,4 +251,9 @@ export interface PracticaConDetalles {
     nota: number;
     fecha: Date;
   } | null;
+  evaluacionEmpleador?: { // Evaluación del empleador
+    id: number;
+    nota: number;
+    fecha: Date;
+  } | null;
 }
