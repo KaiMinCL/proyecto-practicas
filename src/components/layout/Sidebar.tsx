@@ -68,7 +68,7 @@ const navigationItems: NavItem[] = [
     title: 'Reportes',
     href: '/admin/reportes',
     icon: BarChart3,
-    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
+    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA', 'COORDINADOR'],
   },
   {
     title: 'Repositorio Informes',
