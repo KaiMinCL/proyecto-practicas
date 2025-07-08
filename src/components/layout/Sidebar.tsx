@@ -19,7 +19,8 @@ import {
   ClipboardList,
   Upload,
   Archive,
-  Mail
+  Mail,
+  AlertCircle
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
 
@@ -69,6 +70,12 @@ const navigationItems: NavItem[] = [
     title: 'Reportes',
     href: '/admin/reportes',
     icon: BarChart3,
+    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA', 'COORDINADOR'],
+  },
+  {
+    title: 'Alertas Prácticas',
+    href: '/admin/alertas-practicas',
+    icon: AlertCircle,
     roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA', 'COORDINADOR'],
   },
   {
