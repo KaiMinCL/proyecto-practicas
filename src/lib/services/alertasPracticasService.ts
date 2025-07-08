@@ -1,8 +1,8 @@
 import prisma from '@/lib/prisma';
-import { EmailService, type AlertaPracticasPendientesData } from '@/lib/email';
+import { EmailService } from '@/lib/email';
 import { AuditoriaService } from '@/lib/services/auditoria';
-import { addDays, format, differenceInDays } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { addDays, differenceInDays } from 'date-fns';
+import { EstadoPractica } from '@prisma/client';
 
 export type CriticidadPractica = 'NORMAL' | 'BAJO' | 'CRITICO';
 
@@ -84,7 +84,7 @@ export class AlertasPracticasService {
       'EN_CURSO',
       'FINALIZADA_PENDIENTE_EVAL',
       'EVALUACION_COMPLETA'
-    ] as const,
+    ] as const satisfies readonly EstadoPractica[],
     // Estados que consideramos como cerradas (no alertar)
     ESTADOS_CERRADOS: ['CERRADA', 'ANULADA']
   };
@@ -115,7 +115,7 @@ export class AlertasPracticasService {
             lt: fechaLimiteConGracia
           },
           estado: {
-            in: this.CONFIGURACION_CRITICIDAD.ESTADOS_NO_CERRADOS as any
+            in: [...this.CONFIGURACION_CRITICIDAD.ESTADOS_NO_CERRADOS] as EstadoPractica[]
           }
         },
         include: {
@@ -164,7 +164,7 @@ export class AlertasPracticasService {
         ]
       });
 
-      return practicasPendientes.map(practica => {
+      return practicasPendientes.map((practica: PrismaQueryResult) => {
         const diasRetraso = differenceInDays(hoy, practica.fechaTermino);
         const criticidad = this.determinaCriticidad(diasRetraso);
 
@@ -478,3 +478,39 @@ export class AlertasPracticasService {
     }
   }
 }
+
+type PrismaQueryResult = {
+  id: number;
+  fechaInicio: Date;
+  fechaTermino: Date;
+  estado: EstadoPractica;
+  tipo: string;
+  alumno: {
+    id: number;
+    usuario: {
+      nombre: string;
+      apellido: string;
+      rut: string;
+      email: string;
+    };
+    carrera: {
+      id: number;
+      nombre: string;
+      sede: {
+        id: number;
+        nombre: string;
+      };
+    };
+  };
+  docente: {
+    id: number;
+    usuario: {
+      nombre: string;
+      apellido: string;
+      email: string;
+    };
+  } | null;
+  centroPractica: {
+    nombreEmpresa: string;
+  } | null;
+};

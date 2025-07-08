@@ -714,11 +714,6 @@ function generateAlertaPracticasPendientesHTML(
     }
   };
 
-  // Agrupar por criticidad para mostrar
-  const criticas = data.practicasPendientes.filter(p => p.criticidad === 'CRITICO');
-  const bajas = data.practicasPendientes.filter(p => p.criticidad === 'BAJO');
-  const normales = data.practicasPendientes.filter(p => p.criticidad === 'NORMAL');
-
   const practicasRows = data.practicasPendientes.map(practica => `
     <tr style="border-bottom: 1px solid #e5e7eb;">
       <td style="padding: 12px 8px; border-right: 1px solid #e5e7eb;">

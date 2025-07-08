@@ -58,7 +58,7 @@ export async function GET() {
       estadisticas,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { 
         success: false, 

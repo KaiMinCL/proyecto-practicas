@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { AlertasPracticasService } from '@/lib/services/alertasPracticasService';
-import { authorizeSuperAdminOrDirectorCarrera, authorizeCoordinadorOrDirectorCarrera } from '@/lib/auth/checkRole';
+import { authorizeCoordinadorOrDirectorCarrera } from '@/lib/auth/checkRole';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Solo administradores o coordinadores pueden ejecutar alertas manuales
     const authUser = await authorizeCoordinadorOrDirectorCarrera();
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Solo administradores pueden ver estadísticas generales
     const authUser = await authorizeCoordinadorOrDirectorCarrera();
