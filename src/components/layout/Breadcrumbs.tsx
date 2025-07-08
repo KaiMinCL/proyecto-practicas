@@ -19,6 +19,7 @@ const routeLabels: Record<string, string> = {
   perfil: 'Mi Perfil',
   usuarios: 'Usuarios',
   carreras: 'Carreras',
+  centros: 'Centros de Práctica',
   reportes: 'Reportes',
   alumnos: 'Alumnos',
   empleadores: 'Empleadores',
