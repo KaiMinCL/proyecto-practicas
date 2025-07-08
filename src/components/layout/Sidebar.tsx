@@ -151,6 +151,12 @@ const navigationItems: NavItem[] = [
     icon: Calendar,
     roles: ['DOCENTE'],
   },
+  {
+    title: 'Notificaciones',
+    href: '/docente/notificaciones',
+    icon: Mail,
+    roles: ['DOCENTE'],
+  },
   // Alumno routes
   {
     title: 'Mis Prácticas',
