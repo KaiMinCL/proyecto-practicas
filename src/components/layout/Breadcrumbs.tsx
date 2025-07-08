@@ -19,6 +19,7 @@ const routeLabels: Record<string, string> = {
   perfil: 'Mi Perfil',
   usuarios: 'Usuarios',
   carreras: 'Carreras',
+  centros: 'Centros de Práctica',
   reportes: 'Reportes',
   alumnos: 'Alumnos',
   empleadores: 'Empleadores',
@@ -32,7 +33,10 @@ const routeLabels: Record<string, string> = {
   'evaluaciones-empleador': 'Evaluaciones Empleador',
   'subir-informe': 'Subir Informe',
   'evaluar-informe': 'Evaluar Informe',
+  'ver-evaluacion-empleador': 'Ver Evaluación Empleador',
+  'acta-final': 'Acta Final',
   'revisar-acta': 'Revisar Acta',
+  'completar-acta': 'Completar Acta',
   iniciar: 'Iniciar Práctica',
 };
 

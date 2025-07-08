@@ -195,6 +195,16 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
                   </Button>
                 )}
                 
+                {/* Botón Ver Acta Final */}
+                {practica.estado === 'CERRADA' && practica.actaFinal && (
+                  <Button asChild size="sm" className="flex-1">
+                    <Link href={`/alumno/mis-practicas/${practica.id}/acta-final`}>
+                      <GraduationCap className="mr-2 h-4 w-4" />
+                      Ver Acta Final
+                    </Link>
+                  </Button>
+                )}
+                
                 {/* Botón Ver Evaluación de Informe */}
                 {puedeVerEvaluacionInforme(practica.estado) && (
                   <Button asChild size="sm" variant="outline" className="flex-1">

@@ -160,7 +160,8 @@ export async function getMisPracticasAction(): Promise<ActionResponse<PracticaCo
                     PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE,
                     PrismaEstadoPracticaEnum.EN_CURSO,
                     PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL,
-                    PrismaEstadoPracticaEnum.EVALUACION_COMPLETA
+                    PrismaEstadoPracticaEnum.EVALUACION_COMPLETA,
+                    PrismaEstadoPracticaEnum.CERRADA
                 ]
             },
         },
@@ -207,6 +208,21 @@ export async function getMisPracticasAction(): Promise<ActionResponse<PracticaCo
                     id: true,
                     nota: true,
                     fecha: true
+                }
+            },
+            evaluacionEmpleador: {
+                select: {
+                    id: true,
+                    nota: true,
+                    fecha: true
+                }
+            },
+            actaFinal: {
+                select: {
+                    id: true,
+                    notaFinal: true,
+                    estado: true,
+                    fechaCierre: true
                 }
             }
         },

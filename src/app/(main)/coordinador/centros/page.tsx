@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -12,12 +13,13 @@ import {
   TableRow,
   Input,
   Badge,
+  Button,
 } from '@/components/ui';
 import { CreateCentroDialog } from './create-centro-dialog';
 import { EditCentroDialog } from './edit-centro-dialog';
 import { AssociateCentroDialog } from './associate-centro-dialog';
 import { DeleteCentroDialog } from './delete-centro-dialog';
-import { Search, Building2, Users, Phone, Mail, MapPin, UserCheck } from 'lucide-react';
+import { Search, Building2, Users, Phone, Mail, MapPin, UserCheck, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Empleador {
@@ -241,6 +243,12 @@ export default function CentrosPracticaPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={`/coordinador/centros/${centro.id}`}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Detalle
+                        </Link>
+                      </Button>
                       <AssociateCentroDialog 
                         centro={centro} 
                         onSuccess={fetchCentros} 

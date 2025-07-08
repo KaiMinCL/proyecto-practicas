@@ -25,7 +25,8 @@ import {
     Calendar,
     MapPin,
     CheckCircle2,
-    AlertTriangle
+    AlertTriangle,
+    Share
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -36,6 +37,7 @@ import { toast } from 'sonner';
 // Asegúrate que la ruta de importación sea correcta
 import { submitDecisionDocenteActaAction, type ActionResponse } from '../../../practicas/actions'; 
 import { RejectionReasonModal } from './rejection-reason-modal';
+import { MapComponent } from '@/components/custom';
 
 interface RevisarActaDocenteClienteProps {
   practica: PracticaConDetalles;
@@ -78,6 +80,50 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
   const [practica, setPractica] = React.useState<PracticaConDetalles>(initialPractica);
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false);
+
+  // Función para generar enlace de Google Maps
+  const generateGoogleMapsUrl = (address: string): string => {
+    const encodedAddress = encodeURIComponent(address);
+    return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+  };
+
+  // Función para compartir ubicación por correo
+  const shareLocationByEmail = (practica: PracticaConDetalles) => {
+    if (!practica.direccionCentro) {
+      toast.error('No hay dirección disponible para compartir');
+      return;
+    }
+
+    const googleMapsUrl = generateGoogleMapsUrl(practica.direccionCentro);
+    const centroPractica = practica.centroPractica?.nombreEmpresa || 'Centro de Práctica';
+    const alumnoNombre = practica.alumno 
+      ? `${practica.alumno.usuario.nombre} ${practica.alumno.usuario.apellido}`
+      : 'Alumno no especificado';
+    
+    const subject = encodeURIComponent(`Ubicación del Centro de Práctica - ${alumnoNombre}`);
+    const body = encodeURIComponent(
+      `Hola,\n\n` +
+      `Te comparto la ubicación del Centro de Práctica para la supervisión:\n\n` +
+      `Alumno: ${alumnoNombre}\n` +
+      `Centro: ${centroPractica}\n` +
+      `Dirección: ${practica.direccionCentro}\n` +
+      `Teléfono: ${practica.contactoTelefonoJefe || 'No especificado'}\n` +
+      `Jefe Directo: ${practica.nombreJefeDirecto || 'No especificado'}\n` +
+      `Email Jefe: ${practica.contactoCorreoJefe || 'No especificado'}\n\n` +
+      `Ver en Google Maps: ${googleMapsUrl}\n\n` +
+      `Saludos cordiales`
+    );
+
+    const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+    
+    try {
+      window.location.href = mailtoUrl;
+      toast.success('Cliente de correo abierto para compartir ubicación');
+    } catch (error) {
+      toast.error('Error al abrir el cliente de correo');
+      console.error('Error al abrir mailto:', error);
+    }
+  };
 
   const handleDecision = async (decision: 'ACEPTADA' | 'RECHAZADA', motivoRechazo?: string) => {
     setIsProcessing(true);
@@ -285,6 +331,52 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
               <InfoItem label="Práctica a Distancia" value={practica.practicaDistancia} isBoolean />
             </dl>
           </div>
+
+          {/* Mapa del centro de práctica */}
+          {practica.direccionCentro && (
+            <div className="mb-6 pb-4 border-b">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 flex items-center">
+                    <MapPin className="mr-2 h-5 w-5"/>
+                    Ubicación del Centro de Práctica
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {practica.direccionCentro}
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const googleMapsUrl = generateGoogleMapsUrl(practica.direccionCentro!);
+                      window.open(googleMapsUrl, '_blank');
+                      toast.success('Abriendo ubicación en Google Maps');
+                    }}
+                    className="flex items-center space-x-2"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span>Ver en Maps</span>
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => shareLocationByEmail(practica)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Share className="w-4 h-4" />
+                    <span>Compartir</span>
+                  </Button>
+                </div>
+              </div>
+              <MapComponent 
+                address={practica.direccionCentro}
+                title="Ubicación del Centro de Práctica"
+                height="350px"
+              />
+            </div>
+          )}
 
            <div>
             <h3 className="text-md font-semibold text-gray-500 dark:text-gray-400 mb-3 flex items-center"><ClipboardList className="mr-2 h-5 w-5"/>Tareas Principales a Desempeñar</h3>

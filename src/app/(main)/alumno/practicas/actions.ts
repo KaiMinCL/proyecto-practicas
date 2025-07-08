@@ -347,3 +347,258 @@ export async function getEvaluacionInformeAction(practicaId: number): Promise<Ac
     return { success: false, error: 'Error inesperado obteniendo la evaluación del informe.' };
   }
 }
+
+/**
+ * Obtiene el detalle completo de una práctica específica del alumno logueado,
+ * incluyendo evaluaciones y acta final.
+ */
+export async function obtenerDetallePracticaAlumno(practicaId: number): Promise<ActionResponse<PracticaConDetalles>> {
+  try {
+    const userPayload = await authorizeAlumno();
+
+    const alumno = await prismaClient.alumno.findUnique({
+      where: { usuarioId: userPayload.userId },
+      select: { id: true },
+    });
+
+    if (!alumno) {
+      return { success: false, error: "Perfil de alumno no encontrado." };
+    }
+
+    // Obtener la práctica con todas las relaciones incluyendo evaluaciones y acta final
+    const practica = await prismaClient.practica.findFirst({
+      where: {
+        id: practicaId,
+        alumnoId: alumno.id, // Verificar que la práctica pertenece al alumno
+      },
+      include: {
+        alumno: {
+          include: {
+            usuario: true,
+            carrera: { include: { sede: true } }
+          }
+        },
+        docente: { include: { usuario: true } },
+        carrera: { include: { sede: true } },
+        centroPractica: true,
+        evaluacionDocente: true,
+        evaluacionEmpleador: true,
+        actaFinal: true
+      }
+    });
+
+    if (!practica) {
+      return { success: false, error: 'Práctica no encontrada o no tienes permisos para verla.' };
+    }
+
+    return { success: true, data: practica as unknown as PracticaConDetalles };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo el detalle de la práctica.' };
+  }
+}
+
+/**
+ * Obtiene el acta final ponderada de una práctica específica del alumno.
+ * Solo disponible cuando la práctica está cerrada.
+ */
+export async function obtenerActaFinalAlumno(practicaId: number): Promise<ActionResponse<{
+  practica: {
+    id: number;
+    tipo: string;
+    fechaInicio: Date;
+    fechaTermino: Date;
+    estado: string;
+    alumno: {
+      nombre: string;
+      apellido: string;
+      rut: string;
+      carrera: string;
+    };
+    centroPractica?: {
+      nombre: string | null;
+      giro: string | null;
+    } | null;
+    docente: {
+      nombre: string;
+      apellido: string;
+    };
+  };
+  evaluaciones: {
+    informe: {
+      nota: number;
+      fecha: Date;
+      porcentaje: number;
+    };
+    empleador: {
+      nota: number;
+      fecha: Date;
+      porcentaje: number;
+    };
+  };
+  notaFinalPonderada: number;
+  fechaCierre: Date;
+}>> {
+  try {
+    const userPayload = await authorizeAlumno();
+
+    const alumno = await prismaClient.alumno.findUnique({
+      where: { usuarioId: userPayload.userId },
+      select: { id: true },
+    });
+
+    if (!alumno) {
+      return { success: false, error: "Perfil de alumno no encontrado." };
+    }
+
+    // Obtener la práctica con todas las evaluaciones y configuración
+    const practica = await prismaClient.practica.findFirst({
+      where: {
+        id: practicaId,
+        alumnoId: alumno.id, // Verificar que la práctica pertenece al alumno
+        estado: 'CERRADA', // Solo prácticas cerradas tienen acta final
+      },
+      include: {
+        alumno: {
+          include: {
+            usuario: true,
+            carrera: { include: { sede: true } }
+          }
+        },
+        carrera: { include: { sede: true } },
+        docente: { include: { usuario: true } },
+        evaluacionDocente: true,
+        evaluacionEmpleador: true,
+        centroPractica: true,
+        actaFinal: true
+      }
+    });
+
+    if (!practica) {
+      return { 
+        success: false, 
+        error: 'Práctica no encontrada, no tienes permisos para verla, o el acta final aún no está disponible.' 
+      };
+    }
+
+    // Verificar que el acta final existe y está cerrada
+    if (!practica.actaFinal || practica.actaFinal.estado !== 'CERRADA') {
+      return { 
+        success: false, 
+        error: 'El acta final aún no está disponible. Debe estar cerrada por el docente tutor.' 
+      };
+    }
+
+    // Verificar que ambas evaluaciones están completadas
+    if (!practica.evaluacionDocente || !practica.evaluacionEmpleador) {
+      return {
+        success: false,
+        error: 'Las evaluaciones del informe y empleador deben estar completadas.'
+      };
+    }
+
+    // Obtener configuración de ponderación
+    const configuracion = await prismaClient.configuracionEvaluacion.findFirst({
+      orderBy: { id: 'desc' } // Obtener la configuración más reciente
+    });
+
+    if (!configuracion) {
+      return {
+        success: false,
+        error: 'Configuración de ponderación no encontrada.'
+      };
+    }
+
+    const actaFinalData = {
+      practica: {
+        id: practica.id,
+        tipo: practica.tipo,
+        fechaInicio: practica.fechaInicio,
+        fechaTermino: practica.fechaTermino,
+        estado: practica.estado,
+        alumno: {
+          nombre: practica.alumno.usuario.nombre,
+          apellido: practica.alumno.usuario.apellido,
+          rut: practica.alumno.usuario.rut,
+          carrera: practica.alumno.carrera?.nombre || practica.carrera?.nombre || 'N/A'
+        },
+        centroPractica: practica.centroPractica ? {
+          nombre: practica.centroPractica.nombreEmpresa,
+          giro: practica.centroPractica.giro
+        } : null,
+        docente: {
+          nombre: practica.docente.usuario.nombre,
+          apellido: practica.docente.usuario.apellido
+        }
+      },
+      evaluaciones: {
+        informe: {
+          nota: practica.evaluacionDocente.nota,
+          fecha: practica.evaluacionDocente.fecha,
+          porcentaje: configuracion.porcentajeInforme
+        },
+        empleador: {
+          nota: practica.evaluacionEmpleador.nota,
+          fecha: practica.evaluacionEmpleador.fecha,
+          porcentaje: configuracion.porcentajeEmpleador
+        }
+      },
+      notaFinalPonderada: practica.actaFinal.notaFinal,
+      fechaCierre: practica.actaFinal.fechaCierre
+    };
+
+    return { success: true, data: actaFinalData };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo el acta final.' };
+  }
+}
+
+/**
+ * Obtiene todas las prácticas del alumno logueado con información completa incluyendo evaluaciones y acta final.
+ */
+export async function getMisPracticasCompletasAction(): Promise<ActionResponse<PracticaConDetalles[]>> {
+  try {
+    const userPayload = await authorizeAlumno(); 
+
+    const alumno = await prismaClient.alumno.findUnique({
+        where: { usuarioId: userPayload.userId }, 
+        select: { id: true }
+    });
+
+    if (!alumno) {
+        return { success: false, error: "Perfil de alumno no encontrado para este usuario." };
+    }
+
+    // Obtener todas las prácticas del alumno con información completa
+    const practicas = await prismaClient.practica.findMany({
+      where: { alumnoId: alumno.id },
+      include: {
+        alumno: {
+          include: {
+            usuario: true,
+            carrera: { include: { sede: true } }
+          }
+        },
+        docente: { include: { usuario: true } },
+        carrera: { include: { sede: true } },
+        centroPractica: true,
+        evaluacionDocente: true,
+        evaluacionEmpleador: true,
+        actaFinal: true
+      },
+      orderBy: { fechaInicio: 'desc' }
+    });
+    
+    return { success: true, data: practicas as unknown as PracticaConDetalles[] };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo tus prácticas.' };
+  }
+}
