@@ -30,6 +30,47 @@ export interface DocenteNotificationData {
   centroPractica: string;
 }
 
+export interface AlertaPracticasPendientesData {
+  coordinadorId: number;
+  coordinadorNombre: string;
+  coordinadorEmail: string;
+  sedeId: number;
+  sedeNombre: string;
+  carrerasIds: number[];
+  carrerasNombres: string[];
+  practicasPendientes: Array<{
+    id: number;
+    alumno: {
+      usuario: {
+        nombre: string;
+        apellido: string;
+        rut: string;
+      };
+    };
+    docente: {
+      usuario: {
+        nombre: string;
+        apellido: string;
+      };
+    } | null;
+    carrera: {
+      nombre: string;
+    };
+    fechaTermino: Date;
+    diasRetraso: number;
+    criticidad: 'NORMAL' | 'BAJO' | 'CRITICO';
+    centroPractica: {
+      nombreEmpresa: string;
+    } | null;
+  }>;
+  resumen: {
+    total: number;
+    criticas: number;
+    bajas: number;
+    normales: number;
+  };
+}
+
 export class EmailService {
   /**
    * Envía notificación al alumno para completar el Acta 1
@@ -104,6 +145,58 @@ export class EmailService {
       };
     } catch (error) {
       console.error('Error crítico al enviar email al docente:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      };
+    }
+  }
+
+  /**
+   * Envía alerta sobre prácticas pendientes de cierre a coordinadores y directores
+   */
+  static async enviarAlertaPracticasPendientes(
+    data: AlertaPracticasPendientesData, 
+    tipoReceptor: 'COORDINADOR' | 'DIRECTOR_CARRERA'
+  ): Promise<{
+    success: boolean;
+    error?: string;
+    emailId?: string;
+  }> {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const dashboardUrl = tipoReceptor === 'COORDINADOR' 
+        ? `${baseUrl}/coordinador/practicas/gestion`
+        : `${baseUrl}/admin/reportes`;
+
+      const tituloRol = tipoReceptor === 'COORDINADOR' ? 'Coordinador' : 'Director de Carrera';
+      
+      let asunto = `Alerta: ${data.resumen.total} práctica${data.resumen.total > 1 ? 's' : ''} pendiente${data.resumen.total > 1 ? 's' : ''} de cierre`;
+      if (data.resumen.criticas > 0) {
+        asunto += ` (${data.resumen.criticas} crítica${data.resumen.criticas > 1 ? 's' : ''})`;
+      }
+
+      const { data: emailResult, error } = await resend.emails.send({
+        from: 'Sistema de Prácticas <practicas@instituto.edu>',
+        to: [data.coordinadorEmail],
+        subject: asunto,
+        html: generateAlertaPracticasPendientesHTML(data, dashboardUrl, tituloRol),
+      });
+
+      if (error) {
+        console.error('Error al enviar alerta de prácticas pendientes:', error);
+        return {
+          success: false,
+          error: error.message || 'Error al enviar la alerta'
+        };
+      }
+
+      return {
+        success: true,
+        emailId: emailResult?.id
+      };
+    } catch (error) {
+      console.error('Error crítico al enviar alerta de prácticas pendientes:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error desconocido'
@@ -587,6 +680,186 @@ function generateDocenteActa1NotificationHTML(data: DocenteNotificationData, pra
             <p>Este es un mensaje automático del Sistema de Gestión de Prácticas.</p>
             <p>Por favor, no respondas a este correo.</p>
             <p><em>© ${new Date().getFullYear()} Instituto de Educación Superior</em></p>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Genera el HTML para email de alerta de prácticas pendientes
+ */
+function generateAlertaPracticasPendientesHTML(
+  data: AlertaPracticasPendientesData, 
+  dashboardUrl: string,
+  tituloRol: string
+): string {
+  const formatFecha = (fecha: Date) => {
+    return new Intl.DateTimeFormat('es-CL', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric'
+    }).format(fecha);
+  };
+
+  const getCriticidadBadge = (criticidad: string) => {
+    switch (criticidad) {
+      case 'CRITICO':
+        return '<span style="background-color: #dc2626; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">CRÍTICO</span>';
+      case 'BAJO':
+        return '<span style="background-color: #f59e0b; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">BAJO</span>';
+      default:
+        return '<span style="background-color: #10b981; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">NORMAL</span>';
+    }
+  };
+
+  // Agrupar por criticidad para mostrar
+  const criticas = data.practicasPendientes.filter(p => p.criticidad === 'CRITICO');
+  const bajas = data.practicasPendientes.filter(p => p.criticidad === 'BAJO');
+  const normales = data.practicasPendientes.filter(p => p.criticidad === 'NORMAL');
+
+  const practicasRows = data.practicasPendientes.map(practica => `
+    <tr style="border-bottom: 1px solid #e5e7eb;">
+      <td style="padding: 12px 8px; border-right: 1px solid #e5e7eb;">
+        <div style="font-weight: 600; color: #1f2937;">${practica.alumno.usuario.nombre} ${practica.alumno.usuario.apellido}</div>
+        <div style="font-size: 12px; color: #6b7280;">RUT: ${practica.alumno.usuario.rut}</div>
+        <div style="font-size: 12px; color: #6b7280;">${practica.carrera.nombre}</div>
+      </td>
+      <td style="padding: 12px 8px; border-right: 1px solid #e5e7eb; text-align: center;">
+        ${practica.docente ? `${practica.docente.usuario.nombre} ${practica.docente.usuario.apellido}` : '<em>Sin asignar</em>'}
+      </td>
+      <td style="padding: 12px 8px; border-right: 1px solid #e5e7eb; text-align: center;">
+        ${formatFecha(practica.fechaTermino)}
+      </td>
+      <td style="padding: 12px 8px; border-right: 1px solid #e5e7eb; text-align: center;">
+        ${practica.diasRetraso} día${practica.diasRetraso !== 1 ? 's' : ''}
+      </td>
+      <td style="padding: 12px 8px; text-align: center;">
+        ${getCriticidadBadge(practica.criticidad)}
+      </td>
+    </tr>
+  `).join('');
+
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta - Prácticas Pendientes de Cierre</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6;">
+    <div style="max-width: 800px; margin: 0 auto; background-color: white;">
+        <!-- Header con criticidad -->
+        <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+            <div style="display: inline-block; background-color: rgba(255,255,255,0.2); border-radius: 50%; padding: 12px; margin-bottom: 16px;">
+                <div style="font-size: 24px;">⚠️</div>
+            </div>
+            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: bold;">Alerta: Prácticas Pendientes</h1>
+            <p style="margin: 0; font-size: 16px; opacity: 0.9;">${data.resumen.total} práctica${data.resumen.total > 1 ? 's' : ''} requiere${data.resumen.total === 1 ? '' : 'n'} cierre administrativo</p>
+        </div>
+
+        <!-- Información del destinatario -->
+        <div style="background-color: #f9fafb; padding: 20px; border-bottom: 1px solid #e5e7eb;">
+            <h2 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px;">${tituloRol}: ${data.coordinadorNombre}</h2>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                <strong>Sede:</strong> ${data.sedeNombre}<br>
+                <strong>Carrera${data.carrerasNombres.length > 1 ? 's' : ''}:</strong> ${data.carrerasNombres.join(', ')}
+            </p>
+        </div>
+
+        <!-- Resumen por criticidad -->
+        <div style="padding: 24px;">
+            <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 20px;">📊 Resumen por Criticidad</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 32px;">
+                ${data.resumen.criticas > 0 ? `
+                <div style="background-color: #fef2f2; border: 2px solid #fecaca; border-radius: 8px; padding: 16px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #dc2626;">${data.resumen.criticas}</div>
+                    <div style="font-size: 12px; color: #991b1b; font-weight: 600;">CRÍTICAS</div>
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">+15 días retraso</div>
+                </div>
+                ` : ''}
+                
+                ${data.resumen.bajas > 0 ? `
+                <div style="background-color: #fffbeb; border: 2px solid #fed7aa; border-radius: 8px; padding: 16px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">${data.resumen.bajas}</div>
+                    <div style="font-size: 12px; color: #92400e; font-weight: 600;">BAJAS</div>
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">7-14 días retraso</div>
+                </div>
+                ` : ''}
+                
+                ${data.resumen.normales > 0 ? `
+                <div style="background-color: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 8px; padding: 16px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #10b981;">${data.resumen.normales}</div>
+                    <div style="font-size: 12px; color: #065f46; font-weight: 600;">NORMALES</div>
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">5-6 días retraso</div>
+                </div>
+                ` : ''}
+            </div>
+
+            <!-- Tabla de prácticas -->
+            <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 20px;">📋 Detalle de Prácticas Pendientes</h3>
+            
+            <div style="overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <thead style="background-color: #f9fafb;">
+                        <tr>
+                            <th style="padding: 12px 8px; text-align: left; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151;">Estudiante</th>
+                            <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151;">Docente Tutor</th>
+                            <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151;">Fecha Término</th>
+                            <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151;">Días Retraso</th>
+                            <th style="padding: 12px 8px; text-align: center; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151;">Criticidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${practicasRows}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Acciones recomendadas -->
+            <div style="margin-top: 32px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px;">
+                <h4 style="margin: 0 0 12px 0; color: #1e40af; font-size: 16px;">🎯 Acciones Recomendadas</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #1e40af;">
+                    ${data.resumen.criticas > 0 ? '<li><strong>Atención Inmediata:</strong> Contactar docentes de prácticas críticas para agilizar cierre</li>' : ''}
+                    <li><strong>Revisar Documentación:</strong> Verificar que todos los informes y evaluaciones estén completos</li>
+                    <li><strong>Coordinación:</strong> Comunicarse con docentes tutores para resolver pendientes</li>
+                    <li><strong>Seguimiento:</strong> Programar revisiones periódicas para evitar acumulación de casos</li>
+                </ul>
+            </div>
+
+            <!-- Botón de acción -->
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="${dashboardUrl}" style="display: inline-block; background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    🔗 Ir al Panel de Gestión
+                </a>
+            </div>
+
+            <!-- Información adicional -->
+            <div style="margin-top: 32px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+                <h4 style="margin: 0 0 8px 0; color: #475569; font-size: 14px;">ℹ️ Información sobre Criticidad</h4>
+                <div style="font-size: 13px; color: #64748b; line-height: 1.5;">
+                    <p style="margin: 0 0 8px 0;"><strong>CRÍTICO:</strong> Prácticas con más de 15 días de retraso desde la fecha de término (requiere atención inmediata)</p>
+                    <p style="margin: 0 0 8px 0;"><strong>BAJO:</strong> Prácticas con 7-14 días de retraso desde la fecha de término</p>
+                    <p style="margin: 0;"><strong>NORMAL:</strong> Prácticas con 5-6 días de retraso desde la fecha de término (período de gracia superado)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px;">
+            <p style="margin: 0 0 8px 0;">Esta es una alerta automática del Sistema de Gestión de Prácticas.</p>
+            <p style="margin: 0 0 8px 0;">Generada el ${new Intl.DateTimeFormat('es-CL', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }).format(new Date())}</p>
+            <p style="margin: 0;"><em>© ${new Date().getFullYear()} Instituto de Educación Superior</em></p>
         </div>
     </div>
 </body>

@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/alertas-practicas",
+      "schedule": "0 8 * * *"
+    }
+  ],
+  "functions": {
+    "app/api/cron/alertas-practicas/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
