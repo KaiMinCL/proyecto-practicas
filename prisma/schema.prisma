@@ -17,21 +17,22 @@ model Rol {
 }
 
 model Usuario {
-  id                  Int        @id @default(autoincrement())
-  rut                 String     @unique
+  id                  Int           @id @default(autoincrement())
+  rut                 String        @unique
   nombre              String
   apellido            String
-  email               String     @unique
+  email               String        @unique
   password            String
-  claveInicialVisible Boolean    @default(true)
-  estado              Estado     @default(ACTIVO)
+  claveInicialVisible Boolean       @default(true)
+  estado              Estado        @default(ACTIVO)
   rolId               Int
-  rol                 Rol        @relation(fields: [rolId], references: [id])
+  rol                 Rol           @relation(fields: [rolId], references: [id])
   sedeId              Int?
-  sede                Sede?      @relation(fields: [sedeId], references: [id])
+  sede                Sede?         @relation(fields: [sedeId], references: [id])
   alumno              Alumno?
   docente             Docente?
   empleador           Empleador?
+  logsAuditoria       LogAuditoria[]
 }
 
 model Sede {
@@ -212,6 +213,27 @@ model AlertaManual {
   fecha       DateTime @default(now())
 }
 
+model LogAuditoria {
+  id             Int           @id @default(autoincrement())
+  accion         AccionAuditoria // Enum con todas las acciones posibles
+  entidad        String        // Entidad afectada (Practica, Usuario, Centro, etc.)
+  entidadId      String        // ID del registro afectado
+  usuarioId      Int           // Usuario que realizó la acción
+  usuario        Usuario       @relation(fields: [usuarioId], references: [id])
+  descripcion    String?       // Descripción legible de la acción
+  detallesPrevios Json?        // Estado anterior del registro (para modificaciones)
+  detallesNuevos Json?         // Estado nuevo del registro (para modificaciones)
+  metadatos      Json?         // Información adicional contextual
+  ipAddress      String?       // Dirección IP desde donde se realizó la acción
+  userAgent      String?       // Navegador/aplicación utilizada
+  fecha          DateTime      @default(now())
+  
+  @@index([entidad, entidadId])
+  @@index([usuarioId])
+  @@index([accion])
+  @@index([fecha])
+  @@index([entidad, accion])
+}
 
 // ENUMS
 enum Estado {
@@ -238,4 +260,91 @@ enum EstadoPractica {
 enum EstadoActaFinal {
   VALIDADA // Docente validó las notas y la nota final está calculada
   CERRADA  // El coordinador/director cerró administrativamente el acta final
+}
+
+enum AccionAuditoria {
+  // === GESTIÓN DE USUARIOS ===
+  CREAR_USUARIO
+  MODIFICAR_USUARIO
+  DESACTIVAR_USUARIO
+  ACTIVAR_USUARIO
+  CAMBIAR_PASSWORD
+  RESETEAR_PASSWORD
+  
+  // === AUTENTICACIÓN Y ACCESO ===
+  LOGIN_EXITOSO
+  LOGIN_FALLIDO
+  LOGOUT
+  SESION_EXPIRADA
+  
+  // === GESTIÓN DE PRÁCTICAS ===
+  CREAR_PRACTICA
+  MODIFICAR_PRACTICA
+  ANULAR_PRACTICA
+  CAMBIAR_ESTADO_PRACTICA
+  ASIGNAR_DOCENTE_PRACTICA
+  CAMBIAR_DOCENTE_PRACTICA
+  
+  // === GESTIÓN DE ACTAS ===
+  COMPLETAR_ACTA1_COORDINADOR
+  COMPLETAR_ACTA1_ALUMNO
+  ACEPTAR_ACTA1_DOCENTE
+  RECHAZAR_ACTA1_DOCENTE
+  GENERAR_ACTA_FINAL
+  VALIDAR_ACTA_FINAL
+  CERRAR_ACTA_FINAL
+  
+  // === EVALUACIONES ===
+  CREAR_EVALUACION_INFORME
+  MODIFICAR_EVALUACION_INFORME
+  COMPLETAR_EVALUACION_INFORME
+  CREAR_EVALUACION_EMPLEADOR
+  MODIFICAR_EVALUACION_EMPLEADOR
+  COMPLETAR_EVALUACION_EMPLEADOR
+  CALCULAR_NOTA_FINAL
+  
+  // === GESTIÓN DE DOCUMENTOS ===
+  SUBIR_INFORME_PRACTICA
+  MODIFICAR_INFORME_PRACTICA
+  ELIMINAR_INFORME_PRACTICA
+  SUBIR_DOCUMENTO_APOYO
+  MODIFICAR_DOCUMENTO_APOYO
+  ELIMINAR_DOCUMENTO_APOYO
+  DESCARGAR_DOCUMENTO
+  
+  // === GESTIÓN DE CENTROS DE PRÁCTICA ===
+  CREAR_CENTRO_PRACTICA
+  MODIFICAR_CENTRO_PRACTICA
+  DESACTIVAR_CENTRO_PRACTICA
+  ASOCIAR_EMPLEADOR_CENTRO
+  DESASOCIAR_EMPLEADOR_CENTRO
+  
+  // === GESTIÓN DE CARRERAS Y SEDES ===
+  CREAR_CARRERA
+  MODIFICAR_CARRERA
+  DESACTIVAR_CARRERA
+  CREAR_SEDE
+  MODIFICAR_SEDE
+  DESACTIVAR_SEDE
+  ASOCIAR_DOCENTE_CARRERA
+  DESASOCIAR_DOCENTE_CARRERA
+  
+  // === ALERTAS Y NOTIFICACIONES ===
+  GENERAR_ALERTA_MANUAL
+  ENVIAR_NOTIFICACION_EMAIL
+  GENERAR_ALERTA_AUTOMATICA
+  
+  // === CONFIGURACIONES DEL SISTEMA ===
+  MODIFICAR_CONFIG_EVALUACION
+  MODIFICAR_PARAMETROS_SISTEMA
+  
+  // === REPORTES Y CONSULTAS ===
+  GENERAR_REPORTE
+  EXPORTAR_DATOS
+  CONSULTAR_HISTORIALES
+  
+  // === ACCIONES ADMINISTRATIVAS ===
+  BACKUP_BASE_DATOS
+  RESTAURAR_BASE_DATOS
+  MANTENIMIENTO_SISTEMA
 }
