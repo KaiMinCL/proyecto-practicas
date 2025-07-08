@@ -17,7 +17,8 @@ import {
   GraduationCap,
   Star,
   ClipboardList,
-  Upload
+  Upload,
+  Archive
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
 
@@ -69,6 +70,12 @@ const navigationItems: NavItem[] = [
     icon: BarChart3,
     roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
   },
+  {
+    title: 'Repositorio Informes',
+    href: '/admin/repositorio-informes',
+    icon: Archive,
+    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
+  },
   // Coordinador routes
   {
     title: 'Gestión de Alumnos',
@@ -98,6 +105,12 @@ const navigationItems: NavItem[] = [
     title: 'Documentos',
     href: '/coordinador/documentos',
     icon: ClipboardList,
+    roles: ['COORDINADOR'],
+  },
+  {
+    title: 'Repositorio Informes',
+    href: '/coordinador/repositorio-informes',
+    icon: Archive,
     roles: ['COORDINADOR'],
   },
   // Docente routes
