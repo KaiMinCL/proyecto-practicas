@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { AuditoriaService } from '@/lib/services/auditoria';
 import { z } from 'zod';
 
 // Schema de validación para anular práctica
@@ -108,12 +109,12 @@ export async function POST(
       );
     }
 
-    // Anular la práctica - por ahora sin log de auditoría hasta implementar el modelo
+    // Anular la práctica
     const practicaAnulada = await prisma.practica.update({
       where: { id: practicaId },
       data: {
         estado: 'ANULADA',
-        // Agregamos el motivo en un campo de comentarios existente o en tareasPrincipales temporalmente
+        // Agregamos el motivo en un campo de comentarios existente
         // TODO: Agregar campos específicos para anulación en el esquema
         motivoRechazoDocente: `ANULADA: ${motivo}` // Reutilizamos este campo temporalmente
       },
@@ -131,14 +132,20 @@ export async function POST(
       }
     });
 
-    // TODO: Implementar log de auditoría cuando se agregue el modelo LogAuditoria
-    console.log('Práctica anulada:', {
+    // Registrar en auditoría
+    await AuditoriaService.registrarAnulacionPractica(
       practicaId,
+      session.userId,
       motivo,
-      usuarioId: session.userId,
-      usuario: `${usuario.nombre} ${usuario.apellido}`,
-      fecha: new Date().toISOString()
-    });
+      {
+        estadoAnterior: practica.estado,
+        alumno: `${practica.alumno.usuario.nombre} ${practica.alumno.usuario.apellido}`,
+        rut: practica.alumno.usuario.rut,
+        carrera: practica.carrera.nombre,
+        directorNombre: `${usuario.nombre} ${usuario.apellido}`
+      },
+      request
+    );
 
     return NextResponse.json({
       success: true,
