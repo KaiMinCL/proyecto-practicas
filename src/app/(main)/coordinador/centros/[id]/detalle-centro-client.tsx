@@ -23,7 +23,8 @@ import {
   ArrowLeft,
   User,
   Briefcase,
-  AlertCircle
+  AlertCircle,
+  Share
 } from 'lucide-react';
 import { MapComponent } from '@/components/custom';
 import { toast } from 'sonner';
@@ -64,6 +65,44 @@ const getEstadoPracticaBadge = (estado: string) => {
   };
   
   return variants[estado as keyof typeof variants] || variants['PENDIENTE'];
+};
+
+// Función para generar enlace de Google Maps
+const generateGoogleMapsUrl = (address: string): string => {
+  const encodedAddress = encodeURIComponent(address);
+  return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+};
+
+// Función para compartir ubicación por correo
+const shareLocationByEmail = (centro: CentroDetalle) => {
+  if (!centro.direccion) {
+    toast.error('No hay dirección disponible para compartir');
+    return;
+  }
+
+  const googleMapsUrl = generateGoogleMapsUrl(centro.direccion);
+  const subject = encodeURIComponent(`Ubicación de ${centro.nombreEmpresa} - Centro de Práctica`);
+  const body = encodeURIComponent(
+    `Hola,\n\n` +
+    `Te comparto la ubicación del Centro de Práctica:\n\n` +
+    `Empresa: ${centro.nombreEmpresa}\n` +
+    `Giro: ${centro.giro || 'No especificado'}\n` +
+    `Dirección: ${centro.direccion}\n` +
+    `${centro.telefono ? `Teléfono: ${centro.telefono}\n` : ''}` +
+    `${centro.emailGerente ? `Email: ${centro.emailGerente}\n` : ''}\n` +
+    `Ver en Google Maps: ${googleMapsUrl}\n\n` +
+    `Saludos cordiales`
+  );
+
+  const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+  
+  try {
+    window.location.href = mailtoUrl;
+    toast.success('Cliente de correo abierto para compartir ubicación');
+  } catch (error) {
+    toast.error('Error al abrir el cliente de correo');
+    console.error('Error al abrir mailto:', error);
+  }
 };
 
 export function DetalleCentroClient({ centroId }: DetalleCentroClientProps) {
@@ -151,9 +190,22 @@ export function DetalleCentroClient({ centroId }: DetalleCentroClientProps) {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant="outline" className="text-sm px-3 py-1">
-              Centro de Práctica
-            </Badge>
+            <div className="flex items-center space-x-2">
+              {centro.direccion && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => shareLocationByEmail(centro)}
+                  className="flex items-center space-x-2"
+                >
+                  <Share className="w-4 h-4" />
+                  <span>Compartir Ubicación</span>
+                </Button>
+              )}
+              <Badge variant="outline" className="text-sm px-3 py-1">
+                Centro de Práctica
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         
@@ -214,11 +266,52 @@ export function DetalleCentroClient({ centroId }: DetalleCentroClientProps) {
 
       {/* Mapa del centro */}
       {centro.direccion && (
-        <MapComponent 
-          address={centro.direccion}
-          title={`Ubicación de ${centro.nombreEmpresa}`}
-          height="450px"
-        />
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Ubicación del Centro
+                </CardTitle>
+                <CardDescription>
+                  {centro.direccion}
+                </CardDescription>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const googleMapsUrl = generateGoogleMapsUrl(centro.direccion!);
+                    window.open(googleMapsUrl, '_blank');
+                    toast.success('Abriendo ubicación en Google Maps');
+                  }}
+                  className="flex items-center space-x-2"
+                >
+                  <MapPin className="w-4 h-4" />
+                  <span>Ver en Maps</span>
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => shareLocationByEmail(centro)}
+                  className="flex items-center space-x-2"
+                >
+                  <Share className="w-4 h-4" />
+                  <span>Compartir</span>
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <MapComponent 
+              address={centro.direccion}
+              title={`Ubicación de ${centro.nombreEmpresa}`}
+              height="450px"
+            />
+          </CardContent>
+        </Card>
       )}
 
       {/* Lista de empleadores */}

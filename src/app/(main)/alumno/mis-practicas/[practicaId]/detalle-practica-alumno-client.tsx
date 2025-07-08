@@ -25,7 +25,9 @@ import {
   Award,
   Eye,
   ArrowLeft,
-  CheckCircle
+  CheckCircle,
+  Share,
+  MapPin
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -56,6 +58,50 @@ const getEstadoBadge = (estado: PracticaConDetalles['estado']) => {
 export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePracticaAlumnoClientProps) {
   const [practica] = React.useState<PracticaConDetalles | null>(initialActionResponse.data || null);
   const [error] = React.useState<string | null>(initialActionResponse.error || null);
+
+  // Función para generar enlace de Google Maps
+  const generateGoogleMapsUrl = (address: string): string => {
+    const encodedAddress = encodeURIComponent(address);
+    return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+  };
+
+  // Función para compartir ubicación por correo
+  const shareLocationByEmail = (practica: PracticaConDetalles) => {
+    if (!practica.direccionCentro) {
+      // toast.error('No hay dirección disponible para compartir');
+      return;
+    }
+
+    const googleMapsUrl = generateGoogleMapsUrl(practica.direccionCentro);
+    const centroPractica = practica.centroPractica?.nombreEmpresa || 'Centro de Práctica';
+    const alumnoNombre = practica.alumno 
+      ? `${practica.alumno.usuario.nombre} ${practica.alumno.usuario.apellido}`
+      : 'Alumno';
+    
+    const subject = encodeURIComponent(`Ubicación de mi Centro de Práctica - ${alumnoNombre}`);
+    const body = encodeURIComponent(
+      `Hola,\n\n` +
+      `Te comparto la ubicación de mi Centro de Práctica:\n\n` +
+      `Alumno: ${alumnoNombre}\n` +
+      `Centro: ${centroPractica}\n` +
+      `Dirección: ${practica.direccionCentro}\n` +
+      `Teléfono: ${practica.contactoTelefonoJefe || 'No especificado'}\n` +
+      `Jefe Directo: ${practica.nombreJefeDirecto || 'No especificado'}\n` +
+      `Email Jefe: ${practica.contactoCorreoJefe || 'No especificado'}\n\n` +
+      `Ver en Google Maps: ${googleMapsUrl}\n\n` +
+      `Saludos cordiales`
+    );
+
+    const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+    
+    try {
+      window.location.href = mailtoUrl;
+      // toast.success('Cliente de correo abierto para compartir ubicación');
+    } catch (error) {
+      // toast.error('Error al abrir el cliente de correo');
+      console.error('Error al abrir mailto:', error);
+    }
+  };
 
   if (error) {
     return (
@@ -176,11 +222,42 @@ export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePr
 
           {/* Mapa del centro de práctica */}
           {practica.direccionCentro && (
-            <MapComponent 
-              address={practica.direccionCentro}
-              title="Ubicación del Centro de Práctica"
-              height="350px"
-            />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Ubicación del Centro
+                </h3>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const googleMapsUrl = generateGoogleMapsUrl(practica.direccionCentro!);
+                      window.open(googleMapsUrl, '_blank');
+                    }}
+                    className="flex items-center space-x-2"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span>Ver en Maps</span>
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => shareLocationByEmail(practica)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Share className="w-4 h-4" />
+                    <span>Compartir</span>
+                  </Button>
+                </div>
+              </div>
+              <MapComponent 
+                address={practica.direccionCentro}
+                title="Ubicación del Centro de Práctica"
+                height="350px"
+              />
+            </div>
           )}
 
           {/* Tareas principales */}
