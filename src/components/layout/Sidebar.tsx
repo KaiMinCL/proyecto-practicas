@@ -150,6 +150,12 @@ const navigationItems: NavItem[] = [
     icon: Star,
     roles: ['ALUMNO'],
   },
+  {
+    title: 'Evaluaciones Informe',
+    href: '/alumno/evaluaciones-informe',
+    icon: FileText,
+    roles: ['ALUMNO'],
+  },
   // Docente routes - Documentos
   {
     title: 'Documentos',

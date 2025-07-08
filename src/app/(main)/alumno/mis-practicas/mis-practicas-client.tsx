@@ -14,7 +14,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Edit3, Terminal, Info, FileText, Calendar, MapPin, User, Building, Clock, GraduationCap } from 'lucide-react';
+import { Edit3, Terminal, Info, FileText, Calendar, MapPin, User, Building, Clock, GraduationCap, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -25,7 +25,7 @@ interface MisPracticasClienteProps {
   initialActionResponse: ActionResponse<PracticaConDetalles[]>;
 }
 
-const getEstadoBadge = (estado: PracticaConDetalles['estado']) => {
+const getEstadoBadge = (estado: string) => {
   const variants = {
     'PENDIENTE': { variant: 'secondary' as const, label: 'Pendiente' },
     'PENDIENTE_ACEPTACION_DOCENTE': { variant: 'default' as const, label: 'Pendiente Aprobación' },
@@ -37,14 +37,21 @@ const getEstadoBadge = (estado: PracticaConDetalles['estado']) => {
     'ANULADA': { variant: 'destructive' as const, label: 'Anulada' },
   };
   
-  return variants[estado] || variants['PENDIENTE'];
+  return variants[estado as keyof typeof variants] || variants['PENDIENTE'];
 };
 
 export function MisPracticasCliente({ initialActionResponse }: MisPracticasClienteProps) {
   const [practicas] = React.useState<PracticaConDetalles[]>(initialActionResponse.data || []);
   const [error] = React.useState<string | null>(initialActionResponse.error || null);
 
-  const puedeSubirInforme = (estado: PracticaConDetalles['estado']): boolean => {
+  const puedeVerEvaluacionInforme = (estado: string): boolean => {
+    return [
+      'EVALUACION_COMPLETA',
+      'CERRADA'
+    ].includes(estado);
+  };
+
+  const puedeSubirInforme = (estado: string): boolean => {
     return [
       'EN_CURSO',
       'FINALIZADA_PENDIENTE_EVAL',
@@ -184,6 +191,16 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
                     <Link href={`/alumno/subir-informe?practicaId=${practica.id}`}>
                       <FileText className="mr-2 h-4 w-4" />
                       {practica.informeUrl ? 'Ver/Actualizar Informe' : 'Subir Informe Final'}
+                    </Link>
+                  </Button>
+                )}
+                
+                {/* Botón Ver Evaluación de Informe */}
+                {puedeVerEvaluacionInforme(practica.estado) && (
+                  <Button asChild size="sm" variant="outline" className="flex-1">
+                    <Link href={`/alumno/evaluaciones-informe/${practica.id}`}>
+                      <Star className="mr-2 h-4 w-4" />
+                      Ver Evaluación Informe
                     </Link>
                   </Button>
                 )}

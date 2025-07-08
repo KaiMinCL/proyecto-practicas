@@ -2,7 +2,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { EstadoPractica as PrismaEstadoPracticaEnum } from '@prisma/client';
 
 import { authorizeAlumno } from '@/lib/auth/checkRole';
 import { PracticaService } from '@/lib/services/practicaService';
@@ -40,7 +39,7 @@ export async function getMisPracticasPendientesAction(): Promise<ActionResponse<
         return { success: false, error: "Perfil de alumno no encontrado para este usuario." };
     }
 
-    const result = await PracticaService.getPracticasPorAlumno(alumno.id, PrismaEstadoPracticaEnum.PENDIENTE);
+    const result = await PracticaService.getPracticasPorAlumno(alumno.id, 'PENDIENTE');
     
     if (result.success && result.data) {
       return { success: true, data: result.data as unknown as PracticaConDetalles[] };
@@ -242,8 +241,8 @@ export async function getMisPracticasParaInformeAction(): Promise<ActionResponse
     if (result.success && result.data) {
       // Filtrar solo las prácticas que pueden subir informe
       const practicasValidas = (result.data as unknown as PracticaConDetalles[]).filter(practica => 
-        practica.estado === PrismaEstadoPracticaEnum.EN_CURSO || 
-        practica.estado === PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL
+        practica.estado === 'EN_CURSO' || 
+        practica.estado === 'FINALIZADA_PENDIENTE_EVAL'
       );
       
       return { success: true, data: practicasValidas };
@@ -300,5 +299,51 @@ export async function getEvaluacionEmpleadorAction(practicaId: number): Promise<
       return { success: false, error: error.message };
     }
     return { success: false, error: 'Error inesperado obteniendo la evaluación del empleador.' };
+  }
+}
+
+/**
+ * Obtiene todas las prácticas del alumno que tienen evaluación de informe disponible.
+ */
+export async function getMisPracticasConEvaluacionInformeAction(): Promise<ActionResponse<unknown[]>> {
+  try {
+    const userPayload = await authorizeAlumno();
+
+    const result = await PracticaService.getPracticasConEvaluacionInformeDisponible(userPayload.userId);
+    
+    if (result.success && result.data) {
+      return { success: true, data: result.data };
+    }
+    return { success: false, error: result.error || 'No se pudieron obtener las evaluaciones de informe.' };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo las evaluaciones de informe.' };
+  }
+}
+
+/**
+ * Obtiene la evaluación de informe específica para una práctica.
+ */
+export async function getEvaluacionInformeAction(practicaId: number): Promise<ActionResponse<unknown>> {
+  try {
+    const userPayload = await authorizeAlumno();
+
+    if (!practicaId || isNaN(practicaId)) {
+      return { success: false, error: 'ID de práctica inválido.' };
+    }
+
+    const result = await PracticaService.getEvaluacionInformeDocentePorPractica(practicaId, userPayload.userId);
+    
+    if (result.success && result.data) {
+      return { success: true, data: result.data };
+    }
+    return { success: false, error: result.error || 'No se pudo obtener la evaluación del informe.' };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado obteniendo la evaluación del informe.' };
   }
 }
