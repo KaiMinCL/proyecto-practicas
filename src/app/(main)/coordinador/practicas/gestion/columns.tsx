@@ -2,8 +2,8 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { ArrowUpDown, MoreHorizontal, Edit
-} from "lucide-react";
+import { useState } from "react";
+import { ArrowUpDown, MoreHorizontal, Edit, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { AnularPracticaDialog } from "@/components/custom";
 import type { PracticaConDetalles } from '@/lib/validators/practica'; 
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -117,28 +118,59 @@ export const columnsPracticasGestion: ColumnDef<PracticaConDetalles>[] = [
     header: () => <div className="text-right">Acciones</div>,
     cell: ({ row }) => {
       const practica = row.original;
-      return (
-        <div className="text-right font-medium">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/coordinador/practicas/gestion/${practica.id}/editar`}> {/* Ajusta esta ruta si es necesario */}
-                  <Edit className="mr-2 h-4 w-4" /> Editar Práctica
-                </Link>
-              </DropdownMenuItem>
-              {/* Aquí podrías añadir más acciones en el futuro, como "Ver Detalles" */}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
+      
+      return <ActionsCell practica={practica} />;
     },
     enableSorting: false,
   },
 ];
+
+// Componente separado para las acciones para poder usar hooks
+function ActionsCell({ practica }: { practica: PracticaConDetalles }) {
+  const [isAnularDialogOpen, setIsAnularDialogOpen] = useState(false);
+  
+  // Determinar si se puede anular la práctica
+  const canAnular = practica.estado !== 'ANULADA' && practica.estado !== 'CERRADA';
+  const alumnoNombre = practica.alumno?.usuario 
+    ? `${practica.alumno.usuario.nombre} ${practica.alumno.usuario.apellido}`
+    : undefined;
+
+  return (
+    <>
+      <div className="text-right font-medium">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menú</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Link href={`/coordinador/practicas/gestion/${practica.id}/editar`}>
+                <Edit className="mr-2 h-4 w-4" /> Editar Práctica
+              </Link>
+            </DropdownMenuItem>
+            {canAnular && (
+              <DropdownMenuItem 
+                onClick={() => setIsAnularDialogOpen(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Ban className="mr-2 h-4 w-4" /> Anular Práctica
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <AnularPracticaDialog
+        isOpen={isAnularDialogOpen}
+        onClose={() => setIsAnularDialogOpen(false)}
+        practicaId={practica.id}
+        alumnoNombre={alumnoNombre}
+        onSuccess={() => window.location.reload()}
+      />
+    </>
+  );
+}
