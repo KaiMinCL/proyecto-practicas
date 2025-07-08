@@ -135,3 +135,22 @@ export interface PracticaConDetalles {
     nombreEmpresa: string | null;
   } | null;
 }
+
+
+
+
+
+// Validación para cambio de estado de una práctica
+export const cambioEstadoPracticaSchema = z.object({
+  practicaId: z.coerce.number({
+    required_error: "Debe indicar el ID de la práctica.",
+    invalid_type_error: "El ID debe ser un número válido.",
+  }).int().positive({ message: "El ID debe ser un número positivo." }),
+
+  nuevoEstado: z.nativeEnum(PrismaEstadoPracticaEnum, {
+    required_error: "Debe seleccionar un estado válido.",
+    invalid_type_error: "El estado no es válido.",
+  }),
+});
+
+export type CambioEstadoPracticaInput = z.infer<typeof cambioEstadoPracticaSchema>;

@@ -405,4 +405,57 @@ export class PracticaService {
       return { success: false, error: 'No se pudo procesar la decisión sobre el acta.' };
     }
   }
+
+
+
+
+  /**
+   * cambio hu-25
+   */
+static async cambiarEstadoPractica(practicaId: number, nuevoEstado: PrismaEstadoPracticaEnum) {
+  try {
+    const practica = await prisma.practica.findUnique({
+      where: { id: practicaId },
+      select: { id: true, estado: true },
+    });
+
+    if (!practica) {
+      return { success: false, error: 'Práctica no encontrada.' };
+    }
+
+    const estadoActual = practica.estado;
+
+
+    const transicionesPermitidas: Record<PrismaEstadoPracticaEnum, PrismaEstadoPracticaEnum[]> = {
+      PENDIENTE: ['PENDIENTE_ACEPTACION_DOCENTE'],
+      PENDIENTE_ACEPTACION_DOCENTE: ['EN_CURSO'],
+      EN_CURSO: ['FINALIZADA_PENDIENTE_EVAL'],
+      FINALIZADA_PENDIENTE_EVAL: ['EVALUACION_COMPLETA'],
+      EVALUACION_COMPLETA: ['CERRADA'],
+      RECHAZADA_DOCENTE: [],
+      CERRADA: [],
+      ANULADA: [],
+    };
+
+
+    const estadosPermitidos = transicionesPermitidas[estadoActual] || [];
+
+    if (!estadosPermitidos.includes(nuevoEstado)) {
+      return { success: false, error: `No se permite cambiar de estado ${estadoActual} a ${nuevoEstado}.` };
+    }
+
+    const practicaActualizada = await prisma.practica.update({
+      where: { id: practicaId },
+      data: { estado: nuevoEstado },
+    });
+
+    return { success: true, data: practicaActualizada };
+
+  } catch (error) {
+    console.error("Error al cambiar estado de práctica:", error);
+    return { success: false, error: "No se pudo cambiar el estado de la práctica." };
+  }
 }
+
+}
+
