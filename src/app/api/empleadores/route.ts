@@ -11,10 +11,33 @@ export async function GET() {
         { error: 'No autorizado' },
         { status: 401 }
       );
-    }    
+    }
 
-    // 2. Obtener empleadores con sus relaciones
+    // HU-54: Verificar que el coordinador tenga sede asignada
+    if (!user.sedeId) {
+      return NextResponse.json(
+        { error: 'Coordinador sin sede asignada' },
+        { status: 400 }
+      );
+    }
+
+    // 2. Obtener empleadores - Solo los relacionados con la sede del coordinador
     const empleadores = await prisma.empleador.findMany({
+      where: {
+        centros: {
+          some: {
+            centroPractica: {
+              practicas: {
+                some: {
+                  carrera: {
+                    sedeId: user.sedeId // Restricción por sede del coordinador
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       select: {
         id: true,
         usuario: {

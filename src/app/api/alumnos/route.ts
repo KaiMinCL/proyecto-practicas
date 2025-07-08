@@ -11,7 +11,16 @@ export async function GET() {
         { error: 'No autorizado' },
         { status: 401 }
       );
-    }    
+    }
+
+    // Verificar que el coordinador tenga sede asignada
+    if (!user.sedeId) {
+      return NextResponse.json(
+        { error: 'Coordinador sin sede asignada' },
+        { status: 400 }
+      );
+    }
+
     type AlumnoResponse = {
       id: number;
       rut: string;
@@ -23,8 +32,13 @@ export async function GET() {
       };
     };
 
-    // 2. Obtener alumnos con sus relaciones
+    // 2. Obtener alumnos con sus relaciones - Solo de la sede del coordinador
     const alumnos = await prisma.alumno.findMany({
+      where: {
+        carrera: {
+          sedeId: user.sedeId // Restricción por sede del coordinador
+        }
+      },
       select: {
         id: true,
         usuario: {

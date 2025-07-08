@@ -13,7 +13,15 @@ export async function GET() {
       );
     }
 
-    // Obtener estadísticas relevantes para el coordinador
+    // Restricción por sede asignada al coordinador
+    if (!user.sedeId) {
+      return NextResponse.json(
+        { error: 'Coordinador sin sede asignada' },
+        { status: 400 }
+      );
+    }
+
+    // Obtener estadísticas relevantes para el coordinador - Solo de su sede
     const [
       totalAlumnos,
       alumnosConPracticaActiva,
@@ -23,12 +31,21 @@ export async function GET() {
       documentosSubidos,
       practicasPendientesRevision
     ] = await Promise.all([
-      // Total de alumnos
-      prisma.alumno.count(),
-      
-      // Alumnos con práctica activa
+      // Total de alumnos - Solo de la sede del coordinador
       prisma.alumno.count({
         where: {
+          carrera: {
+            sedeId: user.sedeId
+          }
+        }
+      }),
+      
+      // Alumnos con práctica activa - Solo de la sede del coordinador
+      prisma.alumno.count({
+        where: {
+          carrera: {
+            sedeId: user.sedeId
+          },
           practicas: {
             some: {
               estado: {
@@ -39,33 +56,72 @@ export async function GET() {
         }
       }),
       
-      // Total de empleadores
-      prisma.empleador.count(),
-      
-      // Empleadores activos
+      // Total de empleadores - Solo activos en la sede
       prisma.empleador.count({
         where: {
-          usuario: {
-            estado: 'ACTIVO'
+          centros: {
+            some: {
+              centroPractica: {
+                practicas: {
+                  some: {
+                    carrera: {
+                      sedeId: user.sedeId
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }),
       
-      // Prácticas iniciadas este mes
+      // Empleadores activos - Solo relacionados con la sede
+      prisma.empleador.count({
+        where: {
+          usuario: {
+            estado: 'ACTIVO'
+          },
+          centros: {
+            some: {
+              centroPractica: {
+                practicas: {
+                  some: {
+                    carrera: {
+                      sedeId: user.sedeId
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      
+      // Prácticas iniciadas este mes - Solo de la sede del coordinador
       prisma.practica.count({
         where: {
+          carrera: {
+            sedeId: user.sedeId
+          },
           fechaInicio: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
           }
         }
       }),
       
-      // Documentos subidos
-      prisma.documentoApoyo.count(),
+      // Documentos subidos - Solo de la sede del coordinador
+      prisma.documentoApoyo.count({
+        where: {
+          sedeId: user.sedeId
+        }
+      }),
       
-      // Prácticas pendientes de revisión
+      // Prácticas pendientes de revisión - Solo de la sede del coordinador
       prisma.practica.count({
         where: {
+          carrera: {
+            sedeId: user.sedeId
+          },
           estado: {
             in: ['PENDIENTE', 'PENDIENTE_ACEPTACION_DOCENTE']
           }
