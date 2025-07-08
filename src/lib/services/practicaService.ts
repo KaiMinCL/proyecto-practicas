@@ -6,6 +6,10 @@ import {
     DecisionDocenteActaData
 } from '@/lib/validators/practica';
 import { isHoliday } from './holidayService';
+import { EmailService } from '@/lib/email';
+import { AuditoriaService } from '@/lib/services/auditoria';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const HORAS_POR_DIA_LABORAL = 8;
 
@@ -258,8 +262,61 @@ export class PracticaService {
         include: { 
             alumno: { include: { usuario: true, carrera: {include: {sede: true}} } },
             docente: { include: { usuario: true } },
+            centroPractica: true,
         }
       });
+
+      // Enviar notificación por email al docente
+      try {
+        if (updatedPractica.docente?.usuario?.email) {
+          const emailData = {
+            docenteEmail: updatedPractica.docente.usuario.email,
+            docenteNombre: updatedPractica.docente.usuario.nombre,
+            docenteApellido: updatedPractica.docente.usuario.apellido,
+            alumnoNombre: updatedPractica.alumno.usuario.nombre,
+            alumnoApellido: updatedPractica.alumno.usuario.apellido,
+            alumnoRut: updatedPractica.alumno.usuario.rut,
+            carreraNombre: updatedPractica.alumno.carrera.nombre,
+            sedeNombre: updatedPractica.alumno.carrera.sede?.nombre || 'Sede no especificada',
+            fechaInicio: format(new Date(updatedPractica.fechaInicio), 'dd/MM/yyyy', { locale: es }),
+            fechaTermino: format(new Date(updatedPractica.fechaTermino), 'dd/MM/yyyy', { locale: es }),
+            practicaId: updatedPractica.id,
+            centroPractica: updatedPractica.centroPractica?.nombreEmpresa || 'Por definir'
+          };
+
+          const emailResult = await EmailService.notificarDocenteActa1Completada(emailData);
+          
+          // Registrar auditoría del envío de email
+          await AuditoriaService.registrarEnvioEmail(
+            alumnoUsuarioId,
+            updatedPractica.docente.usuario.id!,
+            'NOTIFICACION_DOCENTE_ACTA1_COMPLETADA',
+            {
+              destinatarioEmail: emailData.docenteEmail,
+              destinatarioNombre: `${emailData.docenteNombre} ${emailData.docenteApellido}`,
+              asunto: `Acta 1 completada - ${emailData.alumnoNombre} ${emailData.alumnoApellido}`,
+              exitoso: emailResult.success,
+              emailId: emailResult.emailId,
+              errorMessage: emailResult.error
+            },
+            {
+              tipo: 'Practica',
+              id: updatedPractica.id.toString()
+            }
+          );
+
+          if (!emailResult.success) {
+            console.error('Error al enviar email de notificación al docente:', emailResult.error);
+            // No fallar toda la operación por un error de email
+          }
+        } else {
+          console.warn('No se pudo enviar notificación: docente sin email configurado');
+        }
+      } catch (emailError) {
+        console.error('Error crítico al procesar notificación por email al docente:', emailError);
+        // No fallar la operación principal por un error de notificación
+      }
+
       return { success: true, data: updatedPractica };
     } catch (error) {
       console.error("Error al actualizar práctica (completar acta alumno):", error);
