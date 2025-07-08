@@ -73,22 +73,33 @@ interface ActaFinalData {
   estadoActaFinal: string;
 }
 
-export default function ActaFinalPage({ params }: { params: { practicaId: string } }) {
+export default function ActaFinalPage({ params }: { params: Promise<{ practicaId: string }> }) {
   const router = useRouter();
+  const [practicaId, setPracticaId] = useState<string>('');
   const [data, setData] = useState<ActaFinalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchActaFinalData();
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setPracticaId(resolvedParams.practicaId);
+    };
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (practicaId) {
+      fetchActaFinalData();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [practicaId]);
 
   const fetchActaFinalData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/practicas/${params.practicaId}/acta-final`);
+      const response = await fetch(`/api/practicas/${practicaId}/acta-final`);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -108,7 +119,7 @@ export default function ActaFinalPage({ params }: { params: { practicaId: string
     try {
       setSubmitting(true);
       
-      const response = await fetch(`/api/practicas/${params.practicaId}/acta-final`, {
+      const response = await fetch(`/api/practicas/${practicaId}/acta-final`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
