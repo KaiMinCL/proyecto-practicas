@@ -20,7 +20,8 @@ import {
   Star, 
   AlertCircle,
   Eye,
-  User
+  User,
+  MessageSquare
 } from 'lucide-react';
 import { getMisPracticasConEvaluacionInformeAction } from '../practicas/actions';
 
@@ -55,13 +56,17 @@ interface PracticaConEvaluacionInforme {
 }
 
 function NotaDisplay({ nota }: { nota: number }) {
-  const color = nota >= 7 ? 'bg-green-100 text-green-800' : 
-               nota >= 5 ? 'bg-yellow-100 text-yellow-800' : 
-               'bg-red-100 text-red-800';
+  const getNotaInfo = (nota: number) => {
+    if (nota >= 7) return 'bg-green-100 text-green-800 border-green-200';
+    if (nota >= 6) return 'bg-blue-100 text-blue-800 border-blue-200'; 
+    if (nota >= 5) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    if (nota >= 4) return 'bg-orange-100 text-orange-800 border-orange-200';
+    return 'bg-red-100 text-red-800 border-red-200';
+  };
   
   return (
-    <div className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${color}`}>
-      <Star className="w-4 h-4 mr-1" />
+    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${getNotaInfo(nota)}`}>
+      <Star className="w-4 h-4 mr-1 fill-current" />
       {nota.toFixed(1)}
     </div>
   );
@@ -128,21 +133,40 @@ export function EvaluacionesInformeClient() {
 
   if (practicas.length === 0) {
     return (
-      <Card className="text-center py-12">
+      <Card className="text-center py-16 border-2 border-dashed border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50">
         <CardContent>
-          <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No hay evaluaciones de informe disponibles
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Aún no tienes evaluaciones de informe disponibles para consultar.
-            Las evaluaciones aparecerán aquí una vez que los docentes tutores las completen.
-          </p>
-          <Link href="/alumno/mis-practicas">
-            <Button variant="outline">
-              Ver mis prácticas
-            </Button>
-          </Link>
+          <div className="max-w-md mx-auto">
+            <div className="relative mb-6">
+              <div className="w-20 h-20 mx-auto bg-gray-200 rounded-full flex items-center justify-center">
+                <FileText className="w-10 h-10 text-gray-400" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center border-2 border-white">
+                <Star className="w-4 h-4 text-yellow-500" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">
+              No hay evaluaciones de informe disponibles
+            </h3>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Aún no tienes evaluaciones de informe disponibles para consultar.
+              Las evaluaciones aparecerán aquí una vez que los docentes tutores completen 
+              la evaluación de tus informes de práctica.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/alumno/mis-practicas">
+                <Button variant="outline" className="bg-white hover:bg-gray-50">
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Ver mis prácticas
+                </Button>
+              </Link>
+              <Link href="/alumno/subir-informe">
+                <Button variant="default" className="bg-blue-600 hover:bg-blue-700">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Subir informe
+                </Button>
+              </Link>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -158,14 +182,20 @@ export function EvaluacionesInformeClient() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {practicas.map((practica) => (
-          <Card key={practica.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
+          <Card key={practica.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-blue-200 group">
+            <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
-                    {practica.carrera.nombre}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <CardTitle className="text-lg font-bold text-gray-900">
+                      {practica.carrera.nombre}
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="text-sm text-gray-600 flex items-center gap-1">
+                    <GraduationCap className="w-4 h-4" />
                     {practica.carrera.sede.nombre}
                   </CardDescription>
                 </div>
@@ -174,50 +204,57 @@ export function EvaluacionesInformeClient() {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center text-sm text-gray-600">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  <span>
-                    {practica.centroPractica?.nombreEmpresa || 'Empresa no especificada'}
+              <div className="space-y-3">
+                <div className="flex items-center text-sm text-gray-600 p-2 bg-gray-50 rounded-lg">
+                  <GraduationCap className="w-4 h-4 mr-2 text-gray-500" />
+                  <span className="font-medium text-gray-700">Centro:</span>
+                  <span className="ml-1 truncate">
+                    {practica.centroPractica?.nombreEmpresa || 'No especificado'}
                   </span>
                 </div>
                 
-                <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span>
-                    {format(new Date(practica.fechaInicio), 'dd MMM yyyy', { locale: es })} - {' '}
+                <div className="flex items-center text-sm text-gray-600 p-2 bg-gray-50 rounded-lg">
+                  <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                  <span className="font-medium text-gray-700">Período:</span>
+                  <span className="ml-1">
+                    {format(new Date(practica.fechaInicio), 'dd MMM', { locale: es })} - {' '}
                     {format(new Date(practica.fechaTermino), 'dd MMM yyyy', { locale: es })}
                   </span>
                 </div>
                 
-                <div className="flex items-center text-sm text-gray-600">
-                  <User className="w-4 h-4 mr-2" />
-                  <span>
-                    <span className="font-medium">Docente tutor:</span>{' '}
-                    {practica.docente.usuario.nombre} {practica.docente.usuario.apellido}
-                  </span>
+                <div className="flex items-start text-sm text-gray-600 p-2 bg-gray-50 rounded-lg">
+                  <User className="w-4 h-4 mr-2 mt-0.5 text-gray-500 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-gray-700 block">Docente tutor:</span>
+                    <span>
+                      {practica.docente.usuario.nombre} {practica.docente.usuario.apellido}
+                    </span>
+                  </div>
                 </div>
                 
-                <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span>
-                    <span className="font-medium">Evaluado el:</span>{' '}
+                <div className="flex items-center text-sm text-gray-600 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                  <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                  <span className="font-medium text-blue-700">Evaluado:</span>
+                  <span className="ml-1 text-blue-700">
                     {format(new Date(practica.evaluacionInformeDocente.fecha), 'dd \'de\' MMMM \'de\' yyyy', { locale: es })}
                   </span>
                 </div>
               </div>
 
               {practica.evaluacionInformeDocente.comentarios && (
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs font-medium text-gray-700 mb-1">Comentarios:</p>
-                  <p className="text-sm text-gray-600 line-clamp-3">
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <p className="text-xs font-semibold text-blue-700 mb-1 flex items-center gap-1">
+                    <MessageSquare className="w-3 h-3" />
+                    Comentarios del docente:
+                  </p>
+                  <p className="text-sm text-blue-700 line-clamp-3 leading-relaxed">
                     {practica.evaluacionInformeDocente.comentarios}
                   </p>
                 </div>
               )}
 
               <Link href={`/alumno/evaluaciones-informe/${practica.id}`}>
-                <Button className="w-full" variant="default">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 transition-colors" variant="default">
                   <Eye className="w-4 h-4 mr-2" />
                   Ver Evaluación Detallada
                 </Button>

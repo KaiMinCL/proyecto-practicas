@@ -207,12 +207,15 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
                 
                 {/* Botón Ver Evaluación de Informe */}
                 {puedeVerEvaluacionInforme(practica.estado) && (
-                  <Button asChild size="sm" variant="outline" className="flex-1">
-                    <Link href={`/alumno/evaluaciones-informe/${practica.id}`}>
-                      <Star className="mr-2 h-4 w-4" />
-                      Ver Evaluación Informe
-                    </Link>
-                  </Button>
+                  <div className="flex-1 relative">
+                    <Button asChild size="sm" variant="default" className="w-full bg-green-600 hover:bg-green-700 border-green-600 shadow-lg">
+                      <Link href={`/alumno/evaluaciones-informe/${practica.id}`}>
+                        <Star className="mr-2 h-4 w-4 fill-current" />
+                        Ver Evaluación Informe
+                      </Link>
+                    </Button>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white animate-pulse"></div>
+                  </div>
                 )}
                 
                 {/* Botón de información adicional */}

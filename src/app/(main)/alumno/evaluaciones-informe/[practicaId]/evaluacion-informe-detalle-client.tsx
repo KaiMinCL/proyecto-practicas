@@ -22,7 +22,8 @@ import {
   User,
   AlertCircle,
   CheckCircle,
-  MessageSquare
+  MessageSquare,
+  Calendar
 } from 'lucide-react';
 import { getEvaluacionInformeAction } from '../../practicas/actions';
 import { notFound } from 'next/navigation';
@@ -79,20 +80,49 @@ interface Props {
 
 function NotaDisplay({ nota }: { nota: number }) {
   const getNotaInfo = (nota: number) => {
-    if (nota >= 7) return { color: 'bg-green-100 text-green-800 border-green-200', label: 'Excelente' };
-    if (nota >= 6) return { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Muy Bueno' };
-    if (nota >= 5) return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Bueno' };
-    if (nota >= 4) return { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Suficiente' };
-    return { color: 'bg-red-100 text-red-800 border-red-200', label: 'Insuficiente' };
+    if (nota >= 7) return { 
+      color: 'bg-green-100 text-green-800 border-green-200', 
+      bgIcon: 'bg-green-500',
+      label: 'Excelente',
+      description: 'Supera las expectativas' 
+    };
+    if (nota >= 6) return { 
+      color: 'bg-blue-100 text-blue-800 border-blue-200', 
+      bgIcon: 'bg-blue-500',
+      label: 'Muy Bueno',
+      description: 'Cumple con las expectativas' 
+    };
+    if (nota >= 5) return { 
+      color: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
+      bgIcon: 'bg-yellow-500',
+      label: 'Bueno',
+      description: 'Cumple estándares básicos' 
+    };
+    if (nota >= 4) return { 
+      color: 'bg-orange-100 text-orange-800 border-orange-200', 
+      bgIcon: 'bg-orange-500',
+      label: 'Suficiente',
+      description: 'Requiere mejoras menores' 
+    };
+    return { 
+      color: 'bg-red-100 text-red-800 border-red-200', 
+      bgIcon: 'bg-red-500',
+      label: 'Insuficiente',
+      description: 'Requiere mejoras significativas' 
+    };
   };
   
-  const { color, label } = getNotaInfo(nota);
+  const { color, bgIcon, label } = getNotaInfo(nota);
   
   return (
-    <div className={`inline-flex items-center px-4 py-2 rounded-lg border ${color} font-semibold`}>
-      <Star className="w-5 h-5 mr-2 fill-current" />
-      <span className="text-lg">{nota.toFixed(1)}</span>
-      <span className="ml-2 text-sm">({label})</span>
+    <div className={`inline-flex items-center px-4 py-3 rounded-xl border-2 ${color} font-semibold shadow-sm`}>
+      <div className={`w-6 h-6 rounded-full ${bgIcon} flex items-center justify-center mr-3`}>
+        <Star className="w-4 h-4 text-white fill-current" />
+      </div>
+      <div className="text-left">
+        <div className="text-xl font-bold">{nota.toFixed(1)}</div>
+        <div className="text-xs font-medium opacity-80">{label}</div>
+      </div>
     </div>
   );
 }
@@ -190,25 +220,26 @@ export function EvaluacionInformeDetalleClient({ practicaId }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
         <div className="flex items-center gap-4">
           <Link href="/alumno/evaluaciones-informe">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="bg-white hover:bg-gray-50">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">
               Evaluación de Informe
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 flex items-center gap-2">
+              <GraduationCap className="w-4 h-4" />
               {practica.carrera.nombre} - {practica.carrera.sede.nombre}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="flex items-center gap-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 border-green-200">
             <CheckCircle className="w-4 h-4" />
             Evaluado
           </Badge>
@@ -218,91 +249,95 @@ export function EvaluacionInformeDetalleClient({ practicaId }: Props) {
 
       {/* Información General */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
+        <Card className="border-2 border-gray-100 hover:border-gray-200 transition-colors">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <User className="w-4 h-4 text-blue-600" />
+              </div>
               Información de la Práctica
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Estudiante</p>
-                <p className="text-sm text-gray-900">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Estudiante</p>
+                <p className="text-sm font-semibold text-gray-900">
                   {practica.alumno.usuario.nombre} {practica.alumno.usuario.apellido}
                 </p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">RUT</p>
-                <p className="text-sm text-gray-900">{practica.alumno.usuario.rut}</p>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">RUT</p>
+                <p className="text-sm font-semibold text-gray-900">{practica.alumno.usuario.rut}</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Fecha de Inicio</p>
-                <p className="text-sm text-gray-900">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Fecha de Inicio</p>
+                <p className="text-sm font-semibold text-gray-900">
                   {format(new Date(practica.fechaInicio), 'dd \'de\' MMMM \'de\' yyyy', { locale: es })}
                 </p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Fecha de Término</p>
-                <p className="text-sm text-gray-900">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Fecha de Término</p>
+                <p className="text-sm font-semibold text-gray-900">
                   {format(new Date(practica.fechaTermino), 'dd \'de\' MMMM \'de\' yyyy', { locale: es })}
                 </p>
               </div>
             </div>
 
-            <div>
-              <p className="text-sm font-medium text-gray-600">Centro de Práctica</p>
-              <p className="text-sm text-gray-900">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Centro de Práctica</p>
+              <p className="text-sm font-semibold text-gray-900">
                 {practica.centroPractica?.nombreEmpresa || 'No especificado'}
               </p>
             </div>
 
             {practica.direccionCentro && (
-              <div>
-                <p className="text-sm font-medium text-gray-600">Dirección</p>
-                <p className="text-sm text-gray-900">{practica.direccionCentro}</p>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dirección</p>
+                <p className="text-sm font-semibold text-gray-900">{practica.direccionCentro}</p>
               </div>
             )}
 
             {practica.departamento && (
-              <div>
-                <p className="text-sm font-medium text-gray-600">Departamento</p>
-                <p className="text-sm text-gray-900">{practica.departamento}</p>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Departamento</p>
+                <p className="text-sm font-semibold text-gray-900">{practica.departamento}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="w-5 h-5" />
+        <Card className="border-2 border-gray-100 hover:border-gray-200 transition-colors">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                <GraduationCap className="w-4 h-4 text-green-600" />
+              </div>
               Docente Tutor
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Nombre</p>
-              <p className="text-sm text-gray-900">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nombre</p>
+              <p className="text-sm font-semibold text-gray-900">
                 {practica.docente.usuario.nombre} {practica.docente.usuario.apellido}
               </p>
             </div>
             
-            <div>
-              <p className="text-sm font-medium text-gray-600">Fecha de Evaluación</p>
-              <p className="text-sm text-gray-900">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Fecha de Evaluación</p>
+              <p className="text-sm font-semibold text-gray-900">
                 {format(new Date(evaluacion.fecha), 'dd \'de\' MMMM \'de\' yyyy \'a las\' HH:mm', { locale: es })}
               </p>
             </div>
 
             {practica.nombreJefeDirecto && (
-              <div>
-                <p className="text-sm font-medium text-gray-600">Jefe Directo</p>
-                <p className="text-sm text-gray-900">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Jefe Directo</p>
+                <p className="text-sm font-semibold text-gray-900">
                   {practica.nombreJefeDirecto}
                   {practica.cargoJefeDirecto && ` - ${practica.cargoJefeDirecto}`}
                 </p>
@@ -310,11 +345,11 @@ export function EvaluacionInformeDetalleClient({ practicaId }: Props) {
             )}
 
             {practica.contactoCorreoJefe && (
-              <div>
-                <p className="text-sm font-medium text-gray-600">Contacto</p>
-                <p className="text-sm text-gray-900">{practica.contactoCorreoJefe}</p>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Contacto</p>
+                <p className="text-sm font-semibold text-gray-900">{practica.contactoCorreoJefe}</p>
                 {practica.contactoTelefonoJefe && (
-                  <p className="text-sm text-gray-900">{practica.contactoTelefonoJefe}</p>
+                  <p className="text-sm font-semibold text-gray-900">{practica.contactoTelefonoJefe}</p>
                 )}
               </div>
             )}
@@ -323,33 +358,41 @@ export function EvaluacionInformeDetalleClient({ practicaId }: Props) {
       </div>
 
       {/* Evaluación Detallada */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
+      <Card className="border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
             Evaluación del Informe
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-base">
             Evaluación realizada por el docente tutor sobre el informe de práctica
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="bg-gray-50 p-6 rounded-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Calificación Final</h3>
+          <div className="bg-white p-6 rounded-xl border border-blue-200 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Calificación Final</h3>
               <NotaDisplay nota={evaluacion.nota} />
             </div>
             
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-medium text-gray-600">Evaluado por</p>
-                <p className="text-gray-900">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-blue-600" />
+                  <p className="text-sm font-semibold text-gray-700">Evaluado por</p>
+                </div>
+                <p className="text-base font-medium text-gray-900 ml-6">
                   {practica.docente.usuario.nombre} {practica.docente.usuario.apellido}
                 </p>
               </div>
-              <div>
-                <p className="font-medium text-gray-600">Fecha de evaluación</p>
-                <p className="text-gray-900">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <p className="text-sm font-semibold text-gray-700">Fecha de evaluación</p>
+                </div>
+                <p className="text-base font-medium text-gray-900 ml-6">
                   {format(new Date(evaluacion.fecha), 'dd \'de\' MMMM \'de\' yyyy', { locale: es })}
                 </p>
               </div>
@@ -357,22 +400,29 @@ export function EvaluacionInformeDetalleClient({ practicaId }: Props) {
           </div>
 
           {evaluacion.comentarios && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <MessageSquare className="w-5 h-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Comentarios del Docente</h3>
+            <div className="bg-white p-6 rounded-xl border border-blue-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Comentarios del Docente</h3>
               </div>
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <p className="text-gray-700 whitespace-pre-wrap">{evaluacion.comentarios}</p>
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{evaluacion.comentarios}</p>
               </div>
             </div>
           )}
 
           {practica.tareasPrincipales && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Tareas Principales Realizadas</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 whitespace-pre-wrap">{practica.tareasPrincipales}</p>
+            <div className="bg-white p-6 rounded-xl border border-blue-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-gray-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Tareas Principales Realizadas</h3>
+              </div>
+              <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-lg">
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{practica.tareasPrincipales}</p>
               </div>
             </div>
           )}

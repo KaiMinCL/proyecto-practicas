@@ -52,7 +52,7 @@ const getEstadoBadge = (estado: PracticaConDetalles['estado']) => {
     'ANULADA': { variant: 'destructive' as const, label: 'Anulada' },
   };
   
-  return variants[estado] || variants['PENDIENTE'];
+  return variants[estado as keyof typeof variants] || variants['PENDIENTE'];
 };
 
 export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePracticaAlumnoClientProps) {
