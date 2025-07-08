@@ -77,6 +77,37 @@ export async function clearAuthCookie() {
 }
 
 /**
+ * Verifica el token de autenticación desde una request.
+ * @param request - La request de Next.js
+ * @returns El payload del usuario si el token es válido, null en caso contrario.
+ */
+export async function verifyAuthToken(request: Request): Promise<UserJwtPayload | null> {
+  try {
+    // Intentar obtener el token desde la cookie
+    const cookieHeader = request.headers.get('cookie');
+    if (!cookieHeader) {
+      return null;
+    }
+    
+    const cookies = cookieHeader.split('; ').reduce((acc, cookie) => {
+      const [key, value] = cookie.split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    const token = cookies['session_token'];
+    if (!token) {
+      return null;
+    }
+
+    return verifyJwtToken(token);
+  } catch (error) {
+    console.error('Error al verificar el token de autenticación:', error);
+    return null;
+  }
+}
+
+/**
  * Verifica la sesión del usuario desde el servidor.
  * @returns El payload del token JWT si la sesión es válida, null en caso contrario.
  */

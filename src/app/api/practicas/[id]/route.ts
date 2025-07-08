@@ -29,14 +29,19 @@ export async function GET(
           include: {
             usuario: {
               select: {
+                rut: true,
                 nombre: true,
                 apellido: true,
                 email: true
               }
             },
             carrera: {
-              select: {
-                nombre: true
+              include: {
+                sede: {
+                  select: {
+                    nombre: true
+                  }
+                }
               }
             }
           }
@@ -54,9 +59,14 @@ export async function GET(
         centroPractica: {
           select: {
             nombreEmpresa: true,
-            direccion: true
+            direccion: true,
+            giro: true,
+            telefono: true
           }
-        }
+        },
+        actaFinal: true,
+        evaluacionDocente: true,
+        evaluacionEmpleador: true
       }
     });
 
