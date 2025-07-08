@@ -48,7 +48,7 @@ import {
     type DocenteOption,
     type ActionResponse 
 } from '../../../actions'; 
-import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoPracticaEnum } from "@prisma/client";
+import { TipoPractica, EstadoPractica } from "@prisma/client";
 
 interface EditarPracticaFormProps {
   practicaOriginal: PracticaConDetalles;
@@ -217,7 +217,7 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
               <InfoDisplay label="Alumno" value={`${practicaOriginal.alumno?.usuario.nombre} ${practicaOriginal.alumno?.usuario.apellido} (${practicaOriginal.alumno?.usuario.rut})`} />
               <InfoDisplay label="Carrera" value={practicaOriginal.carrera?.nombre} />
               <InfoDisplay label="Sede" value={practicaOriginal.carrera?.sede?.nombre} />
-              <InfoDisplay label="Tipo de Práctica" value={tipoPracticaActual === PrismaTipoPracticaEnum.LABORAL ? "Laboral" : "Profesional"} />
+              <InfoDisplay label="Tipo de Práctica" value={tipoPracticaActual === TipoPractica.LABORAL ? "Laboral" : "Profesional"} />
             </dl>
           </CardContent>
         </Card>
@@ -245,7 +245,7 @@ export function EditarPracticaForm({ practicaOriginal }: EditarPracticaFormProps
                   <Select onValueChange={field.onChange} value={field.value ?? undefined} disabled={isSubmitting}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar estado..." /></SelectTrigger></FormControl>
                     <SelectContent>
-                      {Object.values(PrismaEstadoPracticaEnum).map(s => (
+                      {Object.values(EstadoPractica).map(s => (
                         <SelectItem key={s} value={s}>{s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
                       ))}
                     </SelectContent>

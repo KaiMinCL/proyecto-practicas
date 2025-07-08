@@ -17,7 +17,8 @@ import {
   GraduationCap,
   Star,
   ClipboardList,
-  Upload
+  Upload,
+  Archive
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
 
@@ -99,6 +100,12 @@ const navigationItems: NavItem[] = [
     href: '/coordinador/documentos',
     icon: ClipboardList,
     roles: ['COORDINADOR'],
+  },
+  {
+    title: 'Repositorio de Actas',
+    href: '/coordinador/repositorio-actas',
+    icon: Archive,
+    roles: ['COORDINADOR', 'DIRECTOR_CARRERA'],
   },
   // Docente routes
   {
