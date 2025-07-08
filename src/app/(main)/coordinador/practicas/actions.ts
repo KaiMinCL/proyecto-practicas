@@ -15,6 +15,12 @@ import {
     type EditarPracticaCoordDCInput,
     type PracticaConDetalles 
 } from '@/lib/validators/practica';
+import { EmailService } from '@/lib/email';
+import { AuditoriaService } from '@/lib/services/auditoria';
+import { generateSecurePassword } from '@/lib/utils';
+import { hashPassword } from '@/lib/auth-utils';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import prismaClient from '@/lib/prisma';
 
 // Definición de ActionResponse
@@ -95,14 +101,104 @@ export async function iniciarPracticaAction(
   alumnoCarreraId: number
 ): Promise<ActionResponse<PracticaConDetalles>> {
   try {
-    await authorizeCoordinador();
+    const userPayload = await authorizeCoordinador();
     const validatedData = iniciarPracticaSchema.parse(data);
     const result = await PracticaService.iniciarPracticaCoordinador(validatedData, alumnoCarreraId);
 
     if (result.success && result.data) {
       revalidatePath('/coordinador/practicas'); // Asume esta ruta para la lista de prácticas
-      // TODO: Notificación al Alumno
-      return { success: true, data: result.data as PracticaConDetalles };
+      
+      // Notificar al Alumno para Completar Acta 1
+      try {
+        // Obtener información completa del alumno para la notificación
+        const alumnoCompleto = await prismaClient.alumno.findUnique({
+          where: { id: result.data.alumnoId },
+          include: {
+            usuario: {
+              select: {
+                id: true,
+                email: true,
+                nombre: true,
+                apellido: true,
+                rut: true,
+                claveInicialVisible: true,
+                // Necesitamos la contraseña inicial para incluirla en el correo
+              }
+            },
+            carrera: {
+              include: {
+                sede: {
+                  select: {
+                    nombre: true
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        if (alumnoCompleto && alumnoCompleto.usuario.email) {
+          // Generar nueva contraseña temporal para el alumno
+          const nuevaPassword = generateSecurePassword();
+          const hashedPassword = await hashPassword(nuevaPassword);
+          
+          // Actualizar la contraseña del usuario
+          await prismaClient.usuario.update({
+            where: { id: alumnoCompleto.usuario.id! },
+            data: { password: hashedPassword }
+          });
+
+          const emailData = {
+            alumnoEmail: alumnoCompleto.usuario.email,
+            alumnoNombre: alumnoCompleto.usuario.nombre,
+            alumnoApellido: alumnoCompleto.usuario.apellido,
+            alumnoRut: alumnoCompleto.usuario.rut,
+            alumnoPassword: nuevaPassword, // Usar la nueva contraseña generada
+            carreraNombre: alumnoCompleto.carrera.nombre,
+            sedeNombre: alumnoCompleto.carrera.sede?.nombre || 'Sede no especificada',
+            fechaInicio: format(new Date(result.data.fechaInicio), 'dd/MM/yyyy', { locale: es }),
+            fechaTermino: format(new Date(result.data.fechaTermino), 'dd/MM/yyyy', { locale: es }),
+            plazoCompletarActa: 5 // 5 días según los requerimientos
+          };
+
+          const emailResult = await EmailService.notificarAlumnoCompletarActa1(emailData);
+          
+          // Registrar auditoría del envío de email
+          await AuditoriaService.registrarEnvioEmail(
+            userPayload.userId,
+            alumnoCompleto.usuario.id!,
+            'NOTIFICACION_COMPLETAR_ACTA1',
+            {
+              destinatarioEmail: emailData.alumnoEmail,
+              destinatarioNombre: `${emailData.alumnoNombre} ${emailData.alumnoApellido}`,
+              asunto: 'Completa tu Acta 1 de Supervisión de Práctica',
+              exitoso: emailResult.success,
+              emailId: emailResult.emailId,
+              errorMessage: emailResult.error
+            },
+            {
+              tipo: 'Practica',
+              id: result.data.id.toString()
+            }
+          );
+
+          if (!emailResult.success) {
+            console.error('Error al enviar email de notificación:', emailResult.error);
+            // No fallar toda la operación por un error de email, pero registrarlo
+          }
+        } else {
+          console.warn('No se pudo enviar notificación: alumno sin email configurado');
+        }
+      } catch (emailError) {
+        console.error('Error crítico al procesar notificación por email:', emailError);
+        // No fallar la operación principal por un error de notificación
+      }
+
+      return { 
+        success: true, 
+        data: result.data as PracticaConDetalles,
+        message: 'Práctica iniciada exitosamente. Se ha enviado una notificación al alumno para completar el Acta 1.'
+      };
     }
     return result; // Devuelve el resultado del servicio (puede tener error específico)
   } catch (error) {

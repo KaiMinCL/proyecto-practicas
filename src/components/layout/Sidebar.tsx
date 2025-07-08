@@ -18,7 +18,8 @@ import {
   Star,
   ClipboardList,
   Upload,
-  Archive
+  Archive,
+  Mail
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
 
@@ -99,6 +100,12 @@ const navigationItems: NavItem[] = [
     title: 'Iniciar Práctica',
     href: '/coordinador/practicas/iniciar',
     icon: FileText,
+    roles: ['COORDINADOR'],
+  },
+  {
+    title: 'Notificaciones',
+    href: '/coordinador/notificaciones',
+    icon: Mail,
     roles: ['COORDINADOR'],
   },
   {
