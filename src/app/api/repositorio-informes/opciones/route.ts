@@ -16,7 +16,7 @@ export async function GET() {
     // Aplicar restricciones por sede según HU-54
     let usuarioSedeId: number | null = null;
     if (user.rol === 'DIRECTOR_CARRERA' || user.rol === 'COORDINADOR') {
-      usuarioSedeId = user.sedeId;
+      usuarioSedeId = user.sedeId || null;
     }
 
     // Obtener opciones de filtros
