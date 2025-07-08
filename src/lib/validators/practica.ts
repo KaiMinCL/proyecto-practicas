@@ -256,4 +256,10 @@ export interface PracticaConDetalles {
     nota: number;
     fecha: Date;
   } | null;
+  actaFinal?: { // Acta final de la práctica
+    id: number;
+    notaFinal: number;
+    estado: string;
+    fechaCierre: Date;
+  } | null;
 }

@@ -70,6 +70,13 @@ const getEstadoColor = (estado: string) => {
         border: 'border-green-200 dark:border-green-800',
         dot: '#00C853'
       };
+    case 'CERRADA':
+      return {
+        bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+        text: 'text-emerald-800 dark:text-emerald-300',
+        border: 'border-emerald-200 dark:border-emerald-800',
+        dot: '#10B981'
+      };
     default:
       return {
         bg: 'bg-gray-100 dark:bg-gray-900/30',
@@ -91,6 +98,8 @@ const getEstadoTexto = (estado: string) => {
       return 'Pendiente Evaluación';
     case 'EVALUACION_COMPLETA':
       return 'Evaluación Completa';
+    case 'CERRADA':
+      return 'Finalizada';
     default:
       return estado;
   }
@@ -133,10 +142,29 @@ const getAccionPrincipal = (practica: PracticaConDetalles) => {
         priority: 'high'
       };
     case 'EVALUACION_COMPLETA':
+      // Si ambas evaluaciones están completadas, mostrar opción de Acta Final
+      if (practica.evaluacionDocente && practica.evaluacionEmpleador) {
+        return {
+          texto: 'Generar Acta Final',
+          href: `/docente/practicas/${practica.id}/acta-final`,
+          icon: FileText,
+          variant: 'default' as const,
+          priority: 'high'
+        };
+      }
       return {
         texto: 'Ver Evaluación',
         href: `/docente/practicas/${practica.id}/evaluacion`,
         icon: Star,
+        variant: 'outline' as const,
+        priority: 'low'
+      };
+    case 'CERRADA':
+      // Si la práctica está cerrada, mostrar acta final
+      return {
+        texto: 'Ver Acta Final',
+        href: `/docente/practicas/${practica.id}/acta-final`,
+        icon: FileText,
         variant: 'outline' as const,
         priority: 'low'
       };
@@ -377,6 +405,22 @@ function PracticaCard({ practica }: { practica: PracticaConDetalles }) {
                     Ver
                   </Link>
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {practica.actaFinal && (
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300">
+                    Acta Final Validada
+                  </p>
+                </div>
+                <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+                  {practica.actaFinal.notaFinal.toFixed(1)}
+                </span>
               </div>
             </div>
           )}
