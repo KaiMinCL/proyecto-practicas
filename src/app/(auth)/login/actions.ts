@@ -67,6 +67,7 @@ export async function loginUser(
       email: user.email,
       nombre: user.nombre,
       apellido: user.apellido,
+      sedeId: user.sedeId,
     };
     const token = generateJwtToken(tokenPayload);
 

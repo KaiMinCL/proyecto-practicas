@@ -21,6 +21,7 @@ export interface UserJwtPayload extends JwtPayload {
   email: string;
   nombre: string;
   apellido: string;
+  sedeId?: number | null;
 }
 
 /**
@@ -83,6 +84,7 @@ export async function verifyCredentials(credentials: LoginFormData) {
       apellido: usuario.apellido,
       email: usuario.email,
       rol: usuario.rol.nombre,
+      sedeId: usuario.sedeId,
     };
 
   } catch (error) {
@@ -96,7 +98,7 @@ export async function verifyCredentials(credentials: LoginFormData) {
  * @param payload - The payload to include in the token.
  * @returns The generated JWT token.
  */
-export function generateJwtToken(payload: { userId: number; rut: string; rol: string; email: string; nombre: string; apellido: string }): string {
+export function generateJwtToken(payload: { userId: number; rut: string; rol: string; email: string; nombre: string; apellido: string; sedeId?: number | null }): string {
   try {
     const token = jwt.sign(payload, SIGNING_KEY, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
     console.log("Token JWT generado.");
