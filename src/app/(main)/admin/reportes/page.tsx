@@ -15,8 +15,8 @@ export default async function ReportesGeneralesPage() {
     redirect('/login');
   }
 
-  // Verificar permisos - Solo SA y DC
-  if (!['SUPER_ADMIN', 'DIRECTOR_CARRERA'].includes(user.rol)) {
+  // Verificar permisos - SA, DC y COORDINADOR
+  if (!['SUPER_ADMIN', 'DIRECTOR_CARRERA', 'COORDINADOR'].includes(user.rol)) {
     redirect('/dashboard');
   }
 
