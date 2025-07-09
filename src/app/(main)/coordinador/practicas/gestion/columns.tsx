@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { AnularPracticaDialog } from "@/components/custom";
+import { AnularPracticaDialog, CambiarEstadoPracticaDialog } from "@/components/custom";
 import type { PracticaConDetalles } from '@/lib/validators/practica'; 
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -138,30 +138,39 @@ function ActionsCell({ practica }: { practica: PracticaConDetalles }) {
   return (
     <>
       <div className="text-right font-medium">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menú</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuItem asChild>
-              <Link href={`/coordinador/practicas/gestion/${practica.id}/editar`}>
-                <Edit className="mr-2 h-4 w-4" /> Editar Práctica
-              </Link>
-            </DropdownMenuItem>
-            {canAnular && (
-              <DropdownMenuItem 
-                onClick={() => setIsAnularDialogOpen(true)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Ban className="mr-2 h-4 w-4" /> Anular Práctica
+        <div className="flex items-center justify-end gap-1">
+          <CambiarEstadoPracticaDialog
+            practicaId={practica.id}
+            estadoActual={practica.estado as PrismaEstadoPracticaEnum}
+            alumnoNombre={alumnoNombre}
+            onSuccess={() => window.location.reload()}
+          />
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Abrir menú</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuItem asChild>
+                <Link href={`/coordinador/practicas/gestion/${practica.id}/editar`}>
+                  <Edit className="mr-2 h-4 w-4" /> Editar Práctica
+                </Link>
               </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {canAnular && (
+                <DropdownMenuItem 
+                  onClick={() => setIsAnularDialogOpen(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Ban className="mr-2 h-4 w-4" /> Anular Práctica
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <AnularPracticaDialog
