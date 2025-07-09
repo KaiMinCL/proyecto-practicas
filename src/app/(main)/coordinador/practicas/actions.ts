@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { ZodError } from 'zod';
-import { Prisma, TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
+import { Prisma, TipoPractica as PrismaTipoPracticaEnum, EstadoPractica } from '@prisma/client';
 
 import { authorizeCoordinador, authorizeCoordinadorOrDirectorCarrera } from '@/lib/auth/checkRole';
 import { PracticaService } from '@/lib/services/practicaService';
@@ -320,5 +320,90 @@ export async function listPracticasGestionAction(): Promise<ActionResponse<Pract
       return { success: false, error: error.message };
     }
     return { success: false, error: 'Error inesperado al listar las prácticas.' };
+  }
+}
+
+export async function cambiarEstadoPracticaAction(
+  practicaId: number, 
+  nuevoEstado: string, 
+  motivo?: string
+): Promise<ActionResponse<{ message: string }>> {
+  try {
+    const userPayload = await authorizeCoordinadorOrDirectorCarrera();
+
+    // Validar el estado
+    const estadosValidos = [
+      'PENDIENTE',
+      'PENDIENTE_ACEPTACION_DOCENTE',
+      'RECHAZADA_DOCENTE',
+      'EN_CURSO',
+      'FINALIZADA_PENDIENTE_EVAL',
+      'EVALUACION_COMPLETA',
+      'CERRADA',
+      'ANULADA'
+    ];
+
+    if (!estadosValidos.includes(nuevoEstado)) {
+      return { success: false, error: 'Estado inválido.' };
+    }
+
+    // Verificar que la práctica existe
+    const practica = await prismaClient.practica.findUnique({
+      where: { id: practicaId },
+      include: {
+        alumno: {
+          include: {
+            usuario: {
+              select: {
+                nombre: true,
+                apellido: true,
+                email: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!practica) {
+      return { success: false, error: 'Práctica no encontrada.' };
+    }
+
+    // Actualizar el estado
+    await prismaClient.practica.update({
+      where: { id: practicaId },
+      data: {
+        estado: nuevoEstado as EstadoPractica,
+        ...(nuevoEstado === 'ANULADA' && motivo && {
+          motivoRechazoDocente: motivo
+        })
+      }
+    });
+
+    // Registrar auditoría
+    await AuditoriaService.registrarAccion({
+      usuarioId: userPayload.userId,
+      accion: 'CAMBIAR_ESTADO_PRACTICA',
+      entidad: 'practica',
+      entidadId: practicaId.toString(),
+      descripcion: `Estado cambiado de ${practica.estado} a ${nuevoEstado}${motivo ? ` - Motivo: ${motivo}` : ''}`,
+      detallesPrevios: { estado: practica.estado },
+      detallesNuevos: { estado: nuevoEstado }
+    });
+
+    revalidatePath('/coordinador/practicas/gestion');
+    
+    return { 
+      success: true, 
+      message: 'Estado de práctica actualizado exitosamente',
+      data: { message: 'Estado actualizado' }
+    };
+
+  } catch (error) {
+    console.error('Error al cambiar estado de práctica:', error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'Error inesperado al cambiar estado de práctica.' };
   }
 }
