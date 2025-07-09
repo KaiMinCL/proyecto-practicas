@@ -8,6 +8,7 @@ import {
 import { isHoliday } from './holidayService';
 import { EmailService } from '@/lib/email';
 import { AuditoriaService } from '@/lib/services/auditoria';
+import { AlertasPracticasService } from './alertasPracticasService';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -660,6 +661,14 @@ export class PracticaService {
           carrera: { include: { sede: true } },
         }
       });
+
+      // HU-48: Notificar al docente que el informe fue subido
+      try {
+        await AlertasPracticasService.notificarDocenteInformeSubido(practicaId);
+      } catch (error) {
+        console.error('Error al notificar docente sobre informe subido:', error);
+        // No fallar la operación principal si falla la notificación
+      }
 
       return { success: true, data: updatedPractica };
     } catch (error) {

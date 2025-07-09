@@ -3,7 +3,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowUpDown, MoreHorizontal, Edit, Ban } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, Edit, Ban, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -155,6 +155,11 @@ function ActionsCell({ practica }: { practica: PracticaConDetalles }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuItem asChild>
+                <Link href={`/coordinador/practicas/gestion/${practica.id}`}>
+                  <Eye className="mr-2 h-4 w-4" /> Ver Detalle
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/coordinador/practicas/gestion/${practica.id}/editar`}>
                   <Edit className="mr-2 h-4 w-4" /> Editar Práctica
