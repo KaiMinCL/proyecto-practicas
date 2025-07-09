@@ -98,6 +98,12 @@ const navigationItems: NavItem[] = [
     roles: ['COORDINADOR'],
   },
   {
+    title: 'Gestión de Usuarios',
+    href: '/coordinador/usuarios',
+    icon: UserCheck,
+    roles: ['COORDINADOR'],
+  },
+  {
     title: 'Centros de Práctica',
     href: '/coordinador/centros',
     icon: Building,
