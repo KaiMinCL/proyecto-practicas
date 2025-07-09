@@ -132,3 +132,110 @@ export async function submitDecisionDocenteActaAction(
     return { success: false, error: 'Ocurrió un error muy inesperado al procesar la decisión.' };
   }
 }
+
+/**
+ * Obtiene todas las prácticas asignadas al docente logueado que requieren alguna acción.
+ * Incluye prácticas en diferentes estados: PENDIENTE_ACEPTACION_DOCENTE, EN_CURSO (con informe), 
+ * FINALIZADA_PENDIENTE_EVAL, EVALUACION_COMPLETA
+ */
+export async function getMisPracticasAction(): Promise<ActionResponse<PracticaConDetalles[]>> {
+  try {
+    const userPayload = await authorizeDocente();
+
+    const docente = await prismaClient.docente.findUnique({
+        where: { usuarioId: userPayload.userId },
+        select: { id: true }
+    });
+
+    if (!docente) {
+        return { success: false, error: "Perfil de docente no encontrado para este usuario." };
+    }
+
+    // Obtener prácticas en estados que requieren acción del docente
+    const practicas = await prismaClient.practica.findMany({
+        where: {
+            docenteId: docente.id,
+            estado: {
+                in: [
+                    PrismaEstadoPracticaEnum.PENDIENTE_ACEPTACION_DOCENTE,
+                    PrismaEstadoPracticaEnum.EN_CURSO,
+                    PrismaEstadoPracticaEnum.FINALIZADA_PENDIENTE_EVAL,
+                    PrismaEstadoPracticaEnum.EVALUACION_COMPLETA,
+                    PrismaEstadoPracticaEnum.CERRADA
+                ]
+            },
+        },
+        include: {
+            alumno: { 
+                include: { 
+                    usuario: { 
+                        select: { 
+                            nombre: true, 
+                            apellido: true, 
+                            rut: true 
+                        } 
+                    },
+                    carrera: {
+                        select: {
+                            nombre: true,
+                            sede: {
+                                select: {
+                                    nombre: true
+                                }
+                            }
+                        }
+                    }
+                } 
+            },
+            carrera: { 
+                select: { 
+                    nombre: true, 
+                    sede: {
+                        select: {
+                            nombre: true
+                        }
+                    } 
+                } 
+            },
+            centroPractica: {
+                select: {
+                    nombreEmpresa: true,
+                    direccion: true
+                }
+            },
+            evaluacionDocente: {
+                select: {
+                    id: true,
+                    nota: true,
+                    fecha: true
+                }
+            },
+            evaluacionEmpleador: {
+                select: {
+                    id: true,
+                    nota: true,
+                    fecha: true
+                }
+            },
+            actaFinal: {
+                select: {
+                    id: true,
+                    notaFinal: true,
+                    estado: true,
+                    fechaCierre: true
+                }
+            }
+        },
+        orderBy: [
+            { estado: 'asc' }, // Priorizar por estado (pendientes primero)
+            { fechaInicio: 'asc' }
+        ]
+    });
+    
+    return { success: true, data: practicas as unknown as PracticaConDetalles[] };
+
+  } catch (error) {
+    if (error instanceof Error) return { success: false, error: error.message };
+    return { success: false, error: 'Error inesperado obteniendo las prácticas.' };
+  }
+}

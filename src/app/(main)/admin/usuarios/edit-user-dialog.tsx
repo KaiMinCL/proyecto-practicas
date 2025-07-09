@@ -121,15 +121,18 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="sm" className="hover:bg-blue-50 hover:text-blue-600">
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Editar Usuario</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="h-5 w-5" />
+            Editar Usuario
+          </DialogTitle>
           <DialogDescription>
-            Actualice los datos del usuario en el sistema.
+            Actualice los datos del usuario. Nota: El RUT no se puede modificar.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

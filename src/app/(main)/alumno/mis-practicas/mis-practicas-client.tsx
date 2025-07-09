@@ -12,7 +12,9 @@ import {
     CardTitle 
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Edit3, Terminal, Info } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Edit3, Terminal, Info, FileText, Calendar, MapPin, User, Building, Clock, GraduationCap, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -23,10 +25,39 @@ interface MisPracticasClienteProps {
   initialActionResponse: ActionResponse<PracticaConDetalles[]>;
 }
 
+const getEstadoBadge = (estado: string) => {
+  const variants = {
+    'PENDIENTE': { variant: 'secondary' as const, label: 'Pendiente' },
+    'PENDIENTE_ACEPTACION_DOCENTE': { variant: 'default' as const, label: 'Pendiente Aprobación' },
+    'RECHAZADA_DOCENTE': { variant: 'destructive' as const, label: 'Rechazada' },
+    'EN_CURSO': { variant: 'default' as const, label: 'En Curso' },
+    'FINALIZADA_PENDIENTE_EVAL': { variant: 'default' as const, label: 'Finalizada' },
+    'EVALUACION_COMPLETA': { variant: 'success' as const, label: 'Evaluada' },
+    'CERRADA': { variant: 'outline' as const, label: 'Cerrada' },
+    'ANULADA': { variant: 'destructive' as const, label: 'Anulada' },
+  };
+  
+  return variants[estado as keyof typeof variants] || variants['PENDIENTE'];
+};
+
 export function MisPracticasCliente({ initialActionResponse }: MisPracticasClienteProps) {
-  // El estado se inicializa con los datos pasados desde el Server Component
   const [practicas] = React.useState<PracticaConDetalles[]>(initialActionResponse.data || []);
   const [error] = React.useState<string | null>(initialActionResponse.error || null);
+
+  const puedeVerEvaluacionInforme = (estado: string): boolean => {
+    return [
+      'EVALUACION_COMPLETA',
+      'CERRADA'
+    ].includes(estado);
+  };
+
+  const puedeSubirInforme = (estado: string): boolean => {
+    return [
+      'EN_CURSO',
+      'FINALIZADA_PENDIENTE_EVAL',
+      'EVALUACION_COMPLETA',
+    ].includes(estado);
+  };
 
   if (error) {
     return (
@@ -40,49 +71,179 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
 
   if (practicas.length === 0) {
     return (
-      <div className="text-center py-10 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-        <Info className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-        <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No tienes prácticas pendientes</h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Cuando tu coordinador inicie el registro de una práctica para ti, aparecerá aquí.
+      <div className="text-center py-16">
+        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <GraduationCap className="w-12 h-12 text-primary" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+          No tienes prácticas asignadas
+        </h3>
+        <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed mb-6">
+          Cuando tu coordinador inicie el registro de una práctica para ti, aparecerá aquí para que puedas completar la información requerida.
         </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+          <Button asChild>
+            <Link href="/dashboard">
+              <Info className="mr-2 h-4 w-4" />
+              Ir al Dashboard
+            </Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/perfil">
+              <User className="mr-2 h-4 w-4" />
+              Ver Mi Perfil
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {practicas.map((practica) => (
-        <Card key={practica.id} className="shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="text-xl flex justify-between items-center">
-              <span>
-                Práctica de: {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
-              </span>
-              <span className="text-sm font-normal px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300">
-                Pendiente Completar
-              </span>
-            </CardTitle>
-            <CardDescription>
-              {practica.tipo === 'LABORAL' ? 'Práctica Laboral' : 'Práctica Profesional'} en {practica.carrera?.nombre || 'Carrera no especificada'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <p><strong>Sede:</strong> {practica.carrera?.sede?.nombre || 'N/A'}</p>
-            <p><strong>Fecha de Inicio Programada:</strong> {format(new Date(practica.fechaInicio), "PPP", { locale: es })}</p>
-            <p><strong>Fecha de Término Estimada:</strong> {format(new Date(practica.fechaTermino), "PPP", { locale: es })}</p>
-            <p><strong>Docente Tutor Asignado:</strong> {practica.docente?.usuario?.nombre || ''} {practica.docente?.usuario?.apellido || 'No asignado'}</p>
-          </CardContent>
-          <CardFooter className="border-t pt-4">
-            <Button asChild size="sm" className="ml-auto">
-              <Link href={`/alumno/mis-practicas/${practica.id}/completar-acta`}>
-                <Edit3 className="mr-2 h-4 w-4" />
-                Completar Acta 1
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+    <div className="grid gap-6">
+      {practicas.map((practica) => {
+        const estadoBadge = getEstadoBadge(practica.estado);
+        
+        return (
+          <Card key={practica.id} className="overflow-hidden">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary text-primary-foreground">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      Práctica {practica.tipo === 'LABORAL' ? 'Laboral' : 'Profesional'}
+                    </CardTitle>
+                    <CardDescription className="text-base font-medium">
+                      {practica.carrera?.nombre || 'Carrera no especificada'}
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge variant={estadoBadge.variant} className="shadow-sm">
+                  {estadoBadge.label}
+                </Badge>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="p-6 space-y-6">
+              {/* Información del estudiante */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <InfoItem icon={User} label="Estudiante" value={`${practica.alumno?.usuario.nombre} ${practica.alumno?.usuario.apellido}`} />
+                  <InfoItem icon={MapPin} label="Sede" value={practica.carrera?.sede?.nombre || 'N/A'} />
+                  <InfoItem icon={User} label="Docente Tutor" value={`${practica.docente?.usuario?.nombre || ''} ${practica.docente?.usuario?.apellido || 'No asignado'}`} />
+                </div>
+                
+                <div className="space-y-2">
+                  <InfoItem icon={Calendar} label="Fecha Inicio" value={format(new Date(practica.fechaInicio), "PPP", { locale: es })} />
+                  <InfoItem icon={Calendar} label="Fecha Término" value={format(new Date(practica.fechaTermino), "PPP", { locale: es })} />
+                  {practica.direccionCentro && (
+                    <InfoItem icon={Building} label="Centro Práctica" value={practica.direccionCentro} />
+                  )}
+                </div>
+              </div>
+              
+              {/* Progress indicator */}
+              <div className="pt-6 border-t">
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-semibold">Progreso de la Práctica</span>
+                    </div>
+                    <span className="text-sm font-bold text-primary">
+                      {practica.estado === 'PENDIENTE' ? '20%' : 
+                       practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? '40%' :
+                       practica.estado === 'EN_CURSO' ? '60%' :
+                       practica.estado === 'FINALIZADA_PENDIENTE_EVAL' ? '80%' : '100%'}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={
+                      practica.estado === 'PENDIENTE' ? 20 : 
+                      practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' ? 40 :
+                      practica.estado === 'EN_CURSO' ? 60 :
+                      practica.estado === 'FINALIZADA_PENDIENTE_EVAL' ? 80 : 100
+                    }
+                    className="h-2"
+                  />
+                </div>
+              </div>
+            </CardContent>
+            
+            <CardFooter className="border-t p-4">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                {/* Botón Completar Acta 1 */}
+                {practica.estado === 'PENDIENTE' && (
+                  <Button asChild size="sm" className="flex-1">
+                    <Link href={`/alumno/mis-practicas/${practica.id}/completar-acta`}>
+                      <Edit3 className="mr-2 h-4 w-4" />
+                      Completar Acta 1
+                    </Link>
+                  </Button>
+                )}
+                
+                {/* Botón Subir/Ver Informe */}
+                {puedeSubirInforme(practica.estado) && (
+                  <Button asChild size="sm" variant="outline" className="flex-1">
+                    <Link href={`/alumno/subir-informe?practicaId=${practica.id}`}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      {practica.informeUrl ? 'Ver/Actualizar Informe' : 'Subir Informe Final'}
+                    </Link>
+                  </Button>
+                )}
+                
+                {/* Botón Ver Acta Final */}
+                {practica.estado === 'CERRADA' && practica.actaFinal && (
+                  <Button asChild size="sm" className="flex-1">
+                    <Link href={`/alumno/mis-practicas/${practica.id}/acta-final`}>
+                      <GraduationCap className="mr-2 h-4 w-4" />
+                      Ver Acta Final
+                    </Link>
+                  </Button>
+                )}
+                
+                {/* Botón Ver Evaluación de Informe */}
+                {puedeVerEvaluacionInforme(practica.estado) && (
+                  <div className="flex-1 relative">
+                    <Button asChild size="sm" variant="default" className="w-full bg-green-600 hover:bg-green-700 border-green-600 shadow-lg">
+                      <Link href={`/alumno/evaluaciones-informe/${practica.id}`}>
+                        <Star className="mr-2 h-4 w-4 fill-current" />
+                        Ver Evaluación Informe
+                      </Link>
+                    </Button>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white animate-pulse"></div>
+                  </div>
+                )}
+                
+                {/* Botón de información adicional */}
+                {practica.estado !== 'PENDIENTE' && (
+                  <Button asChild size="sm" variant="secondary" className="flex-1">
+                    <Link href={`/alumno/mis-practicas/${practica.id}`}>
+                      <Info className="mr-2 h-4 w-4" />
+                      Ver Detalles
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </CardFooter>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function InfoItem({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string }) {
+  return (
+    <div className="flex items-center space-x-3 p-2 rounded-md">
+      <Icon className="w-4 h-4 text-muted-foreground" />
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold">{value}</p>
+      </div>
     </div>
   );
 }

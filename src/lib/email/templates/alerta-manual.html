@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta de Práctica</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1E1E1E;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #007F7C, #005F5C);
+            color: #FFFFFF;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .alert-box {
+            background-color: #f8fafc;
+            border: 1px solid #D0D0D0;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #007F7C;
+        }
+        .alert-box.info {
+            background-color: #f0f9ff;
+            border-color: #bae6fd;
+            border-left-color: #00B0FF;
+        }
+        .alert-box h3 {
+            margin: 0 0 15px 0;
+            color: #374151;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .alert-box .message-content {
+            color: #1E1E1E;
+            font-size: 15px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .sender-info {
+            background-color: #f8fafc;
+            border: 1px solid #D0D0D0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .sender-info strong {
+            color: #007F7C;
+        }
+        .action-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007F7C;
+            color: #FFFFFF;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #005F5C;
+        }
+        .important-note {
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .important-note p {
+            margin: 0;
+            color: #92400e;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 25px 30px;
+            border-top: 1px solid #D0D0D0;
+            text-align: center;
+        }
+        .footer p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #007F7C;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            height: 1px;
+            background-color: #D0D0D0;
+            margin: 30px 0;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-muted {
+            color: #6b7280;
+        }
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Alerta de Práctica</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">
+                Mensaje importante del coordinador
+            </p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p>Estimado/a <strong>{{destinatarioNombre}}</strong>,</p>
+            
+            <p>Ha recibido un mensaje importante relacionado con su práctica profesional:</p>
+
+            <!-- Message Box -->
+            <div class="alert-box info">
+                <h3>Mensaje del coordinador:</h3>
+                <div class="message-content">{{mensaje}}</div>
+            </div>
+
+            <!-- Sender Info -->
+            <div class="sender-info">
+                <p style="margin: 0;">
+                    <strong>Enviado por:</strong> {{enviadoPor}}
+                </p>
+            </div>
+
+            <!-- Action Button -->
+            <div class="action-section">
+                <a href="{{loginUrl}}" class="btn">Acceder al Sistema</a>
+            </div>
+
+            <!-- Important Note -->
+            <div class="important-note">
+                <p>
+                    <strong>Importante:</strong> Por favor, revise su práctica en el sistema y tome las acciones necesarias según las indicaciones recibidas.
+                </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <p>Si tiene alguna consulta sobre este mensaje, no dude en contactar directamente al coordinador que le envió esta alerta.</p>
+
+            <p>Saludos cordiales,<br>
+            <strong>Sistema de Gestión de Prácticas</strong></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Esta es una alerta manual del Sistema de Gestión de Prácticas.</p>
+            <p>Enviada el {{fechaActual}}</p>
+            <p>Este es un mensaje automático del Sistema de Gestión de Prácticas Profesionales.</p>
+            <p>No responda a este correo electrónico.</p>
+            <p>Para consultas, contacte a su coordinador o visite <a href="{{loginUrl}}">el sistema</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Práctica Subido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .alert-box {
+            background-color: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .alert-box h3 {
+            color: #2e7d32;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .info-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .info-section h4 {
+            color: #495057;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .info-item {
+            margin: 8px 0;
+        }
+        .info-item strong {
+            color: #2c3e50;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+        .priority {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .priority strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Informe de Práctica Subido</h1>
+        </div>
+        
+        <div class="content">
+            <p>Estimado/a <strong>{{docenteNombre}}</strong>,</p>
+            
+            <div class="alert-box">
+                <h3>✅ Informe Disponible para Evaluación</h3>
+                <p>El alumno <strong>{{alumnoNombre}}</strong> ha subido su informe de práctica y está listo para su evaluación.</p>
+            </div>
+            
+            <div class="info-section">
+                <h4>📋 Información de la Práctica</h4>
+                <div class="info-item"><strong>Alumno:</strong> {{alumnoNombre}}</div>
+                <div class="info-item"><strong>RUT:</strong> {{alumnoRut}}</div>
+                <div class="info-item"><strong>Carrera:</strong> {{carreraNombre}}</div>
+                <div class="info-item"><strong>Sede:</strong> {{sedeNombre}}</div>
+                <div class="info-item"><strong>Centro de Práctica:</strong> {{centroPractica}}</div>
+                <div class="info-item"><strong>Fecha de Subida:</strong> {{fechaSubida}}</div>
+            </div>
+            
+            <div class="priority">
+                <strong>⏰ Acción Requerida:</strong> Por favor, proceda a evaluar el informe de práctica del alumno. Recuerde que tiene un plazo establecido para completar la evaluación.
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{evaluacionUrl}}" class="cta-button">
+                    📝 Evaluar Informe Ahora
+                </a>
+            </div>
+            
+            <p>Si tiene alguna consulta o necesita asistencia, no dude en contactar al coordinador de carrera.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Este es un mensaje automático del Sistema de Gestión de Prácticas.</p>
+            <p>Por favor, no responda a este correo.</p>
+        </div>
+    </div>
+</body>
+</html>

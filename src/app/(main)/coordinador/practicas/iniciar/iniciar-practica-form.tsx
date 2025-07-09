@@ -167,7 +167,15 @@ export function IniciarPracticaForm() {
       const result: ActionResponse<PracticaConDetalles> = await iniciarPracticaAction(data, selectedAlumnoData.carreraId);
 
       if (result.success && result.data) {
-        toast.success(`Registro de práctica para "${result.data.alumno?.usuario.nombre} ${result.data.alumno?.usuario.apellido}" iniciado exitosamente. Estado: PENDIENTE.`);
+        // Mensaje de éxito mejorado que incluye información sobre la notificación
+        const alumnoNombre = `${result.data.alumno?.usuario.nombre} ${result.data.alumno?.usuario.apellido}`;
+        const message = result.message || 
+          `Registro de práctica para "${alumnoNombre}" iniciado exitosamente. Estado: PENDIENTE.`;
+        
+        toast.success(message, {
+          description: "El alumno ha recibido un correo con las instrucciones para completar el Acta 1.",
+          duration: 6000
+        });
         form.reset({
             alumnoId: undefined,
             docenteId: undefined,
@@ -324,11 +332,6 @@ export function IniciarPracticaForm() {
                   <p>
                     <strong>Sede:</strong>{" "}
                     {selectedAlumnoData.sedeNombreDeCarrera}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    (ID Carrera: {selectedAlumnoData.carreraId} - Horas Lab:{" "}
-                    {selectedAlumnoData.carreraHorasLaboral}, Prof:{" "}
-                    {selectedAlumnoData.carreraHorasProfesional})
                   </p>
                 </div>
               </div>

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext"; 
-import { Toaster as SonnerToaster } from 'sonner'; // Si no lo tienes globalmente ya
-import Navbar from "@/components/layout/Navbar";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { InactivityProvider } from "@/contexts/InactivityContext";
+import { Toaster as SonnerToaster } from 'sonner';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,12 +18,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
-          <SonnerToaster richColors position="top-center" />
+          <InactivityProvider>
+            <main>{children}</main>
+            <SonnerToaster richColors position="top-center" />
+          </InactivityProvider>
         </AuthProvider>
       </body>
     </html>
