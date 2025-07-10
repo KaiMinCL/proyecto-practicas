@@ -120,7 +120,7 @@ export class EmpleadorService {
             estado: 'ACTIVO',
             rol: {
               connect: {
-                nombre: 'Empleador'
+                nombre: 'EMPLEADOR'
               }
             }
           }
