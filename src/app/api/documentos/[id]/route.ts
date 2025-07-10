@@ -166,7 +166,7 @@ export async function DELETE(
   try {
     // Verificar autenticación y rol
     const session = await verifyUserSession();
-    if (!session || session.rol !== 'Coordinador') {
+    if (!session || session.rol !== 'COORDINADOR') {
       return NextResponse.json(
         { message: 'No autorizado' },
         { status: 401 }
