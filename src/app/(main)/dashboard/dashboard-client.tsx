@@ -13,6 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
+import { DashboardAlumno } from './dashboard-alumno';
 
 interface DashboardClientProps {
   user: UserJwtPayload;
@@ -172,6 +173,11 @@ export function DashboardClient({ user }: DashboardClientProps) {
   };
 
   const statCards = getStatCards();
+
+  // Para alumnos, usar el dashboard específico
+  if (user.rol === 'ALUMNO') {
+    return <DashboardAlumno user={user} />;
+  }
 
   return (
     <div className="space-y-8">

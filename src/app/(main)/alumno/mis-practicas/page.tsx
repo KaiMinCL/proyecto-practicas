@@ -41,14 +41,11 @@ export default async function MisPracticasPage() {
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Mis Prácticas
             </h1>
-            <p className="font-medium text-primary">
-              {userPayload.nombre} {userPayload.apellido}
+            <p className="font-medium text-muted-foreground">
+              Gestiona tus prácticas asignadas, completa la información requerida y sube tus informes finales.
             </p>
           </div>
         </div>
-        <p className="mt-4 text-muted-foreground leading-relaxed">
-          Gestiona tus prácticas asignadas, completa la información requerida y sube tus informes finales.
-        </p>
       </div>
 
       {/* Main Content */}
