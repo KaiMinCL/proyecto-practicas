@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getUserSession } from '@/lib/auth';
 import type { RoleName } from '@/types/roles';
-import { CentrosPracticaClient } from './centros-practiva-client';
+import { CentrosPracticaClient } from './centros-practica-client';
 import { Briefcase } from 'lucide-react';
 
 const REQUIRED_ROLE: RoleName = 'SUPER_ADMIN';
