@@ -48,3 +48,27 @@ export async function GET() {
     );
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const user = await verifyUserSession();
+    if (!user || user.rol !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const { id, estado } = await request.json();
+    if (!id || !['ACTIVO', 'INACTIVO'].includes(estado)) {
+      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
+    }
+
+    await prisma.usuario.update({
+      where: { id },
+      data: { estado },
+    });
+
+    return NextResponse.json({ success: true, message: `Usuario ${estado === 'ACTIVO' ? 'activado' : 'desactivado'} exitosamente.` });
+  } catch (error) {
+    console.error('Error al actualizar estado de usuario:', error);
+    return NextResponse.json({ error: 'Error al actualizar estado de usuario' }, { status: 500 });
+  }
+}

@@ -1,10 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useActionState } from 'react';
 import { toast } from 'sonner';
-import { deactivateUserAction, reactivateUserAction } from './actions';
-import type { ToggleUserStateFormState } from './actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,30 +27,31 @@ export function ToggleUserStateDialog({ userId, userName, isActive, onSuccess }:
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleAction = isActive ? deactivateUserAction : reactivateUserAction;
-  const [state, formAction] = useActionState<ToggleUserStateFormState, FormData>(toggleAction, {
-    message: undefined,
-    errors: undefined,
-    success: false
-  });
-
-  useEffect(() => {    
-    if (state?.success) {
-      setOpen(false);
-      toast.success(state.message);
-      if (onSuccess) onSuccess();
-    } else if (state?.errors) {
-      Object.entries(state.errors).forEach(([, messages]) => {
-        if (Array.isArray(messages)) {
-          messages.forEach((message) => toast.error(message));
-        }
-      });
-    }
-    setIsSubmitting(false);
-  }, [state, onSuccess]);
-
   const Icon = isActive ? UserX : UserCheck;
   const actionText = isActive ? 'Desactivar' : 'Activar';
+
+  async function handleToggle() {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/usuarios', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, estado: isActive ? 'INACTIVO' : 'ACTIVO' })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(data.message);
+        setOpen(false);
+        if (onSuccess) onSuccess();
+      } else {
+        toast.error(data.error || data.message || 'Error al actualizar usuario');
+      }
+    } catch (e) {
+      toast.error('Error de red al actualizar usuario');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -92,21 +90,18 @@ export function ToggleUserStateDialog({ userId, userName, isActive, onSuccess }:
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
-          <form action={formAction}>
-            <input type="hidden" name="id" value={userId} />
-            <AlertDialogAction 
-              type="submit" 
-              disabled={isSubmitting}
-              onClick={() => setIsSubmitting(true)}
-              className={isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
-            >
-              {isSubmitting ? (
-                `${isActive ? 'Desactivando...' : 'Activando...'}`
-              ) : (
-                `${actionText}`
-              )}
-            </AlertDialogAction>
-          </form>
+          <AlertDialogAction 
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleToggle}
+            className={isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
+          >
+            {isSubmitting ? (
+              `${isActive ? 'Desactivando...' : 'Activando...'}`
+            ) : (
+              `${actionText}`
+            )}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
