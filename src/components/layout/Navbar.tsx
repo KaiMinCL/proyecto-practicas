@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
@@ -16,21 +17,59 @@ import {
   User, 
   Settings, 
   LogOut,
+  Bell
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+
+// Tipado para alertas
+interface NavbarAlert {
+  id: string;
+  type: 'warning' | 'error' | 'info';
+  title: string;
+  description: string;
+  count?: number;
+}
 
 export default function Navbar() {
   const { user, isLoading, logout } = useAuth();
   const pathname = usePathname();
+  const [alerts, setAlerts] = React.useState<NavbarAlert[]>([]);
+  const [loadingAlerts, setLoadingAlerts] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user || (user.rol !== 'ADMIN' && user.rol !== 'COORDINADOR')) return;
+    setLoadingAlerts(true);
+    fetch(`/api/${user.rol.toLowerCase()}/stats`)
+      .then(res => res.json())
+      .then(data => {
+        // Adaptar según backend: aquí se asume que hay un campo 'alertas' o similar
+        if (data && data.alertas) setAlerts(data.alertas);
+        else if (data && data.practicasPendientesRevision) {
+          // Ejemplo para coordinador
+          const arr = [];
+          if (data.practicasPendientesRevision > 0) {
+            arr.push({
+              id: '1',
+              type: 'warning' as const,
+              title: 'Prácticas pendientes de revisión',
+              description: `Tienes ${data.practicasPendientesRevision} prácticas que requieren revisión`,
+              count: data.practicasPendientesRevision
+            });
+          }
+          setAlerts(arr);
+        }
+      })
+      .finally(() => setLoadingAlerts(false));
+  }, [user]);
 
   return (
     <nav className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
       <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center h-16">
           {/* Logo */}
           <Link 
             href={user ? "/dashboard" : "/"} 
-            className="flex items-center space-x-2 font-bold text-xl text-foreground hover:text-primary transition-colors"
+            className="flex items-center space-x-2 font-bold text-xl text-foreground hover:text-primary transition-colors mr-auto"
           >
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,7 +80,36 @@ export default function Navbar() {
           </Link>
 
           {/* Right side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 ml-auto">
+            {/* Notificaciones para Admin y Coordinador */}
+            {user && (user.rol === 'ADMIN' || user.rol === 'COORDINADOR') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative p-2">
+                    <Bell className="h-5 w-5 text-muted-foreground" />
+                    {alerts.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-destructive text-white rounded-full text-xs w-5 h-5 flex items-center justify-center animate-pulse">
+                        {alerts.length}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <div className="px-2 py-2 font-semibold text-foreground text-sm border-b">Alertas del Sistema</div>
+                  {loadingAlerts ? (
+                    <div className="p-4 text-center text-muted-foreground text-xs">Cargando alertas...</div>
+                  ) : alerts.length === 0 ? (
+                    <div className="p-4 text-center text-muted-foreground text-xs">Sin alertas pendientes</div>
+                  ) : alerts.map(alert => (
+                    <DropdownMenuItem key={alert.id} className="flex flex-col items-start gap-1">
+                      <span className="font-medium text-sm">{alert.title}</span>
+                      <span className="text-xs text-muted-foreground">{alert.description}</span>
+                      {alert.count && <span className="text-xs font-bold text-primary">{alert.count}</span>}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             {isLoading ? (
               <div className="flex items-center space-x-3">
                 <Skeleton className="h-8 w-8 rounded-full" />
