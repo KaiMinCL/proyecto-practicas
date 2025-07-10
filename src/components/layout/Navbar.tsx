@@ -17,9 +17,11 @@ import {
   Settings, 
   LogOut,
 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const { user, isLoading, logout } = useAuth();
+  const pathname = usePathname();
 
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
@@ -92,15 +94,18 @@ export default function Navbar() {
                 </DropdownMenu>
               </>
             ) : (
-              <div className="flex items-center space-x-3">
-                {/* Login Button */}
-                <Button asChild variant="default" size="sm">
-                  <Link href="/login" className="flex items-center">
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Iniciar Sesión
-                  </Link>
-                </Button>
-              </div>
+              // Hide login button on login page routes
+              pathname !== '/' && pathname !== '/login' && (
+                <div className="flex items-center space-x-3">
+                  {/* Login Button */}
+                  <Button asChild variant="default" size="sm">
+                    <Link href="/login" className="flex items-center">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Iniciar Sesión
+                    </Link>
+                  </Button>
+                </div>
+              )
             )}
           </div>
         </div>

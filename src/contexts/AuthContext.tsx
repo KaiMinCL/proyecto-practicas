@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { UserJwtPayload } from '@/lib/auth'; 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 
 export interface AuthContextType {
@@ -22,31 +22,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserJwtPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
-  useEffect(() => {
-    async function loadUserSession() {
-      setIsLoading(true);
-      try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const sessionData = await response.json();
-          if (sessionData) { // Check if sessionData is not null
-            setUser(sessionData as UserJwtPayload);
-          } else {
-            setUser(null);
-          }
-        } else {
-          setUser(null); // Fijar el estado de usuario a null si la respuesta no es ok
-        }
-      } catch (error) {
-        console.error("Error al cargar la sesión del usuario en AuthContext:", error);
+  // Function to load or refresh user session
+  const loadUserSession = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/session');
+      if (response.ok) {
+        const sessionData = await response.json();
+        setUser(sessionData || null);
+      } else {
         setUser(null);
-      } finally {
-        setIsLoading(false);
       }
+    } catch (error) {
+      console.error("Error al cargar la sesión del usuario en AuthContext:", error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Initial load
+  useEffect(() => {
     loadUserSession();
   }, []);
+
+  // Refresh session on route change if not already authenticated
+  useEffect(() => {
+    if (!user) {
+      loadUserSession();
+    }
+  }, [pathname]);
 
   const login = (tokenPayload: UserJwtPayload) => {
     setUser(tokenPayload as UserJwtPayload);

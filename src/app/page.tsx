@@ -28,7 +28,7 @@ const initialFormState: LoginFormState = {
 };
 
 export default function LoginPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, login } = useAuth();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [formState, formAction] = useActionState(loginUser, initialFormState);
@@ -50,8 +50,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (formState.success) {
-      // La redirección ya ocurre en la Server Action.
-      console.log("Login exitoso (manejado por Server Action redirect). Mensaje:", formState.message);
+      // Update context and redirect
+      if (formState.tokenPayload) {
+        login(formState.tokenPayload);
+      }
+      if (formState.redirectTo) {
+        router.push(formState.redirectTo);
+      }
     } else if (formState.message || Object.keys(formState.errors || {}).length > 0) {
       // Si hay un mensaje general de error
       if (formState.errors?.general) {

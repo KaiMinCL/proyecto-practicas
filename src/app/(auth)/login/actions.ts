@@ -2,7 +2,8 @@
 
 import { LoginSchema, LoginFormData } from '@/lib/validators';
 import { verifyCredentials, generateJwtToken, setAuthCookie } from '@/lib/auth'; 
-import { redirect } from 'next/navigation';
+import type { UserJwtPayload } from '@/lib/auth';
+// import { redirect } from 'next/navigation';
 
 // Define un tipo para el estado de la acción, útil para React Hook Form
 export interface LoginFormState {
@@ -14,6 +15,7 @@ export interface LoginFormState {
   };
   success?: boolean;
   redirectTo?: string;
+  tokenPayload?: UserJwtPayload; // JWT payload to set in context
 }
 
 /*
@@ -46,6 +48,8 @@ export async function loginUser(
 
   const { rut, password } = validatedFields.data;
 
+  // Prepare variable to hold payload
+  let tokenPayload: UserJwtPayload;
   try {
     // 3. Verificar credenciales
     const user = await verifyCredentials({ rut, password });
@@ -60,7 +64,7 @@ export async function loginUser(
     }
 
     // 4. Generar JWT
-    const tokenPayload = {
+    tokenPayload = {
       userId: user.id,
       rut: user.rut,
       rol: user.rol,
@@ -72,7 +76,7 @@ export async function loginUser(
     const token = generateJwtToken(tokenPayload);
 
     // 5. Establecer la cookie HttpOnly
-    setAuthCookie(token);
+    await setAuthCookie(token);
 
     console.log(`Login exitoso para usuario: ${user.rut}, Rol: ${user.rol}. Redirigiendo...`);
 
@@ -90,20 +94,10 @@ export async function loginUser(
     };
   }
 
-    // 6. Redirección 
-
-  // Si todo fue exitoso, preparamos para la redirección
-  // La redirección se puede manejar en el cliente basado en `success` y `redirectTo`
-  // O puedes llamar a redirect() aquí directamente, pero debe ser lo último.
-  // Por ejemplo, para redirigir a un dashboard genérico:
-  // redirect('/dashboard');
-  // O a un dashboard específico por rol:
-  // if (user.rol === 'Alumno') redirect('/alumno/dashboard');
-  // else if (user.rol === 'Docente') redirect('/docente/dashboard');
-  // etc.
-
-  // ¡Importante! La llamada a redirect() debe estar fuera del bloque try/catch si quieres que
-  // el error del redirect (si ocurre) no sea capturado por tu catch genérico.
-  // También, redirect() lanza una excepción especial, por lo que nada después de ella se ejecuta.
-  redirect('/dashboard'); // Cambiar '/dashboard' a la ruta deseada
+  // Return success with payload instead of server redirect
+  return {
+    success: true,
+    redirectTo: '/dashboard',
+    tokenPayload,
+  };
 }
