@@ -31,7 +31,7 @@ export async function GET(
 
     // 1. Verificar autenticación
     const user = await verifyUserSession();
-    if (!user || user.rol !== 'SA') {
+    if (!user || (user.rol !== 'SUPER_ADMIN')) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -107,7 +107,7 @@ export async function PUT(
 
     // 1. Verificar autenticación
     const user = await verifyUserSession();
-    if (!user || user.rol !== 'SA') {
+    if (!user || (user.rol !== 'SUPER_ADMIN' && user.rol !== 'SA')) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
