@@ -142,7 +142,7 @@ export default function ActaFinalPage({ params }: { params: Promise<{ practicaId
 
       // Redirigir a la lista de prácticas después de un pequeño delay
       setTimeout(() => {
-        router.push('/docente/practicas');
+        router.push('/dashboard');
       }, 2000);
 
     } catch (err) {
@@ -433,7 +433,7 @@ export default function ActaFinalPage({ params }: { params: Promise<{ practicaId
       <div className="mt-8 flex justify-center">
         <Button 
           variant="outline" 
-          onClick={() => router.push('/docente/practicas')}
+          onClick={() => router.push('/dashboard')}
           className="px-6"
         >
           Volver a Mis Prácticas

@@ -28,7 +28,7 @@ export default async function RevisarActaPage({ params: paramsPromise }: PagePro
 
   if (userPayload.rol !== REQUIRED_ROLE) {
     console.warn(
-      `Acceso no autorizado a /docente/practicas-pendientes/.../revisar-acta. Usuario RUT: ${userPayload.rut}, Rol: ${userPayload.rol}.`
+      `Acceso no autorizado a /docente/practicas/.../revisar-acta. Usuario RUT: ${userPayload.rut}, Rol: ${userPayload.rol}.`
     );
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const dashboardUrl = new URL('/dashboard', baseUrl);

@@ -228,7 +228,7 @@ export default function EvaluarInformePage() {
       })
 
       // Redirigir a la lista de prácticas
-      router.push('/docente/practicas-pendientes')
+      router.push('/dashboard')
       
     } catch (error) {
       console.error('Error al guardar evaluación:', error)

@@ -273,7 +273,7 @@ export async function updatePracticaCoordDCAction(
       revalidatePath(`/admin/practicas`); 
       revalidatePath(`/coordinador/practicas/${practicaId}/editar`); 
       revalidatePath(`/alumno/mis-practicas/${practicaId}`); 
-      revalidatePath(`/docente/practicas-pendientes/${practicaId}/revisar-acta`); 
+      revalidatePath(`/docente/practicas/${practicaId}/revisar-acta`); 
 
       return { 
         success: true, 

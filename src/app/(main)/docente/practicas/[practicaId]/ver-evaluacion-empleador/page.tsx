@@ -247,7 +247,7 @@ export default function VerEvaluacionEmpleadorPage() {
 
       {/* Botón de acción */}
       <div className="flex justify-end mt-8">
-        <Button onClick={() => router.push('/docente/practicas')}>
+        <Button onClick={() => router.push('/dashboard')}>
           Ver Todas las Prácticas
         </Button>
       </div>

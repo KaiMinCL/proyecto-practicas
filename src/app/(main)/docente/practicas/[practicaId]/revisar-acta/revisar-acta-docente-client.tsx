@@ -146,8 +146,8 @@ export function RevisarActaDocenteCliente({ practica: initialPractica }: Revisar
         }));
         setIsRejectModalOpen(false); // Cierra el modal de rechazo si estaba abierto y fue exitoso
         
-        // Redirigir a la lista de pendientes. 
-        router.push('/docente/practicas-pendientes'); 
+        // Redirigir al dashboard del docente
+        router.push('/dashboard'); 
 
       } else {
         toast.error(result.error || "No se pudo procesar la decisión.");
