@@ -46,11 +46,18 @@ interface CentroPractica {
 interface EditCentroDialogProps {
   centro: CentroPractica;
   onSuccess: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export function EditCentroDialog({ centro, onSuccess }: EditCentroDialogProps) {
+export function EditCentroDialog({ centro, onSuccess, open: controlledOpen, onOpenChange, hideTrigger }: EditCentroDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Permitir control externo del estado open
+  const isDialogOpen = controlledOpen !== undefined ? controlledOpen : open;
+  const handleOpenChange = onOpenChange || setOpen;
 
   const form = useForm<UpdateCentroFormData>({
     resolver: zodResolver(UpdateCentroSchema),
@@ -105,12 +112,14 @@ export function EditCentroDialog({ centro, onSuccess }: EditCentroDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Edit className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Edit className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
-import { Search, Building2, Users } from 'lucide-react';
+import { Search, Building2, Users, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { AssociateCentroDialog } from '../../../../components/custom/associate-centro-dialog';
 import { CreateCentroDialog } from '../../../../components/custom/create-centro-dialog';
@@ -45,6 +45,10 @@ export function CentrosPracticaClient() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Nuevo estado para edición
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [centroToEdit, setCentroToEdit] = useState<CentroPractica | null>(null);
+
   const fetchCentros = useCallback(async () => {
     setLoading(true);
     try {
@@ -70,6 +74,16 @@ export function CentrosPracticaClient() {
     centro.nombreEmpresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (centro.giro && centro.giro.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Handler para abrir el diálogo de edición
+  const handleOpenEditDialog = (centro: CentroPractica) => {
+    setCentroToEdit(centro);
+    setIsEditDialogOpen(true);
+  };
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setCentroToEdit(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -132,7 +146,9 @@ export function CentrosPracticaClient() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                         <AssociateCentroDialog centro={centro} onSuccess={fetchCentros} />
-                        <EditCentroDialog centro={centro} onSuccess={fetchCentros} />
+                        <Button variant="outline" size="sm" onClick={() => handleOpenEditDialog(centro)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -141,6 +157,21 @@ export function CentrosPracticaClient() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Diálogo global de edición */}
+      {centroToEdit && (
+        <EditCentroDialog
+          centro={centroToEdit}
+          onSuccess={() => {
+            fetchCentros();
+            handleCloseEditDialog();
+          }}
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) handleCloseEditDialog();
+          }}
+        />
+      )}
     </div>
   );
 }
