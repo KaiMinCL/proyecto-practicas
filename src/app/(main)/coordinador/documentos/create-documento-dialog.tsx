@@ -66,18 +66,12 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
     async function loadData() {
       try {
         setLoadingData(true);
-        const [carrerasResponse, sedesResponse] = await Promise.all([
-          CarreraService.getCarreras(),
-          SedeService.getSedes()
+        const [carrerasRes, sedesRes] = await Promise.all([
+          fetch('/api/carreras').then(r => r.json()),
+          fetch('/api/sedes').then(r => r.json()),
         ]);
-
-        if (carrerasResponse.success) {
-          setCarreras(carrerasResponse.data || []);
-        }
-
-        if (sedesResponse.success) {
-          setSedes(sedesResponse.data || []);
-        }
+        setCarreras(Array.isArray(carrerasRes) ? carrerasRes : []);
+        setSedes(Array.isArray(sedesRes) ? sedesRes : []);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -203,7 +197,7 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
                   <SelectValue placeholder="Seleccionar sede (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las sedes</SelectItem>
+                  <SelectItem value="0">Todas las sedes</SelectItem>
                   {loadingData ? (
                     <SelectItem value="" disabled>Cargando sedes...</SelectItem>
                   ) : (
@@ -228,7 +222,7 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
                   <SelectValue placeholder="Seleccionar carrera (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las carreras</SelectItem>
+                  <SelectItem value="0">Todas las carreras</SelectItem>
                   {loadingData ? (
                     <SelectItem value="" disabled>Cargando carreras...</SelectItem>
                   ) : (
