@@ -43,33 +43,9 @@ const navigationItems: NavItem[] = [
   },
   // Coordinador routes
   {
-    title: 'Gestión de Alumnos',
-    href: '/coordinador/alumnos',
-    icon: Users,
-    roles: ['COORDINADOR'],
-  },
-  {
-    title: 'Gestión de Empleadores',
-    href: '/coordinador/empleadores',
-    icon: Building,
-    roles: ['COORDINADOR'],
-  },
-  {
     title: 'Gestión de Usuarios',
     href: '/coordinador/usuarios',
     icon: UserCheck,
-    roles: ['COORDINADOR'],
-  },
-  {
-    title: 'Centros de Práctica',
-    href: '/coordinador/centros',
-    icon: Building,
-    roles: ['COORDINADOR'],
-  },
-  {
-    title: 'Iniciar Práctica',
-    href: '/coordinador/practicas/iniciar',
-    icon: FileText,
     roles: ['COORDINADOR'],
   },
   {

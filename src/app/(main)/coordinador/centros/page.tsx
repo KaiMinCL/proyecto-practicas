@@ -14,6 +14,8 @@ import {
   Input,
   Badge,
   Button,
+  Card,
+  CardContent,
 } from '@/components/ui';
 import { CreateCentroDialog } from './create-centro-dialog';
 import { EditCentroDialog } from './edit-centro-dialog';
@@ -105,31 +107,32 @@ export default function CentrosPracticaPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-[#007F7C]" />
-            Centros de Práctica
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Gestiona la información de los centros donde realizan prácticas los alumnos
-          </p>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header minimalista */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+          <Building2 className="h-6 w-6 text-[#007F7C]" />
+          Centros de Práctica
+        </h1>
+        <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed mb-4">
+          Gestiona la información de los centros donde realizan prácticas los alumnos.
+        </p>
         <CreateCentroDialog onSuccess={fetchCentros} />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+      {/* Search mejorada */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
           <Input
-            placeholder="Buscar por empresa, giro, dirección o empleador..."
+            placeholder="Buscar por nombre, giro, dirección o empleador..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
+            className="pl-4 py-2 text-base border-gray-300 focus:border-primary focus:ring-0 rounded-md"
+            autoFocus
+            aria-label="Buscar centros"
           />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <div className="border rounded-md">
         <Table>
