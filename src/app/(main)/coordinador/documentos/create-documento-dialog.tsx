@@ -52,11 +52,11 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string>('');
-  const [carreras, setCarreras] = useState<Array<{id: number, nombre: string, sede?: {id: number, nombre: string}}>>([]);
+  const [carreras, setCarreras] = useState<Array<{id: number, nombre: string, sedeId?: number, sede?: {id?: number, nombre: string}}>>([]);
   const [sedes, setSedes] = useState<Array<{id: number, nombre: string}>>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [selectedSedeId, setSelectedSedeId] = useState<string>('');
-  const [filteredCarreras, setFilteredCarreras] = useState<Array<{id: number, nombre: string, sede?: {id: number, nombre: string}}>>([]);
+  const [selectedSedeId, setSelectedSedeId] = useState<string>('0');
+  const [filteredCarreras, setFilteredCarreras] = useState<Array<{id: number, nombre: string, sedeId?: number, sede?: {id?: number, nombre: string}}>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [state, formAction] = useFormState(createDocumentoAction, initialState);
@@ -98,10 +98,10 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
   }, [state.success, state.documento, open, onDocumentoCreated]);
 
   useEffect(() => {
-    if (!selectedSedeId) {
+    if (selectedSedeId === '0') {
       setFilteredCarreras(carreras);
     } else {
-      setFilteredCarreras(carreras.filter(c => c.sede?.id?.toString() === selectedSedeId));
+      setFilteredCarreras(carreras.filter(c => c.sedeId?.toString() === selectedSedeId));
     }
   }, [selectedSedeId, carreras]);
 
