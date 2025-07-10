@@ -202,121 +202,25 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
         </Card>
       )}
 
-      {/* Estadísticas generales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Prácticas Activas</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.practicas.enCurso}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.practicas.pendientes} pendientes de revisión
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Carreras</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.carreras.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.carreras.activas} activas
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Estudiantes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.usuarios.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.usuarios.activos} activos
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Prácticas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.practicas.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.practicas.finalizadas} finalizadas
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Segunda fila de cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Configuración de Evaluaciones - Popup Inline */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Configuración de Evaluaciones
-            </CardTitle>
-            <CardDescription>
-              Ponderaciones actuales para el cálculo de notas finales
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-muted/50 rounded-lg">
-                  <div className="text-2xl font-bold text-primary">{configuracion.porcentajeEmpleador}%</div>
-                  <div className="text-sm text-muted-foreground">Evaluación Empleador</div>
-                </div>
-                <div className="text-center p-4 bg-muted/50 rounded-lg">
-                  <div className="text-2xl font-bold text-primary">{configuracion.porcentajeInforme}%</div>
-                  <div className="text-sm text-muted-foreground">Evaluación Informe</div>
-                </div>
-              </div>
-              
-              <ConfiguracionEvaluacionDialog
-                onConfiguracionChange={(newConfig: ConfiguracionEvaluacionCallback) => {
-                  setConfiguracion({
-                    porcentajeEmpleador: newConfig.pesoEvaluacionEmpleador,
-                    porcentajeInforme: newConfig.pesoEvaluacionInforme
-                  });
-                }}
-              >
-                <Button size="sm" variant="outline" className="w-full">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Modificar Ponderaciones
-                </Button>
-              </ConfiguracionEvaluacionDialog>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Acceso rápido a Carreras */}
+        {/* Gestión de Alumnos */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5" />
-                  Gestión de Carreras
+                  <Users className="w-5 h-5" />
+                  Gestión de Alumnos
                 </CardTitle>
                 <CardDescription>
-                  Administra las carreras de tu dirección
+                  Administra los alumnos de tu carrera
                 </CardDescription>
               </div>
               <Button asChild variant="outline" size="sm">
-                <Link href="/admin/carreras">
+                <Link href="/director/alumnos">
                   <Eye className="w-4 h-4 mr-2" />
-                  Ver Todas
+                  Ver Todos
                 </Link>
               </Button>
             </div>
@@ -324,42 +228,73 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Carreras activas</span>
-                <span className="text-sm font-semibold">{stats.carreras.activas}</span>
+                <span className="text-sm text-muted-foreground">Total alumnos</span>
+                <span className="text-sm font-semibold">{stats.usuarios.total}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total carreras</span>
-                <span className="text-sm font-semibold">{stats.carreras.total}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/admin/carreras?action=create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nueva Carrera
-                  </Link>
-                </Button>
+                <span className="text-sm text-muted-foreground">Activos</span>
+                <span className="text-sm font-semibold">{stats.usuarios.activos}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Acceso al Repositorio */}
+        {/* Gestión de Prácticas */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Gestión de Prácticas
+                </CardTitle>
+                <CardDescription>
+                  Supervisa y administra las prácticas de tu carrera
+                </CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/director/practicas">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Ver Todos
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">En curso</span>
+                <span className="text-sm font-semibold">{stats.practicas.enCurso}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Pendientes de revisión</span>
+                <span className="text-sm font-semibold">{stats.practicas.pendientes}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Finalizadas</span>
+                <span className="text-sm font-semibold">{stats.practicas.finalizadas}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gestión de Documentos y Actas */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Archive className="w-5 h-5" />
-                  Repositorio de Informes
+                  Documentos y Actas
                 </CardTitle>
                 <CardDescription>
-                  Consulta informes históricos
+                  Gestiona documentos, actas y reportes de tu carrera
                 </CardDescription>
               </div>
               <Button asChild variant="outline" size="sm">
-                <Link href="/admin/repositorio-informes">
+                <Link href="/director/documentos">
                   <Eye className="w-4 h-4 mr-2" />
-                  Abrir
+                  Ver Todos
                 </Link>
               </Button>
             </div>
@@ -367,20 +302,12 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Informes disponibles</span>
+                <span className="text-sm text-muted-foreground">Repositorio de informes</span>
                 <span className="text-sm font-semibold">-</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Último acceso</span>
+                <span className="text-sm text-muted-foreground">Actas gestionadas</span>
                 <span className="text-sm font-semibold">-</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/admin/repositorio-informes">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Buscar Informes
-                  </Link>
-                </Button>
               </div>
             </div>
           </CardContent>
@@ -400,7 +327,7 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="volumen" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="volumen" className="flex items-center space-x-2">
                 <BarChart3 className="h-4 w-4" />
                 <span>Volumen de Prácticas</span>
@@ -408,10 +335,6 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
               <TabsTrigger value="estado" className="flex items-center space-x-2">
                 <TrendingUp className="h-4 w-4" />
                 <span>Estado de Finalización</span>
-              </TabsTrigger>
-              <TabsTrigger value="repositorio" className="flex items-center space-x-2">
-                <Archive className="h-4 w-4" />
-                <span>Repositorio</span>
               </TabsTrigger>
             </TabsList>
 
@@ -436,18 +359,6 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
                   </p>
                 </div>
                 <ReporteEstadoFinalizacionClient />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="repositorio" className="space-y-4">
-              <div className="border rounded-lg p-4">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold">Repositorio de Informes</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Accede y gestiona los informes archivados del sistema
-                  </p>
-                </div>
-                <RepositorioInformesClient rol="DIRECTOR_CARRERA" />
               </div>
             </TabsContent>
           </Tabs>
