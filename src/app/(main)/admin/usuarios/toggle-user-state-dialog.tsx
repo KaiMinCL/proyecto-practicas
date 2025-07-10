@@ -73,15 +73,21 @@ export function ToggleUserStateDialog({ userId, userName, isActive, onSuccess }:
             {actionText} Usuario
           </AlertDialogTitle>
           <AlertDialogDescription>
-            <p className="mb-2">
+            <span className="mb-2 block">
               <strong>Usuario:</strong> {userName}
-            </p>
-            <p>
-              {isActive 
-                ? `¿Está seguro que desea desactivar este usuario? No podrá iniciar sesión hasta que sea reactivado.`
-                : `¿Está seguro que desea reactivar este usuario? Podrá volver a iniciar sesión en el sistema.`
-              }
-            </p>
+            </span>
+            {isActive
+              ? (
+                <span>
+                  ¿Está seguro que desea desactivar este usuario? No podrá iniciar sesión hasta que sea reactivado.
+                </span>
+              )
+              : (
+                <span>
+                  ¿Está seguro que desea reactivar este usuario? Podrá volver a iniciar sesión en el sistema.
+                </span>
+              )
+            }
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
