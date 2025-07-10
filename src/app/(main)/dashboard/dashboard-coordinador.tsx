@@ -61,6 +61,10 @@ interface Stats {
     total: number;
     pendientes: number;
   };
+  centros: {
+    total: number;
+    activos: number;
+  };
 }
 
 interface Alert {
@@ -77,7 +81,8 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
     alumnos: { total: 0, enPractica: 0, pendientes: 0 },
     empleadores: { total: 0, activos: 0 },
     practicas: { total: 0, enCurso: 0, pendientes: 0, finalizadas: 0 },
-    documentos: { total: 0, pendientes: 0 }
+    documentos: { total: 0, pendientes: 0 },
+    centros: { total: 0, activos: 0 }
   });
   
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -119,6 +124,10 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
             documentos: {
               total: statsData.documentosSubidos,
               pendientes: statsData.practicasPendientesRevision
+            },
+            centros: {
+              total: statsData.totalCentros,
+              activos: statsData.centrosActivos
             }
           });
         }
@@ -294,7 +303,7 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
       </div>
 
       {/* Segunda fila de cards - Gestión específica del coordinador */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Gestión de Estudiantes */}
         <Card>
           <CardHeader>
@@ -423,6 +432,49 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Gestión de Centros */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Gestión de Centros
+                </CardTitle>
+                <CardDescription>
+                  Gestiona centros de práctica y convenios
+                </CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/coordinador/centros">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Ver Todos
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total centros</span>
+                <span className="text-sm font-semibold">{stats.centros.total}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Activos</span>
+                <span className="text-sm font-semibold">{stats.centros.activos}</span>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button asChild size="sm" variant="default" className="flex-1">
+                  <Link href="/coordinador/centros?action=create">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nuevo Centro
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Herramientas y Repositorio */}
@@ -438,7 +490,7 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="repositorio" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="repositorio" className="flex items-center space-x-2">
                 <Archive className="h-4 w-4" />
                 <span>Repositorio</span>
@@ -446,10 +498,6 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
               <TabsTrigger value="documentos" className="flex items-center space-x-2">
                 <FileCheck className="h-4 w-4" />
                 <span>Documentos</span>
-              </TabsTrigger>
-              <TabsTrigger value="centros" className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4" />
-                <span>Centros</span>
               </TabsTrigger>
             </TabsList>
 
@@ -494,41 +542,6 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
                     <Link href="/coordinador/documentos?action=upload">
                       <Plus className="w-4 h-4 mr-2" />
                       Subir Documento
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="centros" className="space-y-4">
-              <div className="border rounded-lg p-4">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold">Centros de Práctica</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Gestiona centros de práctica y convenios
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">-</div>
-                    <div className="text-sm text-muted-foreground">Centros activos</div>
-                  </div>
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">-</div>
-                    <div className="text-sm text-muted-foreground">Convenios vigentes</div>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button asChild size="sm" variant="default" className="flex-1">
-                    <Link href="/coordinador/centros">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      Gestionar Centros
-                    </Link>
-                  </Button>
-                  <Button asChild size="sm" variant="outline" className="flex-1">
-                    <Link href="/coordinador/centros?action=create">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Nuevo Centro
                     </Link>
                   </Button>
                 </div>

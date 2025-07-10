@@ -29,7 +29,9 @@ export async function GET() {
       empleadoresActivos,
       practicasEsteMes,
       documentosSubidos,
-      practicasPendientesRevision
+      practicasPendientesRevision,
+      totalCentros,
+      centrosActivos
     ] = await Promise.all([
       // Total de alumnos - Solo de la sede del coordinador
       prisma.alumno.count({
@@ -126,6 +128,31 @@ export async function GET() {
             in: ['PENDIENTE', 'PENDIENTE_ACEPTACION_DOCENTE']
           }
         }
+      }),
+      // Total de centros de práctica asociados a la sede
+      prisma.centroPractica.count({
+        where: {
+          practicas: {
+            some: {
+              carrera: {
+                sedeId: user.sedeId
+              }
+            }
+          }
+        }
+      }),
+      // Centros activos: con al menos una práctica en curso asociada a la sede
+      prisma.centroPractica.count({
+        where: {
+          practicas: {
+            some: {
+              carrera: {
+                sedeId: user.sedeId
+              },
+              estado: 'EN_CURSO'
+            }
+          }
+        }
       })
     ]);
 
@@ -136,7 +163,9 @@ export async function GET() {
       empleadoresActivos,
       practicasEsteMes,
       documentosSubidos,
-      practicasPendientesRevision
+      practicasPendientesRevision,
+      totalCentros,
+      centrosActivos
     };
 
     return NextResponse.json(stats);
