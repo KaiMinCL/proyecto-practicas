@@ -65,19 +65,6 @@ const navigationItems: NavItem[] = [
     icon: ClipboardList,
     roles: ['DOCENTE'],
   },
-  // Empleador routes
-  {
-    title: 'Mis Estudiantes',
-    href: '/empleador/estudiantes',
-    icon: Users,
-    roles: ['EMPLEADOR'],
-  },
-  {
-    title: 'Evaluaciones',
-    href: '/empleador/evaluaciones',
-    icon: UserCheck,
-    roles: ['EMPLEADOR'],
-  },
 ];
 
 export function Sidebar({ user }: SidebarProps) {

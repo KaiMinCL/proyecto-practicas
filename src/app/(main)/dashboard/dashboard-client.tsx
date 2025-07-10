@@ -17,6 +17,7 @@ import { DashboardAdmin } from './dashboard-admin';
 import { DashboardDirector } from './dashboard-director';
 import { DashboardCoordinador } from './dashboard-coordinador';
 import { DashboardDocente } from './dashboard-docente';
+import { DashboardEmpleador } from './dashboard-empleador';
 
 interface DashboardClientProps {
   user: UserJwtPayload;
@@ -145,6 +146,11 @@ export function DashboardClient({ user }: DashboardClientProps) {
   // Para Docente, usar el dashboard específico
   if (user.rol === 'DOCENTE') {
     return <DashboardDocente user={user} />;
+  }
+
+  // Para Empleador, usar el dashboard específico
+  if (user.rol === 'EMPLEADOR') {
+    return <DashboardEmpleador user={user} />;
   }
 
   return (
