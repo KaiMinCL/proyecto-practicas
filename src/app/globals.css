@@ -57,7 +57,7 @@
   --secondary-foreground: oklch(0.18 0.002 247.86); /* Negro */
   --muted: oklch(0.902 0.002 247.86); /* Gris Medio #D0D0D0 */
   --muted-foreground: oklch(0.51 0.002 247.86); /* Gris */
-  --accent: oklch(0.752 0.19 152.93); /* Verde Brillante #00C853 */
+  --accent: oklch(0.902 0.002 247.86); /* Gris Medio #D0D0D0 */
   --accent-foreground: oklch(0.18 0.002 247.86); /* Negro */
   --destructive: oklch(0.538 0.224 28.8); /* Rojo */
   --border: oklch(0.902 0.002 247.86); /* Gris Medio */
