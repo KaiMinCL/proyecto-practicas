@@ -54,12 +54,6 @@ const navigationItems: NavItem[] = [
     icon: Mail,
     roles: ['COORDINADOR'],
   },
-  {
-    title: 'Documentos',
-    href: '/coordinador/documentos',
-    icon: ClipboardList,
-    roles: ['COORDINADOR'],
-  },
   // Docente routes
   {
     title: 'Prácticas Asignadas',
