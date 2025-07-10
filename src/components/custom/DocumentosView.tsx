@@ -27,12 +27,16 @@ interface DocumentosViewProps {
   title?: string;
   description?: string;
   filterByUserCarrera?: boolean;
+  maxItems?: number;
+  showViewAllButton?: boolean;
 }
 
 export function DocumentosView({ 
   title = "Documentos de Apoyo",
   description,
-  filterByUserCarrera = false 
+  filterByUserCarrera = false,
+  maxItems,
+  showViewAllButton = false 
 }: DocumentosViewProps) {
   const { user } = useAuth();
   const [documentos, setDocumentos] = useState<Documento[]>([]);
@@ -144,13 +148,15 @@ export function DocumentosView({
 
   return (
     <div className="space-y-3">
-      {/* Simple Header */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <FileText className="h-4 w-4" />
+      {/* Simple Header - solo mostrar si hay título */}
+      {title && (
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <FileText className="h-4 w-4" />
+          </div>
+          <h1 className="text-xl font-bold text-foreground">{title}</h1>
         </div>
-        <h1 className="text-xl font-bold text-foreground">{title}</h1>
-      </div>
+      )}
 
       {error && (
         <Alert variant="destructive">
@@ -169,54 +175,66 @@ export function DocumentosView({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {documentos.map((documento) => (
-            <Card key={documento.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                      <FileText className="h-4 w-4 text-primary" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {(maxItems ? documentos.slice(0, maxItems) : documentos).map((documento) => (
+              <Card key={documento.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-3">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                        <FileText className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-foreground text-sm truncate">
+                          {documento.nombre}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(documento.creadoEn).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-foreground text-sm truncate">
-                        {documento.nombre}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(documento.creadoEn).toLocaleDateString('es-ES')}
-                      </p>
-                    </div>
+                    <Button
+                      onClick={() => handleDownload(documento)}
+                      disabled={downloadingId === documento.id}
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    >
+                      {downloadingId === documento.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => handleDownload(documento)}
-                    disabled={downloadingId === documento.id}
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0 flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  >
-                    {downloadingId === documento.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
+                  
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {documento.carrera && (
+                      <Badge variant="secondary" className="text-xs bg-primary/20 text-primary px-2 py-0.5">
+                        {documento.carrera.nombre}
+                      </Badge>
                     )}
-                  </Button>
-                </div>
-                
-                <div className="flex items-center gap-1 flex-wrap">
-                  {documento.carrera && (
-                    <Badge variant="secondary" className="text-xs bg-primary/20 text-primary px-2 py-0.5">
-                      {documento.carrera.nombre}
-                    </Badge>
-                  )}
-                  {documento.sede && (
-                    <Badge variant="outline" className="text-xs px-2 py-0.5">
-                      {documento.sede.nombre}
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    {documento.sede && (
+                      <Badge variant="outline" className="text-xs px-2 py-0.5">
+                        {documento.sede.nombre}
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {showViewAllButton && maxItems && documentos.length > maxItems && (
+            <div className="flex justify-center">
+              <Button variant="outline" asChild>
+                <a href="/documentos">
+                  Ver todos los documentos ({documentos.length})
+                </a>
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
