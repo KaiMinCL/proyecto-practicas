@@ -105,7 +105,7 @@ export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePr
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Alert variant="destructive">
           <Terminal className="h-4 w-4" />
           <AlertTitle>Error al Cargar Detalles</AlertTitle>
@@ -117,7 +117,7 @@ export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePr
 
   if (!practica) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Práctica no encontrada</AlertTitle>
@@ -131,7 +131,7 @@ export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePr
   const puedeVerActaFinal = practica.estado === 'CERRADA' && practica.actaFinal;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header con navegación */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
