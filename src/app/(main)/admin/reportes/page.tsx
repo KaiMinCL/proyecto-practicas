@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { verifyUserSession } from '@/lib/auth';
+import { getUserSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { ReportesGeneralesClient } from './reportes-generales-client';
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default async function ReportesGeneralesPage() {
   // Verificar autenticación
-  const user = await verifyUserSession();
+  const user = await getUserSession();
   if (!user) {
     redirect('/login');
   }

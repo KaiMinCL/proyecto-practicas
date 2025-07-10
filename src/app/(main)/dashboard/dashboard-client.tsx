@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { 
   Users, 
   Building,
-  BookOpen, 
   TrendingUp,
   GraduationCap,
   FileCheck,
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { UserJwtPayload } from '@/lib/auth-utils';
 import { DashboardAlumno } from './dashboard-alumno';
+import { DashboardAdmin } from './dashboard-admin';
 
 interface DashboardClientProps {
   user: UserJwtPayload;
@@ -24,15 +24,6 @@ interface StatCard {
   value: string | number;
   description: string;
   icon: React.ComponentType<React.ComponentProps<'svg'>>;
-}
-
-interface AdminStats {
-  totalUsuarios: number;
-  usuariosActivos: number;
-  usuariosInactivos: number;
-  sedesActivas: number;
-  carrerasActivas: number;
-  totalPracticasEsteMes: number;
 }
 
 interface CoordinadorStats {
@@ -46,23 +37,12 @@ interface CoordinadorStats {
 }
 
 export function DashboardClient({ user }: DashboardClientProps) {
-  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [coordinadorStats, setCoordinadorStats] = useState<CoordinadorStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (user.rol === 'SUPER_ADMIN') {
-        try {
-          const response = await fetch('/api/admin/stats');
-          if (response.ok) {
-            const data = await response.json();
-            setAdminStats(data);
-          }
-        } catch (error) {
-          console.error('Error al cargar estadísticas:', error);
-        }
-      } else if (user.rol === 'COORDINADOR') {
+      if (user.rol === 'COORDINADOR') {
         try {
           const response = await fetch('/api/coordinador/stats');
           if (response.ok) {
@@ -80,41 +60,6 @@ export function DashboardClient({ user }: DashboardClientProps) {
   }, [user.rol]);
 
   const getStatCards = (): StatCard[] => {
-    if (user.rol === 'SUPER_ADMIN' && adminStats) {
-      return [
-        {
-          title: 'Total Usuarios',
-          value: adminStats.totalUsuarios,
-          description: 'En el sistema',
-          icon: Users,
-        },
-        {
-          title: 'Usuarios Activos',
-          value: adminStats.usuariosActivos,
-          description: 'Con acceso al sistema',
-          icon: Users,
-        },
-        {
-          title: 'Sedes Activas',
-          value: adminStats.sedesActivas,
-          description: 'De la institución',
-          icon: Building,
-        },
-        {
-          title: 'Carreras Activas',
-          value: adminStats.carrerasActivas,
-          description: 'Configuradas',
-          icon: BookOpen,
-        },
-        {
-          title: 'Prácticas Este Mes',
-          value: adminStats.totalPracticasEsteMes,
-          description: 'Iniciadas en el mes actual',
-          icon: TrendingUp,
-        },
-      ];
-    }
-    
     if (user.rol === 'COORDINADOR' && coordinadorStats) {
       return [
         {
@@ -179,6 +124,11 @@ export function DashboardClient({ user }: DashboardClientProps) {
     return <DashboardAlumno user={user} />;
   }
 
+  // Para Super Admin, usar el dashboard específico
+  if (user.rol === 'SUPER_ADMIN') {
+    return <DashboardAdmin user={user} />;
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
@@ -194,8 +144,8 @@ export function DashboardClient({ user }: DashboardClientProps) {
         </Badge>
       </div>
 
-      {/* Stats Overview - Solo para Super Admin y Coordinador */}
-      {(user.rol === 'SUPER_ADMIN' || user.rol === 'COORDINADOR') && (
+      {/* Stats Overview - Solo para Coordinador */}
+      {user.rol === 'COORDINADOR' && (
         <>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
@@ -240,7 +190,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
       )}
 
       {/* Message for other roles */}
-      {user.rol !== 'SUPER_ADMIN' && user.rol !== 'COORDINADOR' && (
+      {user.rol !== 'SUPER_ADMIN' && user.rol !== 'COORDINADOR' && user.rol !== 'ALUMNO' && (
         <Card>
           <CardHeader>
             <CardTitle>Panel Principal</CardTitle>
