@@ -87,6 +87,20 @@ export class EmpleadorService {
         };
       }
 
+      // 1b. Verificar que el rut no exista como usuario
+      const existingRut = await prisma.usuario.findUnique({
+        where: { rut: data.rut }
+      });
+      if (existingRut) {
+        return {
+          success: false,
+          message: 'Ya existe un usuario registrado con este RUT.',
+          errors: {
+            rut: ['Ya existe un usuario registrado con este RUT.']
+          }
+        };
+      }
+
       // 2. Verificar que el centro de práctica exista
       const centroPractica = await prisma.centroPractica.findUnique({
         where: { id: data.centroPracticaId }
