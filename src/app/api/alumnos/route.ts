@@ -6,52 +6,53 @@ export async function GET() {
   try {
     // 1. Verificar autenticación
     const user = await verifyUserSession();
-    if (!user || user.rol !== 'COORDINADOR') {
+    if (!user || (user.rol !== 'COORDINADOR' && user.rol !== 'DIRECTOR_CARRERA' && user.rol !== 'DIRECTOR')) {
       return NextResponse.json(
-        { error: 'No autorizado' },
+        { success: false, error: 'No autorizado' },
         { status: 401 }
       );
     }
 
-    // Verificar que el coordinador tenga sede asignada
-    if (!user.sedeId) {
-      return NextResponse.json(
-        { error: 'Coordinador sin sede asignada' },
-        { status: 400 }
-      );
+    // Determinar filtro: si es director, filtrar por carrera; si es coordinador, por sede
+    let where = {};
+    if (user.rol === 'DIRECTOR_CARRERA' || user.rol === 'DIRECTOR') {
+      if (!user.carreraId) {
+        return NextResponse.json(
+          { success: false, error: 'Director sin carrera asignada' },
+          { status: 400 }
+        );
+      }
+      where = { carreraId: user.carreraId };
+    } else if (user.rol === 'COORDINADOR') {
+      if (!user.sedeId) {
+        return NextResponse.json(
+          { success: false, error: 'Coordinador sin sede asignada' },
+          { status: 400 }
+        );
+      }
+      where = { carrera: { sedeId: user.sedeId } };
     }
 
-    type AlumnoResponse = {
-      id: number;
-      rut: string;
-      nombre: string;
-      apellido: string;
-      email: string;
-      carrera: {
-        nombre: string;
-      };
-    };
-
-    // 2. Obtener alumnos con sus relaciones - Solo de la sede del coordinador
+    // 2. Obtener alumnos con sus relaciones
     const alumnos = await prisma.alumno.findMany({
-      where: {
-        carrera: {
-          sedeId: user.sedeId // Restricción por sede del coordinador
-        }
-      },
+      where,
       select: {
         id: true,
+        fotoUrl: true,
         usuario: {
           select: {
             rut: true,
             nombre: true,
             apellido: true,
             email: true,
+            estado: true,
           }
         },
         carrera: {
           select: {
+            id: true,
             nombre: true,
+            sede: { select: { nombre: true } },
           }
         }
       },
@@ -60,23 +61,26 @@ export async function GET() {
           apellido: 'asc',
         }
       },
-    });    
+    });
+
     // 3. Transformar datos para el frontend
-    const transformedAlumnos: AlumnoResponse[] = alumnos.map(alumno => ({
-      id: alumno.id,
+    const data = alumnos.map(alumno => ({
+      value: alumno.id,
       rut: alumno.usuario.rut,
-      nombre: alumno.usuario.nombre,
-      apellido: alumno.usuario.apellido,
-      email: alumno.usuario.email,
-      carrera: alumno.carrera,
+      nombreCompleto: `${alumno.usuario.nombre} ${alumno.usuario.apellido}`,
+      carreraId: alumno.carrera.id,
+      carreraNombre: alumno.carrera.nombre,
+      sedeNombreDeCarrera: alumno.carrera.sede.nombre,
+      fotoUrl: alumno.fotoUrl || undefined,
+      estado: alumno.usuario.estado,
     }));
 
-    return NextResponse.json(transformedAlumnos);
+    return NextResponse.json({ success: true, data });
 
   } catch (error) {
     console.error('Error al obtener alumnos:', error);
     return NextResponse.json(
-      { error: 'Error al obtener alumnos' },
+      { success: false, error: 'Error al obtener alumnos' },
       { status: 500 }
     );
   }
