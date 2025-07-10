@@ -52,9 +52,11 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string>('');
-  const [carreras, setCarreras] = useState<Array<{id: number, nombre: string}>>([]);
+  const [carreras, setCarreras] = useState<Array<{id: number, nombre: string, sede?: {id: number, nombre: string}}>>([]);
   const [sedes, setSedes] = useState<Array<{id: number, nombre: string}>>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [selectedSedeId, setSelectedSedeId] = useState<string>('');
+  const [filteredCarreras, setFilteredCarreras] = useState<Array<{id: number, nombre: string, sede?: {id: number, nombre: string}}>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [state, formAction] = useFormState(createDocumentoAction, initialState);
@@ -100,6 +102,14 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
       }
     }
   }, [state.success, state.documento, open, onDocumentoCreated]);
+
+  useEffect(() => {
+    if (!selectedSedeId) {
+      setFilteredCarreras(carreras);
+    } else {
+      setFilteredCarreras(carreras.filter(c => c.sede?.id?.toString() === selectedSedeId));
+    }
+  }, [selectedSedeId, carreras]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -167,7 +177,8 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
           <DialogDescription>
             Sube un documento PDF de apoyo para estudiantes y empleadores.
           </DialogDescription>
-        </DialogHeader>        <form action={formAction} className="space-y-4">
+        </DialogHeader>
+        <form action={formAction} className="space-y-4">
           {/* Nombre del documento */}
           <div className="space-y-2">
             <Label htmlFor="nombre">Nombre del documento *</Label>
@@ -182,40 +193,17 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
             )}
           </div>
 
-          {/* Carrera y Sede - Ahora son obligatorios */}
+          {/* Sede y Carrera - Ambos opcionales, carrera depende de sede */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Carrera */}
-            <div className="space-y-2">
-              <Label htmlFor="carreraId">Carrera *</Label>
-              <Select name="carreraId" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar carrera" />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingData ? (
-                    <SelectItem value="" disabled>Cargando carreras...</SelectItem>
-                  ) : (
-                    carreras.map(carrera => (
-                      <SelectItem key={carrera.id} value={carrera.id.toString()}>
-                        {carrera.nombre}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              {state.errors?.carreraId && (
-                <p className="text-sm text-red-500">{state.errors.carreraId[0]}</p>
-              )}
-            </div>
-
             {/* Sede */}
             <div className="space-y-2">
-              <Label htmlFor="sedeId">Sede *</Label>
-              <Select name="sedeId" required>
+              <Label htmlFor="sedeId">Sede</Label>
+              <Select name="sedeId" value={selectedSedeId} onValueChange={setSelectedSedeId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar sede" />
+                  <SelectValue placeholder="Seleccionar sede (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">Todas las sedes</SelectItem>
                   {loadingData ? (
                     <SelectItem value="" disabled>Cargando sedes...</SelectItem>
                   ) : (
@@ -229,6 +217,31 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
               </Select>
               {state.errors?.sedeId && (
                 <p className="text-sm text-red-500">{state.errors.sedeId[0]}</p>
+              )}
+            </div>
+
+            {/* Carrera */}
+            <div className="space-y-2">
+              <Label htmlFor="carreraId">Carrera</Label>
+              <Select name="carreraId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar carrera (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas las carreras</SelectItem>
+                  {loadingData ? (
+                    <SelectItem value="" disabled>Cargando carreras...</SelectItem>
+                  ) : (
+                    filteredCarreras.map(carrera => (
+                      <SelectItem key={carrera.id} value={carrera.id.toString()}>
+                        {carrera.nombre}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {state.errors?.carreraId && (
+                <p className="text-sm text-red-500">{state.errors.carreraId[0]}</p>
               )}
             </div>
           </div>
