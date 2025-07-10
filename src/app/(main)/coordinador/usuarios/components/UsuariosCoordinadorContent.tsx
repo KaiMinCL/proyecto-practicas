@@ -360,26 +360,6 @@ export function UsuariosCoordinadorContent() {
         </Card>
       </div>
 
-      {/* Coordinator Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Información del Coordinador
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="font-medium">
-              {data.coordinador.nombre} {data.coordinador.apellido}
-            </p>
-            <p className="text-sm text-gray-600">
-              Sede: {data.coordinador.sede || 'Sin sede específica'}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Filters */}
       <Card>
         <CardHeader>

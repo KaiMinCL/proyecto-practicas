@@ -25,7 +25,8 @@ import {
   UserPlus,
   MapPin,
   Bell,
-  FileCheck
+  FileCheck,
+  Key
 } from 'lucide-react';
 
 import type { UserJwtPayload } from '@/lib/auth-utils';
@@ -248,59 +249,7 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
       )}
 
       {/* Estadísticas generales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Estudiantes</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.alumnos.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.alumnos.enPractica} en práctica activa
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Empleadores</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.empleadores.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.empleadores.activos} activos
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Prácticas en Curso</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.practicas.enCurso}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.practicas.pendientes} pendientes
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Documentos</CardTitle>
-            <FileCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.documentos.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.documentos.pendientes} por revisar
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Eliminado: Cards simples de Estudiantes, Empleadores, Prácticas en Curso y Documentos */}
 
       {/* Segunda fila de cards - Gestión específica del coordinador */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -476,6 +425,55 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Gestión de Usuarios */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Gestión de Usuarios
+              </CardTitle>
+              <CardDescription>
+                Administra usuarios y consulta claves iniciales de forma segura.
+              </CardDescription>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/coordinador/usuarios">
+                <Eye className="w-4 h-4 mr-2" />
+                Ver Todos
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Usuarios totales</span>
+              <span className="text-sm font-semibold">{stats.usuarios.total}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Activos</span>
+              <span className="text-sm font-semibold">{stats.usuarios.activos}</span>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button asChild size="sm" variant="default" className="flex-1">
+                <Link href="/coordinador/usuarios?action=create">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nuevo Usuario
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="flex-1">
+                <Link href="/coordinador/usuarios?action=clave">
+                  <Key className="w-4 h-4 mr-2" />
+                  Revisar Clave
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Herramientas y Repositorio */}
       <Card>
