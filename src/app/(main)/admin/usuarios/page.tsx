@@ -75,15 +75,17 @@ export default function UsuariosPage() {
     }
   }, [mounted, user]);
 
-  const filteredUsuarios = usuarios.filter((usuario) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      usuario.nombre.toLowerCase().includes(searchLower) ||
-      usuario.apellido.toLowerCase().includes(searchLower) ||
-      usuario.email.toLowerCase().includes(searchLower) ||
-      usuario.rut.toLowerCase().includes(searchLower)
-    );
-  });
+  const filteredUsuarios = usuarios
+    .filter((usuario) => usuario && usuario.nombre && usuario.apellido && usuario.email && usuario.rol && usuario.rol.nombre && usuario.sede && usuario.sede.nombre)
+    .filter((usuario) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        usuario.nombre.toLowerCase().includes(searchLower) ||
+        usuario.apellido.toLowerCase().includes(searchLower) ||
+        usuario.email.toLowerCase().includes(searchLower) ||
+        usuario.rut.toLowerCase().includes(searchLower)
+      );
+    });
 
   if (!mounted) {
     return null;
@@ -170,12 +172,12 @@ export default function UsuariosPage() {
                   filteredUsuarios.map((usuario) => (
                     <TableRow key={usuario.id}>
                       <TableCell className="font-medium">{usuario.rut}</TableCell>
-                      <TableCell>{`${usuario.nombre} ${usuario.apellido}`}</TableCell>
-                      <TableCell>{usuario.email}</TableCell>
+                      <TableCell>{`${usuario.nombre ?? ''} ${usuario.apellido ?? ''}`}</TableCell>
+                      <TableCell>{usuario.email ?? ''}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{usuario.rol.nombre}</Badge>
+                        <Badge variant="outline">{usuario.rol?.nombre ?? ''}</Badge>
                       </TableCell>
-                      <TableCell>{usuario.sede.nombre}</TableCell>
+                      <TableCell>{usuario.sede?.nombre ?? ''}</TableCell>
                       <TableCell>
                         <Badge 
                           variant={usuario.estado === 'ACTIVO' ? 'default' : 'destructive'}
@@ -188,7 +190,7 @@ export default function UsuariosPage() {
                           <EditUserDialog userId={usuario.id} />
                           <ToggleUserStateDialog 
                             userId={usuario.id} 
-                            userName={`${usuario.nombre} ${usuario.apellido}`}
+                            userName={`${usuario.nombre ?? ''} ${usuario.apellido ?? ''}`}
                             isActive={usuario.estado === 'ACTIVO'}
                           />
                         </div>
