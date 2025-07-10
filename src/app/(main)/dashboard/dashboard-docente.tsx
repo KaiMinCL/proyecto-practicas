@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { AlertTriangle, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { DocumentosView } from '@/components/custom/DocumentosView';
 
 interface Practica {
   id: number;
@@ -19,6 +20,9 @@ interface Practica {
       nombre: string;
     };
   };
+  centroPractica?: {
+    nombreEmpresa?: string;
+  };
 }
 
 interface DashboardDocenteProps {
@@ -27,7 +31,6 @@ interface DashboardDocenteProps {
 
 export function DashboardDocente({ user }: DashboardDocenteProps) {
   const [practicas, setPracticas] = useState<Practica[]>([]);
-  const [pendientes, setPendientes] = useState<Practica[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,7 +40,6 @@ export function DashboardDocente({ user }: DashboardDocenteProps) {
       const data = await res.json();
       if (data.success) {
         setPracticas(data.data);
-        setPendientes(data.data.filter((p: Practica) => p.estado === 'PENDIENTE_ACEPTACION_DOCENTE'));
       }
       setLoading(false);
     };
@@ -51,29 +53,7 @@ export function DashboardDocente({ user }: DashboardDocenteProps) {
         <p className="text-white/90">Panel de gestión de prácticas asignadas y estudiantes</p>
       </div>
 
-      {pendientes.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              Prácticas pendientes de aceptación
-            </CardTitle>
-            <CardDescription>
-              Tienes {pendientes.length} práctica(s) que requieren tu aceptación.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc ml-6">
-              {pendientes.map((p) => (
-                <li key={p.id}>
-                  {p.alumno.usuario.nombre} {p.alumno.usuario.apellido} ({p.alumno.usuario.rut}) - {p.alumno.carrera.nombre}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
+      {/* Manejo de estudiantes y prácticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -91,6 +71,20 @@ export function DashboardDocente({ user }: DashboardDocenteProps) {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Documentos de apoyo */}
+      <div>
+        <DocumentosView 
+          filterByUserCarrera={true}
+          maxItems={3}
+          showViewAllButton={true}
+        />
+        <div className="mt-2 flex justify-end">
+          <Button asChild size="sm" variant="link">
+            <Link href="/docente/documentos">Ver todos los documentos</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
