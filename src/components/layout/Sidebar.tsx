@@ -177,24 +177,6 @@ const navigationItems: NavItem[] = [
     icon: BookOpen,
     roles: ['ALUMNO'],
   },
-  {
-    title: 'Subir Informe',
-    href: '/alumno/subir-informe',
-    icon: Upload,
-    roles: ['ALUMNO'],
-  },
-  {
-    title: 'Evaluaciones Empleador',
-    href: '/alumno/evaluaciones-empleador',
-    icon: Star,
-    roles: ['ALUMNO'],
-  },
-  {
-    title: 'Evaluaciones Informe',
-    href: '/alumno/evaluaciones-informe',
-    icon: FileText,
-    roles: ['ALUMNO'],
-  },
   // Docente routes - Documentos
   {
     title: 'Documentos',

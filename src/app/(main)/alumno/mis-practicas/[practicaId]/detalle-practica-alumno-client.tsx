@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { 
@@ -14,6 +14,9 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Terminal, 
   Info, 
@@ -27,7 +30,11 @@ import {
   ArrowLeft,
   CheckCircle,
   Share,
-  MapPin
+  MapPin,
+  Upload,
+  Star,
+  X,
+  Download
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -38,6 +45,7 @@ import { MapComponent } from '@/components/custom';
 
 interface DetallePracticaAlumnoClientProps {
   initialActionResponse: ActionResponse<PracticaConDetalles>;
+  actionParam?: string;
 }
 
 const getEstadoBadge = (estado: PracticaConDetalles['estado']) => {
@@ -55,9 +63,51 @@ const getEstadoBadge = (estado: PracticaConDetalles['estado']) => {
   return variants[estado as keyof typeof variants] || variants['PENDIENTE'];
 };
 
-export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePracticaAlumnoClientProps) {
+export function DetallePracticaAlumnoClient({ initialActionResponse, actionParam }: DetallePracticaAlumnoClientProps) {
   const [practica] = React.useState<PracticaConDetalles | null>(initialActionResponse.data || null);
   const [error] = React.useState<string | null>(initialActionResponse.error || null);
+  
+  // Estados para manejar las acciones específicas
+  const [currentAction, setCurrentAction] = useState<string | null>(actionParam || null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+  // Función para cerrar la acción actual
+  const closeAction = () => {
+    setCurrentAction(null);
+    // Limpiar URL sin recargar la página
+    window.history.replaceState({}, '', window.location.pathname);
+  };
+
+  // Función para manejar la subida de informe
+  const handleUploadInforme = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile || !practica) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('archivo', uploadFile);
+      formData.append('practicaId', practica.id.toString());
+
+      const response = await fetch('/api/alumno/subir-informe', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        // Recargar la página para actualizar los datos
+        window.location.reload();
+      } else {
+        throw new Error('Error al subir el informe');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al subir el informe');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Función para generar enlace de Google Maps
   const generateGoogleMapsUrl = (address: string): string => {
@@ -129,6 +179,155 @@ export function DetallePracticaAlumnoClient({ initialActionResponse }: DetallePr
 
   const estadoBadge = getEstadoBadge(practica.estado);
   const puedeVerActaFinal = practica.estado === 'CERRADA' && practica.actaFinal;
+
+  // Renderizar acción específica si está definida
+  if (currentAction === 'subir-informe') {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button onClick={closeAction} variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver al Detalle
+            </Button>
+            <h1 className="text-2xl font-bold">Subir Informe Final</h1>
+          </div>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Subir Informe de Práctica
+            </CardTitle>
+            <CardDescription>
+              Sube el informe final de tu práctica {practica.tipo.toLowerCase()}. 
+              El archivo debe ser en formato PDF, DOC o DOCX.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUploadInforme} className="space-y-4">
+              <div>
+                <Label htmlFor="archivo">Archivo del Informe</Label>
+                <Input
+                  id="archivo"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  required
+                />
+              </div>
+              
+              {practica.informeUrl && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700 mb-2">
+                    Ya tienes un informe subido. Al subir uno nuevo, se reemplazará el anterior.
+                  </p>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={practica.informeUrl} target="_blank">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver Informe Actual
+                    </Link>
+                  </Button>
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button type="submit" disabled={uploading || !uploadFile}>
+                  {uploading ? 'Subiendo...' : 'Subir Informe'}
+                </Button>
+                <Button type="button" variant="outline" onClick={closeAction}>
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (currentAction === 'evaluaciones') {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button onClick={closeAction} variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver al Detalle
+            </Button>
+            <h1 className="text-2xl font-bold">Evaluaciones de la Práctica</h1>
+          </div>
+        </div>
+        
+        <div className="grid gap-6">
+          {/* Evaluación del Informe */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Evaluación del Informe
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {practica.evaluacionDocente ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Nota Final</Label>
+                      <div className="text-3xl font-bold text-green-600">
+                        {practica.evaluacionDocente.nota}
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Fecha de Evaluación</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(practica.evaluacionDocente.fecha), "PPP", { locale: es })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Aún no hay evaluación del informe disponible.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Evaluación del Empleador */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5" />
+                Evaluación del Empleador
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {practica.evaluacionEmpleador ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Nota Final</Label>
+                      <div className="text-3xl font-bold text-green-600">
+                        {practica.evaluacionEmpleador.nota}
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Fecha de Evaluación</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(practica.evaluacionEmpleador.fecha), "PPP", { locale: es })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Aún no hay evaluación del empleador disponible.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">

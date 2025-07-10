@@ -3,10 +3,13 @@ import { DetallePracticaAlumnoClient } from './detalle-practica-alumno-client';
 
 export default async function DetallePracticaAlumnoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ practicaId: string }>;
+  searchParams: Promise<{ action?: string }>;
 }) {
   const { practicaId } = await params;
+  const { action } = await searchParams;
   const id = parseInt(practicaId, 10);
 
   if (isNaN(id)) {
@@ -15,5 +18,5 @@ export default async function DetallePracticaAlumnoPage({
 
   const actionResponse = await obtenerDetallePracticaAlumno(id);
 
-  return <DetallePracticaAlumnoClient initialActionResponse={actionResponse} />;
+  return <DetallePracticaAlumnoClient initialActionResponse={actionResponse} actionParam={action} />;
 }
