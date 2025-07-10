@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Users, 
-  Building, 
   GraduationCap, 
   FileText, 
   Settings, 
@@ -30,7 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReporteVolumenPracticasClient } from '@/app/(main)/admin/reportes/reporte-volumen-practicas-client';
 import { ReporteEstadoFinalizacionClient } from '@/app/(main)/admin/reportes/reporte-estado-finalizacion-client';
 
-interface DashboardAdminProps {
+interface DashboardDirectorProps {
   user: UserJwtPayload;
 }
 
@@ -39,10 +38,6 @@ interface Stats {
     total: number;
     activos: number;
     inactivos: number;
-  };
-  sedes: {
-    total: number;
-    activas: number;
   };
   carreras: {
     total: number;
@@ -75,19 +70,19 @@ interface ConfiguracionEvaluacionCallback {
   notaMinimaAprobacion: number;
 }
 
-export function DashboardAdmin({ user }: DashboardAdminProps) {
+export function DashboardDirector({ user }: DashboardDirectorProps) {
   const [stats, setStats] = useState<Stats>({
     usuarios: { total: 0, activos: 0, inactivos: 0 },
-    sedes: { total: 0, activas: 0 },
     carreras: { total: 0, activas: 0 },
     practicas: { total: 0, enCurso: 0, pendientes: 0, finalizadas: 0 }
   });
   
-  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [configuracion, setConfiguracion] = useState<ConfiguracionEvaluacion>({
     porcentajeEmpleador: 60,
     porcentajeInforme: 40
   });
+  
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,8 +106,8 @@ export function DashboardAdmin({ user }: DashboardAdminProps) {
         if (alertsData.success) {
           setAlerts(alertsData.data);
         }
-        
-        // Fetch configuracion
+
+        // Fetch configuración
         const configResponse = await fetch('/api/admin/configuracion');
         const configData = await configResponse.json();
         
@@ -136,14 +131,10 @@ export function DashboardAdmin({ user }: DashboardAdminProps) {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-40 bg-gray-200 rounded-lg"></div>
-            ))}
-          </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando dashboard...</p>
         </div>
       </div>
     );
@@ -151,28 +142,18 @@ export function DashboardAdmin({ user }: DashboardAdminProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header de bienvenida */}
-      <div className="bg-gradient-to-r from-primary to-secondary text-white rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Panel de Administración</h1>
-            <p className="text-white/90 mt-1">
-              Bienvenido, {user.nombre}. Gestiona el sistema de prácticas desde aquí.
-            </p>
-            <Badge variant="secondary" className="mt-2 bg-white/20 text-white border-white/30">
-              Super Admin
-            </Badge>
-          </div>
-          <Settings className="h-16 w-16 text-white/30" />
-        </div>
+      {/* Welcome Header */}
+      <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 text-white shadow-lg">
+        <h1 className="text-2xl font-bold mb-2">
+          ¡Bienvenido, {user.nombre} {user.apellido}!
+        </h1>
+        <p className="text-white/90">
+          Sistema de Gestión de Prácticas Profesionales
+        </p>
+        <Badge variant="secondary" className="mt-3 bg-white/20 text-white border-white/30">
+          Director de Carrera
+        </Badge>
       </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {/* Alertas y Notificaciones */}
       {alerts.length > 0 && (
@@ -225,27 +206,14 @@ export function DashboardAdmin({ user }: DashboardAdminProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Prácticas Activas</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.usuarios.total}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {stats.usuarios.activos} activos, {stats.usuarios.inactivos} inactivos
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sedes</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.sedes.total}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {stats.sedes.activas} activas
-            </div>
+            <div className="text-2xl font-bold">{stats.practicas.enCurso}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.practicas.pendientes} pendientes de revisión
+            </p>
           </CardContent>
         </Card>
 
@@ -256,157 +224,41 @@ export function DashboardAdmin({ user }: DashboardAdminProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.carreras.total}</div>
-            <div className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               {stats.carreras.activas} activas
-            </div>
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Prácticas</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Estudiantes</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.usuarios.total}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.usuarios.activos} activos
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Prácticas</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.practicas.total}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {stats.practicas.enCurso} en curso, {stats.practicas.pendientes} pendientes
-            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.practicas.finalizadas} finalizadas
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gestión de Entidades */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Gestión de Usuarios */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Gestión de Usuarios
-                </CardTitle>
-                <CardDescription>
-                  Administra usuarios del sistema
-                </CardDescription>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/admin/usuarios">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todos
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Usuarios activos</span>
-                <span className="text-sm font-semibold">{stats.usuarios.activos}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Usuarios inactivos</span>
-                <span className="text-sm font-semibold">{stats.usuarios.inactivos}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/admin/usuarios?action=create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Crear Usuario
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Gestión de Sedes */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="w-5 h-5" />
-                  Gestión de Sedes
-                </CardTitle>
-                <CardDescription>
-                  Administra las sedes de la institución
-                </CardDescription>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/admin/sedes">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todas
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Sedes activas</span>
-                <span className="text-sm font-semibold">{stats.sedes.activas}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total sedes</span>
-                <span className="text-sm font-semibold">{stats.sedes.total}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/admin/sedes?action=create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Crear Sede
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Gestión de Carreras */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5" />
-                  Gestión de Carreras
-                </CardTitle>
-                <CardDescription>
-                  Administra las carreras ofrecidas
-                </CardDescription>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/admin/carreras">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todas
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Carreras activas</span>
-                <span className="text-sm font-semibold">{stats.carreras.activas}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total carreras</span>
-                <span className="text-sm font-semibold">{stats.carreras.total}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/admin/carreras?action=create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Crear Carrera
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+      {/* Segunda fila de cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Configuración de Evaluaciones - Popup Inline */}
         <Card>
           <CardHeader>
@@ -444,6 +296,92 @@ export function DashboardAdmin({ user }: DashboardAdminProps) {
                   Modificar Ponderaciones
                 </Button>
               </ConfiguracionEvaluacionDialog>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Acceso rápido a Carreras */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5" />
+                  Gestión de Carreras
+                </CardTitle>
+                <CardDescription>
+                  Administra las carreras de tu dirección
+                </CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/carreras">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Ver Todas
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Carreras activas</span>
+                <span className="text-sm font-semibold">{stats.carreras.activas}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total carreras</span>
+                <span className="text-sm font-semibold">{stats.carreras.total}</span>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button asChild size="sm" variant="default" className="flex-1">
+                  <Link href="/admin/carreras?action=create">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nueva Carrera
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Acceso al Repositorio */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Archive className="w-5 h-5" />
+                  Repositorio de Informes
+                </CardTitle>
+                <CardDescription>
+                  Consulta informes históricos
+                </CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/repositorio-informes">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Abrir
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Informes disponibles</span>
+                <span className="text-sm font-semibold">-</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Último acceso</span>
+                <span className="text-sm font-semibold">-</span>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button asChild size="sm" variant="default" className="flex-1">
+                  <Link href="/admin/repositorio-informes">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Buscar Informes
+                  </Link>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -509,7 +447,7 @@ export function DashboardAdmin({ user }: DashboardAdminProps) {
                     Accede y gestiona los informes archivados del sistema
                   </p>
                 </div>
-                <RepositorioInformesClient rol="SUPER_ADMIN" />
+                <RepositorioInformesClient rol="DIRECTOR_CARRERA" />
               </div>
             </TabsContent>
           </Tabs>

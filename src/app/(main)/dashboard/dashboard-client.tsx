@@ -14,6 +14,8 @@ import {
 import type { UserJwtPayload } from '@/lib/auth-utils';
 import { DashboardAlumno } from './dashboard-alumno';
 import { DashboardAdmin } from './dashboard-admin';
+import { DashboardDirector } from './dashboard-director';
+import { DashboardCoordinador } from './dashboard-coordinador';
 
 interface DashboardClientProps {
   user: UserJwtPayload;
@@ -129,6 +131,16 @@ export function DashboardClient({ user }: DashboardClientProps) {
     return <DashboardAdmin user={user} />;
   }
 
+  // Para Director de Carrera, usar el dashboard específico
+  if (user.rol === 'DIRECTOR_CARRERA') {
+    return <DashboardDirector user={user} />;
+  }
+
+  // Para Coordinador, usar el dashboard específico
+  if (user.rol === 'COORDINADOR') {
+    return <DashboardCoordinador user={user} />;
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
@@ -190,7 +202,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
       )}
 
       {/* Message for other roles */}
-      {user.rol !== 'SUPER_ADMIN' && user.rol !== 'COORDINADOR' && user.rol !== 'ALUMNO' && (
+      {user.rol !== 'SUPER_ADMIN' && user.rol !== 'COORDINADOR' && user.rol !== 'ALUMNO' && user.rol !== 'DIRECTOR_CARRERA' && (
         <Card>
           <CardHeader>
             <CardTitle>Panel Principal</CardTitle>

@@ -41,24 +41,6 @@ const navigationItems: NavItem[] = [
     href: '/dashboard',
     icon: Home,
   },
-  {
-    title: 'Configuraciones',
-    href: '/admin/configuraciones/evaluaciones',
-    icon: Settings,
-    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
-  },
-  {
-    title: 'Reportes',
-    href: '/admin/reportes',
-    icon: BarChart3,
-    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA', 'COORDINADOR'],
-  },
-  {
-    title: 'Repositorio Informes',
-    href: '/admin/repositorio-informes',
-    icon: Archive,
-    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA'],
-  },
   // Coordinador routes
   {
     title: 'Gestión de Alumnos',
@@ -102,12 +84,6 @@ const navigationItems: NavItem[] = [
     icon: ClipboardList,
     roles: ['COORDINADOR'],
   },
-  {
-    title: 'Repositorio Informes',
-    href: '/coordinador/repositorio-informes',
-    icon: Archive,
-    roles: ['COORDINADOR'],
-  },
   // Docente routes
   {
     title: 'Prácticas Asignadas',
@@ -145,8 +121,7 @@ const navigationItems: NavItem[] = [
     icon: Mail,
     roles: ['DOCENTE'],
   },
-  // Docente routes - Documentos
-  {
+    {
     title: 'Documentos',
     href: '/docente/documentos',
     icon: ClipboardList,

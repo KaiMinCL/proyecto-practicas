@@ -4,3 +4,4 @@ export { AnularPracticaDialog } from './AnularPracticaDialog';
 export { CambiarEstadoPracticaDialog } from './CambiarEstadoPracticaDialog';
 export { PracticaCard } from './PracticaCard';
 export { ConfiguracionEvaluacionDialog } from './ConfiguracionEvaluacionDialog';
+export { RepositorioInformesClient } from './RepositorioInformesClient';
