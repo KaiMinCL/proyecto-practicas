@@ -75,6 +75,22 @@ export default function UsuariosPage() {
     }
   }, [mounted, user]);
 
+  // Refrescar usuarios manualmente
+  const refreshUsuarios = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/usuarios');
+      if (response.ok) {
+        const data = await response.json();
+        setUsuarios(data);
+      }
+    } catch (error) {
+      // opcional: mostrar error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredUsuarios = usuarios
     .filter((usuario) => usuario && usuario.nombre && usuario.apellido && usuario.email && usuario.rol && usuario.rol.nombre && usuario.sede && usuario.sede.nombre)
     .filter((usuario) => {
@@ -192,6 +208,7 @@ export default function UsuariosPage() {
                             userId={usuario.id} 
                             userName={`${usuario.nombre ?? ''} ${usuario.apellido ?? ''}`}
                             isActive={usuario.estado === 'ACTIVO'}
+                            onSuccess={refreshUsuarios}
                           />
                         </div>
                       </TableCell>

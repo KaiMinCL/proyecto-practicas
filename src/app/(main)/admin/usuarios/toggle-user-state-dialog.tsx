@@ -23,9 +23,10 @@ interface ToggleUserStateDialogProps {
   userId: number;
   userName: string;
   isActive: boolean;
+  onSuccess?: () => void;
 }
 
-export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUserStateDialogProps) {
+export function ToggleUserStateDialog({ userId, userName, isActive, onSuccess }: ToggleUserStateDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,6 +41,7 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
     if (state?.success) {
       setOpen(false);
       toast.success(state.message);
+      if (onSuccess) onSuccess();
     } else if (state?.errors) {
       Object.entries(state.errors).forEach(([, messages]) => {
         if (Array.isArray(messages)) {
@@ -48,7 +50,7 @@ export function ToggleUserStateDialog({ userId, userName, isActive }: ToggleUser
       });
     }
     setIsSubmitting(false);
-  }, [state]);
+  }, [state, onSuccess]);
 
   const Icon = isActive ? UserX : UserCheck;
   const actionText = isActive ? 'Desactivar' : 'Activar';
