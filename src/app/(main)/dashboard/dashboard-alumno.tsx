@@ -99,32 +99,57 @@ export function DashboardAlumno({ user }: DashboardAlumnoProps) {
         {/* Práctica Activa */}
         <div className="lg:col-span-2">
           {practicaActiva ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Mi Práctica Activa</h2>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/alumno/mis-practicas">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Ver Todas las Prácticas
-                  </Link>
-                </Button>
-              </div>
-              <PracticaCard practica={practicaActiva} />
-            </div>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5" />
+                      Mi Práctica Activa
+                    </CardTitle>
+                    <CardDescription>
+                      Tu práctica actual en progreso
+                    </CardDescription>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/alumno/mis-practicas">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Ver Todas las Prácticas
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <PracticaCard practica={practicaActiva} />
+              </CardContent>
+            </Card>
           ) : (
             <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5" />
+                      Mi Práctica Activa
+                    </CardTitle>
+                    <CardDescription>
+                      Cuando tengas una práctica asignada, aparecerá aquí
+                    </CardDescription>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/alumno/mis-practicas">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Ver Todas las Prácticas
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
               <CardContent className="p-6 text-center">
                 <GraduationCap className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No tienes práctica activa</h3>
                 <p className="text-muted-foreground mb-4">
                   Cuando tengas una práctica asignada, aparecerá aquí con todas las opciones disponibles.
                 </p>
-                <Button asChild variant="outline">
-                  <Link href="/alumno/mis-practicas">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Ver Todas las Prácticas
-                  </Link>
-                </Button>
               </CardContent>
             </Card>
           )}
