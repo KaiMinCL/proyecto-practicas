@@ -111,9 +111,12 @@ export class DocumentoService {
       const formData = new FormData();
       formData.append('archivo', archivo);
       formData.append('nombre', documentoData.nombre);
-      formData.append('carreraId', documentoData.carreraId.toString());
-      formData.append('sedeId', documentoData.sedeId.toString());
-
+      if (documentoData.carreraId) {
+        formData.append('carreraId', documentoData.carreraId.toString());
+      }
+      if (documentoData.sedeId) {
+        formData.append('sedeId', documentoData.sedeId.toString());
+      }
       const response = await fetch(this.BASE_URL, {
         method: 'POST',
         body: formData,
