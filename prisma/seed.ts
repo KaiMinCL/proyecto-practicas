@@ -60,7 +60,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Admin',
     apellido: 'Sistema',
     email: 'admin@sistema.cl',
-    rol: 'SA',
+    rol: 'SUPER_ADMIN',
     sede: 0, // Sede Valparaíso
   },
   // Directores de Carrera
@@ -69,7 +69,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'María',
     apellido: 'González',
     email: 'maria.gonzalez@instituto.cl',
-    rol: 'DirectorCarrera',
+    rol: 'DIRECTOR_CARRERA',
     sede: 0, // Sede Valparaíso
   },
   {
@@ -77,7 +77,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Pedro',
     apellido: 'Silva',
     email: 'pedro.silva@instituto.cl',
-    rol: 'DirectorCarrera',
+    rol: 'DIRECTOR_CARRERA',
     sede: 1, // Sede Viña del Mar
   },
   // Coordinadores
@@ -86,7 +86,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Ana',
     apellido: 'Martínez',
     email: 'ana.martinez@instituto.cl',
-    rol: 'Coordinador',
+    rol: 'COORDINADOR',
     sede: 0, // Sede Valparaíso
   },
   {
@@ -94,7 +94,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Carlos',
     apellido: 'López',
     email: 'carlos.lopez@instituto.cl',
-    rol: 'Coordinador',
+    rol: 'COORDINADOR',
     sede: 1, // Sede Viña del Mar
   },
   {
@@ -102,7 +102,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Carmen',
     apellido: 'Rojas',
     email: 'carmen.rojas@instituto.cl',
-    rol: 'Coordinador',
+    rol: 'COORDINADOR',
     sede: 2, // Sede Santiago
   },
   // Docentes
@@ -111,7 +111,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Roberto',
     apellido: 'Fernández',
     email: 'roberto.fernandez@instituto.cl',
-    rol: 'Docente',
+    rol: 'DOCENTE',
     sede: 0,
   },
   {
@@ -119,7 +119,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Isabel',
     apellido: 'Castro',
     email: 'isabel.castro@instituto.cl',
-    rol: 'Docente',
+    rol: 'DOCENTE',
     sede: 0,
   },
   {
@@ -127,7 +127,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Jorge',
     apellido: 'Muñoz',
     email: 'jorge.munoz@instituto.cl',
-    rol: 'Docente',
+    rol: 'DOCENTE',
     sede: 1,
   },
   {
@@ -135,7 +135,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Lucía',
     apellido: 'Vargas',
     email: 'lucia.vargas@instituto.cl',
-    rol: 'Docente',
+    rol: 'DOCENTE',
     sede: 2,
   },
   // Alumnos
@@ -144,7 +144,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Juan',
     apellido: 'Pérez',
     email: 'juan.perez@estudiante.cl',
-    rol: 'Alumno',
+    rol: 'ALUMNO',
     sede: 0,
     carrera: 0, // Ingeniería Informática
   },
@@ -153,7 +153,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'María',
     apellido: 'Soto',
     email: 'maria.soto@estudiante.cl',
-    rol: 'Alumno',
+    rol: 'ALUMNO',
     sede: 0,
     carrera: 0,
   },
@@ -162,7 +162,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Diego',
     apellido: 'Herrera',
     email: 'diego.herrera@estudiante.cl',
-    rol: 'Alumno',
+    rol: 'ALUMNO',
     sede: 1,
     carrera: 1, // Ingeniería Comercial
   },
@@ -171,7 +171,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Sofía',
     apellido: 'Morales',
     email: 'sofia.morales@estudiante.cl',
-    rol: 'Alumno',
+    rol: 'ALUMNO',
     sede: 1,
     carrera: 2, // Técnico en Computación
   },
@@ -180,7 +180,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Andrés',
     apellido: 'Rivera',
     email: 'andres.rivera@estudiante.cl',
-    rol: 'Alumno',
+    rol: 'ALUMNO',
     sede: 2,
     carrera: 3, // Administración de Empresas
   },
@@ -189,7 +189,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Valentina',
     apellido: 'Torres',
     email: 'valentina.torres@estudiante.cl',
-    rol: 'Alumno',
+    rol: 'ALUMNO',
     sede: 0,
     carrera: 0,
   },
@@ -199,7 +199,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Ricardo',
     apellido: 'Mendoza',
     email: 'ricardo.mendoza@techcorp.cl',
-    rol: 'Empleador',
+    rol: 'EMPLEADOR',
     sede: 0,
     empresa: 0, // TechCorp S.A.
   },
@@ -208,7 +208,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Patricia',
     apellido: 'Reyes',
     email: 'patricia.reyes@consultora.cl',
-    rol: 'Empleador',
+    rol: 'EMPLEADOR',
     sede: 0,
     empresa: 1, // Consultora Digital Ltda.
   },
@@ -217,7 +217,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Fernando',
     apellido: 'Vega',
     email: 'fernando.vega@innovacion.cl',
-    rol: 'Empleador',
+    rol: 'EMPLEADOR',
     sede: 1,
     empresa: 2, // Innovación Corp
   },
@@ -226,7 +226,7 @@ const USUARIOS_TEST_DATA = [
     nombre: 'Gabriela',
     apellido: 'Campos',
     email: 'gabriela.campos@startuptech.cl',
-    rol: 'Empleador',
+    rol: 'EMPLEADOR',
     sede: 2,
     empresa: 3, // StartupTech
   },
