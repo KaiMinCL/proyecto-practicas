@@ -50,7 +50,7 @@ export class DocenteService {
 
       const formattedDocentes = docentes.map(d => ({
         value: d.id,
-        label: `${d.usuario.apellido}, <span class="math-inline">\{d\.usuario\.nombre\} \(</span>{d.usuario.email})`,
+        label: `${d.usuario.apellido}, ${d.usuario.nombre} (${d.usuario.email})`,
       }));
       return { success: true, data: formattedDocentes };
     } catch (error) {
