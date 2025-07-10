@@ -56,19 +56,59 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const { id, estado } = await request.json();
-    if (!id || !['ACTIVO', 'INACTIVO'].includes(estado)) {
-      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
+    const body = await request.json();
+    const { id, nombre, apellido, email, rol, sedeId, estado, tipo, carreraId, fotoUrl, carreras, centros } = body;
+    if (!id) {
+      return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
     }
 
-    await prisma.usuario.update({
+    // Actualizar datos generales
+    const usuario = await prisma.usuario.update({
       where: { id },
-      data: { estado },
+      data: {
+        ...(nombre && { nombre }),
+        ...(apellido && { apellido }),
+        ...(email && { email }),
+        ...(rol && { rol: { connect: { nombre: rol } } }),
+        ...(sedeId && { sedeId }),
+        ...(estado && ['ACTIVO', 'INACTIVO'].includes(estado) ? { estado } : {}),
+      },
+      include: { alumno: true, docente: true, empleador: true },
     });
 
-    return NextResponse.json({ success: true, message: `Usuario ${estado === 'ACTIVO' ? 'activado' : 'desactivado'} exitosamente.` });
+    // Actualizar datos específicos según tipo
+    if (usuario.alumno && (carreraId || fotoUrl)) {
+      await prisma.alumno.update({
+        where: { usuarioId: id },
+        data: {
+          ...(carreraId && { carreraId }),
+          ...(fotoUrl && { fotoUrl }),
+        },
+      });
+    }
+    if (usuario.docente && Array.isArray(carreras)) {
+      // Actualizar carreras del docente (DocenteCarrera)
+      const docenteId = usuario.docente.id;
+      // Eliminar todas y volver a crear
+      await prisma.docenteCarrera.deleteMany({ where: { docenteId } });
+      await prisma.docenteCarrera.createMany({
+        data: carreras.map((carreraId: number) => ({ docenteId, carreraId })),
+        skipDuplicates: true,
+      });
+    }
+    if (usuario.empleador && Array.isArray(centros)) {
+      // Actualizar centros del empleador (EmpleadorCentro)
+      const empleadorId = usuario.empleador.id;
+      await prisma.empleadorCentro.deleteMany({ where: { empleadorId } });
+      await prisma.empleadorCentro.createMany({
+        data: centros.map((centroPracticaId: number) => ({ empleadorId, centroPracticaId })),
+        skipDuplicates: true,
+      });
+    }
+
+    return NextResponse.json({ success: true, message: 'Usuario actualizado correctamente.' });
   } catch (error) {
-    console.error('Error al actualizar estado de usuario:', error);
-    return NextResponse.json({ error: 'Error al actualizar estado de usuario' }, { status: 500 });
+    console.error('Error al actualizar usuario:', error);
+    return NextResponse.json({ error: 'Error al actualizar usuario' }, { status: 500 });
   }
 }

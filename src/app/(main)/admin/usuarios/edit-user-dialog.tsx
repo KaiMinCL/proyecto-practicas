@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { UpdateUserSchema, type UpdateUserFormData } from '@/lib/validators';
 import { useRouter } from 'next/navigation';
-import { getUserAction, updateUserAction } from './actions';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +36,15 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sedes, setSedes] = useState<Array<{ id: number; nombre: string }>>([]);
+  const [tipoUsuario, setTipoUsuario] = useState<'ALUMNO' | 'DOCENTE' | 'EMPLEADOR' | null>(null);
+  const [carreras, setCarreras] = useState<Array<{ id: number; nombre: string }>>([]);
+  const [centros, setCentros] = useState<Array<{ id: number; nombreEmpresa: string }>>([]);
+  const [userData, setUserData] = useState<any>(null);
+  // Estados locales para campos específicos
+  const [alumnoCarreraId, setAlumnoCarreraId] = useState<number | undefined>(undefined);
+  const [alumnoFotoUrl, setAlumnoFotoUrl] = useState<string>('');
+  const [docenteCarreras, setDocenteCarreras] = useState<number[]>([]);
+  const [empleadorCentros, setEmpleadorCentros] = useState<number[]>([]);
 
   const form = useForm<UpdateUserFormData>({
     resolver: zodResolver(UpdateUserSchema),
@@ -50,86 +58,103 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
     },
   });
 
-  // Cargar datos del usuario al abrir el diálogo
   useEffect(() => {
     async function loadUserData() {
-      const user = await getUserAction(userId);
-      if (user) {
-        // Mapear el rol recibido a los valores del enum
-        let rolValue: 'DIRECTOR_CARRERA' | 'COORDINADOR' | 'DOCENTE' = 'DOCENTE';
-        switch ((user.rol.nombre || '').toUpperCase()) {
-          case 'DIRECTOR_CARRERA':
-          case 'DIRECTOR CARRERA':
-          case 'DIRECTOR':
-            rolValue = 'DIRECTOR_CARRERA';
-            break;
-          case 'COORDINADOR':
-            rolValue = 'COORDINADOR';
-            break;
-          case 'DOCENTE':
-            rolValue = 'DOCENTE';
-            break;
-        }
-        form.reset({
-          id: user.id,
-          nombre: user.nombre,
-          apellido: user.apellido,
-          email: user.email,
-          rol: rolValue,
-          sedeId: user.sedeId ?? undefined,
-        });
+      const user = await fetch(`/api/usuarios/${userId}`).then(r => r.json());
+      setUserData(user);
+      let rolValue: 'DIRECTOR_CARRERA' | 'COORDINADOR' | 'DOCENTE' = 'DOCENTE';
+      switch ((user.rol?.nombre || '').toUpperCase()) {
+        case 'DIRECTOR_CARRERA':
+        case 'DIRECTOR CARRERA':
+        case 'DIRECTOR':
+          rolValue = 'DIRECTOR_CARRERA';
+          break;
+        case 'COORDINADOR':
+          rolValue = 'COORDINADOR';
+          break;
+        case 'DOCENTE':
+          rolValue = 'DOCENTE';
+          break;
+      }
+      form.reset({
+        id: user.id,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        email: user.email,
+        rol: rolValue,
+        sedeId: user.sedeId ?? undefined,
+      });
+      if (user.alumno) {
+        setTipoUsuario('ALUMNO');
+        setAlumnoCarreraId(user.alumno.carreraId);
+        setAlumnoFotoUrl(user.alumno.fotoUrl || '');
+      } else if (user.docente) {
+        setTipoUsuario('DOCENTE');
+        setDocenteCarreras(user.docente.carreras?.map((c: any) => c.carreraId) || []);
+      } else if (user.empleador) {
+        setTipoUsuario('EMPLEADOR');
+        setEmpleadorCentros(user.empleador.centros?.map((c: any) => c.centroPracticaId) || []);
       }
     }
-
     async function loadSedes() {
       const response = await fetch('/api/sedes');
       const data = await response.json();
-      // Si la respuesta es { sedes: [...] }, usar data.sedes, si no, usar data directamente
       setSedes(Array.isArray(data) ? data : data.sedes || []);
     }
-    
+    async function loadCarreras() {
+      const response = await fetch('/api/carreras');
+      const data = await response.json();
+      setCarreras(Array.isArray(data) ? data : data.carreras || []);
+    }
+    async function loadCentros() {
+      const response = await fetch('/api/centros');
+      const data = await response.json();
+      setCentros(Array.isArray(data) ? data : data.centros || []);
+    }
     if (open) {
       loadUserData();
       loadSedes();
+      loadCarreras();
+      loadCentros();
     }
   }, [open, userId, form]);
 
-  const onSubmit = async (data: UpdateUserFormData) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      const formData = new FormData();
-      formData.append('id', userId.toString());
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === 'id') return;
-        formData.append(key, value.toString());
+      const body: any = {
+        id: userId,
+        nombre: data.nombre,
+        apellido: data.apellido,
+        email: data.email,
+        rol: data.rol,
+        sedeId: data.sedeId,
+      };
+      if (tipoUsuario === 'ALUMNO') {
+        body.carreraId = alumnoCarreraId;
+        body.fotoUrl = alumnoFotoUrl;
+      }
+      if (tipoUsuario === 'DOCENTE') {
+        body.carreras = docenteCarreras;
+      }
+      if (tipoUsuario === 'EMPLEADOR') {
+        body.centros = empleadorCentros;
+      }
+      const response = await fetch('/api/usuarios', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
-
-      const response = await updateUserAction(undefined, formData);
-
-      if (response.success) {
-        toast.success(response.message);
+      const result = await response.json();
+      if (response.ok && result.success) {
+        toast.success(result.message);
         setOpen(false);
         form.reset();
         router.refresh();
       } else {
-        // Mostrar errores específicos de campo
-        if (response.errors) {
-          Object.entries(response.errors).forEach(([field, messages]) => {
-            if (field === 'general') {
-              toast.error(messages.join(' '));
-            } else {
-              form.setError(field as keyof UpdateUserFormData, {
-                type: 'server',
-                message: messages.join(' '),
-              });
-            }
-          });
-        } else {
-          toast.error(response.message || 'Error al actualizar el usuario');
-        }
+        toast.error(result.error || result.message || 'Error al actualizar usuario');
       }
     } catch (error) {
-      console.error('Error al actualizar usuario:', error);
       toast.error('Ocurrió un error inesperado');
     } finally {
       setIsSubmitting(false);
@@ -143,7 +168,7 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="h-5 w-5" />
@@ -248,6 +273,80 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
                 </FormItem>
               )}
             />
+            {/* Campos específicos por tipo de usuario */}
+            {tipoUsuario === 'ALUMNO' && (
+              <>
+                <FormItem>
+                  <FormLabel>Carrera</FormLabel>
+                  <Select
+                    value={alumnoCarreraId?.toString()}
+                    onValueChange={v => setAlumnoCarreraId(Number(v))}
+                    disabled={isSubmitting}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione una carrera" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {carreras.map(carrera => (
+                        <SelectItem key={carrera.id} value={carrera.id.toString()}>
+                          {carrera.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+                <FormItem>
+                  <FormLabel>Foto (URL)</FormLabel>
+                  <FormControl>
+                    <Input value={alumnoFotoUrl} onChange={e => setAlumnoFotoUrl(e.target.value)} disabled={isSubmitting} />
+                  </FormControl>
+                </FormItem>
+              </>
+            )}
+            {tipoUsuario === 'DOCENTE' && (
+              <FormItem>
+                <FormLabel>Carreras</FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {carreras.map(carrera => (
+                    <label key={carrera.id} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={docenteCarreras.includes(carrera.id)}
+                        onChange={e => {
+                          if (e.target.checked) setDocenteCarreras([...docenteCarreras, carrera.id]);
+                          else setDocenteCarreras(docenteCarreras.filter(id => id !== carrera.id));
+                        }}
+                        disabled={isSubmitting}
+                      />
+                      {carrera.nombre}
+                    </label>
+                  ))}
+                </div>
+              </FormItem>
+            )}
+            {tipoUsuario === 'EMPLEADOR' && (
+              <FormItem>
+                <FormLabel>Centros de Práctica</FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {centros.map(centro => (
+                    <label key={centro.id} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={empleadorCentros.includes(centro.id)}
+                        onChange={e => {
+                          if (e.target.checked) setEmpleadorCentros([...empleadorCentros, centro.id]);
+                          else setEmpleadorCentros(empleadorCentros.filter(id => id !== centro.id));
+                        }}
+                        disabled={isSubmitting}
+                      />
+                      {centro.nombreEmpresa}
+                    </label>
+                  ))}
+                </div>
+              </FormItem>
+            )}
             <div className="flex justify-end space-x-4">
               <Button
                 type="button"
