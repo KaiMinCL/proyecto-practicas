@@ -29,8 +29,13 @@ export const CreateUserSchema = z.object({
   }).int().positive({ message: "Debe seleccionar una sede válida." }),
 });
 
-export const UpdateUserSchema = CreateUserSchema.extend({
+export const UpdateUserSchema = z.object({
   id: z.number().int().positive(),
+  nombre: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }).max(50, { message: "El nombre debe tener máximo 50 caracteres." }).optional(),
+  apellido: z.string().min(2, { message: "El apellido debe tener al menos 2 caracteres." }).max(50, { message: "El apellido debe tener máximo 50 caracteres." }).optional(),
+  email: z.string().min(1, { message: "El email es requerido." }).email({ message: "Formato de email inválido." }).optional(),
+  rol: z.enum(['DIRECTOR_CARRERA', 'COORDINADOR', 'DOCENTE']).optional(),
+  sedeId: z.number().int().positive({ message: "Debe seleccionar una sede válida." }).optional(),
 });
 
 export const CreateAlumnoSchema = z.object({
