@@ -10,12 +10,14 @@ export const CreateDocumentoSchema = z.object({
   carreraId: z
     .number()
     .int()
-    .positive('ID de carrera inválido'),
+    .positive('ID de carrera inválido')
+    .optional(),
   
   sedeId: z
     .number()
     .int()
-    .positive('ID de sede inválido'),
+    .positive('ID de sede inválido')
+    .optional(),
 });
 
 export const UpdateDocumentoSchema = z.object({
