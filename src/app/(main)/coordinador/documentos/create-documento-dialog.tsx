@@ -146,6 +146,17 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
     }
   };
 
+  // Al enviar el formulario, si carreraId o sedeId es '0', elimina esos campos antes de enviar
+  const handleFormSubmit = (formData: FormData) => {
+    if (formData.get('carreraId') === '0') {
+      formData.delete('carreraId');
+    }
+    if (formData.get('sedeId') === '0') {
+      formData.delete('sedeId');
+    }
+    formAction(formData);
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -172,7 +183,7 @@ export function CreateDocumentoDialog({ onDocumentoCreated }: CreateDocumentoDia
             Sube un documento PDF de apoyo para estudiantes y empleadores.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        <form onSubmit={e => { e.preventDefault(); handleFormSubmit(new FormData(e.currentTarget)); }} className="space-y-4">
           {/* Nombre del documento */}
           <div className="space-y-2">
             <Label htmlFor="nombre">Nombre del documento *</Label>
