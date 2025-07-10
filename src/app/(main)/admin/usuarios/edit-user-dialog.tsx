@@ -45,7 +45,7 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
       nombre: '',
       apellido: '',
       email: '',
-      rol: 'Docente',
+      rol: 'DOCENTE',
       sedeId: undefined,
     },
   });
@@ -55,12 +55,27 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
     async function loadUserData() {
       const user = await getUserAction(userId);
       if (user) {
+        // Mapear el rol recibido a los valores del enum
+        let rolValue: 'DIRECTOR_CARRERA' | 'COORDINADOR' | 'DOCENTE' = 'DOCENTE';
+        switch ((user.rol.nombre || '').toUpperCase()) {
+          case 'DIRECTOR_CARRERA':
+          case 'DIRECTOR CARRERA':
+          case 'DIRECTOR':
+            rolValue = 'DIRECTOR_CARRERA';
+            break;
+          case 'COORDINADOR':
+            rolValue = 'COORDINADOR';
+            break;
+          case 'DOCENTE':
+            rolValue = 'DOCENTE';
+            break;
+        }
         form.reset({
           id: user.id,
           nombre: user.nombre,
           apellido: user.apellido,
           email: user.email,
-          rol: user.rol.nombre as "Docente" | "DirectorCarrera" | "Coordinador",
+          rol: rolValue,
           sedeId: user.sedeId ?? undefined,
         });
       }
@@ -69,7 +84,8 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
     async function loadSedes() {
       const response = await fetch('/api/sedes');
       const data = await response.json();
-      setSedes(data);
+      // Si la respuesta es { sedes: [...] }, usar data.sedes, si no, usar data directamente
+      setSedes(Array.isArray(data) ? data : data.sedes || []);
     }
     
     if (open) {
@@ -193,9 +209,9 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="DirectorCarrera">Director de Carrera</SelectItem>
-                      <SelectItem value="Coordinador">Coordinador</SelectItem>
-                      <SelectItem value="Docente">Docente</SelectItem>
+                      <SelectItem value="DIRECTOR_CARRERA">Director de Carrera</SelectItem>
+                      <SelectItem value="COORDINADOR">Coordinador</SelectItem>
+                      <SelectItem value="DOCENTE">Docente</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
