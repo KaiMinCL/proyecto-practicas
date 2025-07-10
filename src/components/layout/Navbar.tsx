@@ -37,7 +37,7 @@ export default function Navbar() {
   const [loadingAlerts, setLoadingAlerts] = React.useState(false);
 
   React.useEffect(() => {
-    if (!user || (user.rol !== 'SUPER_ADMIN' && user.rol !== 'COORDINADOR')) return;
+    if (!user) return;
     setLoadingAlerts(true);
     if (user.rol === 'SUPER_ADMIN') {
       fetch('/api/admin/dashboard/alerts')
@@ -46,7 +46,7 @@ export default function Navbar() {
           if (data && data.data) setAlerts(data.data);
         })
         .finally(() => setLoadingAlerts(false));
-    } else {
+    } else if (user.rol === 'COORDINADOR') {
       fetch(`/api/${user.rol.toLowerCase()}/stats`)
         .then(res => res.json())
         .then(data => {
@@ -60,6 +60,26 @@ export default function Navbar() {
                 title: 'Prácticas pendientes de revisión',
                 description: `Tienes ${data.practicasPendientesRevision} prácticas que requieren revisión`,
                 count: data.practicasPendientesRevision
+              });
+            }
+            setAlerts(arr);
+          }
+        })
+        .finally(() => setLoadingAlerts(false));
+    } else if (user.rol === 'DOCENTE') {
+      fetch('/api/docente/dashboard/alerts')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.alertas) setAlerts(data.alertas);
+          else if (data && data.practicasPendientesAceptar) {
+            const arr: NavbarAlert[] = [];
+            if (data.practicasPendientesAceptar > 0) {
+              arr.push({
+                id: '1',
+                type: 'warning' as const,
+                title: 'Prácticas por aceptar o cancelar',
+                description: `Tienes ${data.practicasPendientesAceptar} prácticas que requieren tu decisión`,
+                count: data.practicasPendientesAceptar
               });
             }
             setAlerts(arr);
@@ -89,7 +109,7 @@ export default function Navbar() {
           {/* Right side */}
           <div className="flex items-center space-x-4 ml-auto">
             {/* Notificaciones para Admin y Coordinador */}
-            {user && (user.rol === 'SUPER_ADMIN' || user.rol === 'COORDINADOR') && (
+            {user && (user.rol === 'SUPER_ADMIN' || user.rol === 'COORDINADOR' || user.rol === 'DOCENTE') && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative p-2">

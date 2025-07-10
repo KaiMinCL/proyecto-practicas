@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getUserSession } from '@/lib/auth';
 import type { RoleName } from '@/types/roles';
 // Asegúrate que la ruta a las actions del docente sea correcta
-import { getDetallesPracticaParaRevisionDocenteAction, type ActionResponse } from '../../../practicas/actions'; 
+import { getDetallesPracticaParaRevisionDocenteAction, type ActionResponse } from '../../actions'; 
 import type { PracticaConDetalles } from '@/lib/validators/practica';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, FileCheck, User, GraduationCap } from "lucide-react";

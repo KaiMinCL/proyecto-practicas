@@ -35,7 +35,7 @@ import { TipoPractica as PrismaTipoPracticaEnum, EstadoPractica as PrismaEstadoP
 import { toast } from 'sonner';
 
 // Asegúrate que la ruta de importación sea correcta
-import { submitDecisionDocenteActaAction, type ActionResponse } from '../../../practicas/actions'; 
+import { submitDecisionDocenteActaAction, type ActionResponse } from '../../actions'; 
 import { RejectionReasonModal } from './rejection-reason-modal';
 import { MapComponent } from '@/components/custom';
 

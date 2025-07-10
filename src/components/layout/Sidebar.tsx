@@ -41,38 +41,6 @@ const navigationItems: NavItem[] = [
     href: '/dashboard',
     icon: Home,
   },
-  // Coordinador routes
-  {
-    title: 'Gestión de Usuarios',
-    href: '/coordinador/usuarios',
-    icon: UserCheck,
-    roles: ['COORDINADOR'],
-  },
-  {
-    title: 'Notificaciones',
-    href: '/coordinador/notificaciones',
-    icon: Mail,
-    roles: ['COORDINADOR'],
-  },
-  // Docente routes
-  {
-    title: 'Prácticas Asignadas',
-    href: '/docente/practicas',
-    icon: BookOpen,
-    roles: ['DOCENTE'],
-  },
-  {
-    title: 'Pendientes Aceptación',
-    href: '/docente/practicas-pendientes',
-    icon: UserCheck,
-    roles: ['DOCENTE'],
-  },
-  {
-    title: 'Mis Estudiantes',
-    href: '/docente/estudiantes',
-    icon: Users,
-    roles: ['DOCENTE'],
-  },
   {
     title: 'Evaluaciones',
     href: '/docente/evaluaciones',

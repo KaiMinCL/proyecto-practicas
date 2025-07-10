@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { 
@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
     Terminal, 
     Info, 
@@ -37,6 +39,7 @@ import type { ActionResponse } from '../practicas/actions';
 
 interface PracticasDocenteClienteProps {
   initialActionResponse: ActionResponse<PracticaConDetalles[]>;
+  user: any;
 }
 
 // Función helper para obtener el color del estado
@@ -180,8 +183,23 @@ const getAccionPrincipal = (practica: PracticaConDetalles) => {
 };
 
 export function PracticasDocenteCliente({ initialActionResponse }: PracticasDocenteClienteProps) {
-  const [practicas] = React.useState<PracticaConDetalles[]>(initialActionResponse.data || []);
-  const [error] = React.useState<string | null>(initialActionResponse.error || null);
+  const [practicas] = useState<PracticaConDetalles[]>(initialActionResponse.data || []);
+  const [error] = useState<string | null>(initialActionResponse.error || null);
+  const [search, setSearch] = useState('');
+  const [estado, setEstado] = useState('__all__');
+
+  // Filtro por búsqueda y estado
+  const practicasFiltradas = practicas.filter((p) => {
+    const alumno = `${p.alumno?.usuario.nombre ?? ''} ${p.alumno?.usuario.apellido ?? ''} ${p.alumno?.usuario.rut ?? ''}`.toLowerCase();
+    const matchSearch = alumno.includes(search.toLowerCase());
+    const matchEstado = estado === '__all__' ? true : p.estado === estado;
+    return matchSearch && matchEstado;
+  });
+
+  // Agrupaciones
+  const practicasPendientes = practicasFiltradas.filter(p => p.estado === 'PENDIENTE_ACEPTACION_DOCENTE');
+  const practicasEnCurso = practicasFiltradas.filter(p => p.estado === 'EN_CURSO' || p.estado === 'FINALIZADA_PENDIENTE_EVAL' || p.estado === 'EVALUACION_COMPLETA');
+  const practicasCerradas = practicasFiltradas.filter(p => p.estado === 'CERRADA');
 
   if (error) {
     return (
@@ -193,67 +211,109 @@ export function PracticasDocenteCliente({ initialActionResponse }: PracticasDoce
     );
   }
 
-  if (practicas.length === 0) {
-    return (
-      <div className="text-center py-16 bg-gradient-to-b from-muted/50 to-background rounded-2xl border-2 border-dashed border-border">
-        <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-          <BookOpen className="w-12 h-12 text-primary" />
-        </div>
-        <h3 className="text-2xl font-bold text-foreground mb-3">
-          No tienes prácticas asignadas
-        </h3>
-        <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed mb-6">
-          Cuando tengas prácticas asignadas como tutor, aparecerán aquí para su gestión y supervisión.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-          <Button asChild variant="outline">
-            <Link href="/dashboard">
-              <Info className="mr-2 h-4 w-4" />
-              Ir al Dashboard
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Separar prácticas por prioridad
-  const practicasPrioridad = practicas.filter(p => getAccionPrincipal(p).priority === 'high');
-  const practicasOtras = practicas.filter(p => getAccionPrincipal(p).priority === 'low');
-
   return (
     <div className="space-y-8">
-      {/* Prácticas que requieren acción */}
-      {practicasPrioridad.length > 0 && (
+      {/* Filtros */}
+      <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
+        <div className="flex-1">
+          <Input
+            placeholder="Buscar por nombre, apellido o RUT del alumno..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <div className="w-56">
+          <Select value={estado} onValueChange={setEstado}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filtrar por estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Todos los estados</SelectItem>
+              <SelectItem value="PENDIENTE_ACEPTACION_DOCENTE">Pendiente Aceptación</SelectItem>
+              <SelectItem value="EN_CURSO">En Curso</SelectItem>
+              <SelectItem value="FINALIZADA_PENDIENTE_EVAL">Pendiente Evaluación</SelectItem>
+              <SelectItem value="EVALUACION_COMPLETA">Evaluación Completa</SelectItem>
+              <SelectItem value="CERRADA">Finalizada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Alerta de prácticas pendientes de aceptación */}
+      {practicasPendientes.length > 0 && (
+        <Alert variant="warning" className="mb-8">
+          <AlertCircle className="h-5 w-5 text-orange-500 mr-2" />
+          <AlertTitle>¡Tienes prácticas nuevas que requieren tu aceptación!</AlertTitle>
+          <AlertDescription>
+            Debes revisar y aceptar/rechazar {practicasPendientes.length} práctica(s) asignada(s) recientemente.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Prácticas pendientes de aceptación */}
+      {practicasPendientes.length > 0 && (
         <div>
-          <div className="flex items-center mb-6">
-            <AlertCircle className="h-5 w-5 text-orange-500 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Requieren tu Acción ({practicasPrioridad.length})
+          <div className="flex items-center mb-4">
+            <UserCheck className="h-5 w-5 text-orange-500 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Prácticas Pendientes de Aceptación ({practicasPendientes.length})
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {practicasPrioridad.map((practica) => (
+            {practicasPendientes.map((practica) => (
               <PracticaCard key={practica.id} practica={practica} />
             ))}
           </div>
         </div>
       )}
 
-      {/* Otras prácticas */}
-      {practicasOtras.length > 0 && (
+      {/* Prácticas en curso/finalizadas */}
+      {practicasEnCurso.length > 0 && (
         <div>
-          <div className="flex items-center mb-6">
-            <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Otras Prácticas ({practicasOtras.length})
+          <div className="flex items-center mb-4">
+            <BookOpen className="h-5 w-5 text-blue-500 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Prácticas en Curso y Finalizadas ({practicasEnCurso.length})
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {practicasOtras.map((practica) => (
+            {practicasEnCurso.map((practica) => (
               <PracticaCard key={practica.id} practica={practica} />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Prácticas cerradas (histórico) */}
+      {practicasCerradas.length > 0 && (
+        <div>
+          <div className="flex items-center mb-4">
+            <CheckCircle2 className="h-5 w-5 text-emerald-500 mr-2" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Prácticas Cerradas ({practicasCerradas.length})
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {practicasCerradas.map((practica) => (
+              <PracticaCard key={practica.id} practica={practica} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Si no hay ninguna práctica */}
+      {practicasFiltradas.length === 0 && (
+        <div className="text-center py-16 bg-gradient-to-b from-muted/50 to-background rounded-2xl border-2 border-dashed border-border">
+          <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <BookOpen className="w-12 h-12 text-primary" />
+          </div>
+          <h3 className="text-2xl font-bold text-foreground mb-3">
+            No se encontraron prácticas
+          </h3>
+          <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed mb-6">
+            Ajusta los filtros o la búsqueda para ver otras prácticas o alumnos.
+          </p>
         </div>
       )}
     </div>
@@ -293,160 +353,37 @@ function PracticaCard({ practica }: { practica: PracticaConDetalles }) {
           </Badge>
         </div>
       </div>
-      
-      <CardContent className="p-6 space-y-4">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Carrera</p>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                {practica.carrera?.nombre || 'N/A'}
-              </p>
-            </div>
+      <CardContent className="p-6 space-y-2">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <GraduationCap className="w-4 h-4" />
+            {practica.carrera?.nombre || 'N/A'}
           </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tipo</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {practica.tipo === 'LABORAL' ? 'Laboral' : 'Profesional'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Inicio</p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {format(new Date(practica.fechaInicio), "dd/MM", { locale: es })}
-                </p>
-              </div>
-            </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <BookOpen className="w-4 h-4" />
+            {practica.tipo === 'LABORAL' ? 'Laboral' : 'Profesional'}
           </div>
-
-          {/* Información adicional según el estado */}
-          {practica.informeUrl && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <p className="text-xs font-medium text-blue-800 dark:text-blue-300">
-                    Informe subido
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 px-2 text-blue-600 hover:text-blue-700"
-                  asChild
-                >
-                  <a href={practica.informeUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="w-3 h-3" />
-                  </a>
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {practica.fechaCompletadoAlumno && practica.estado === 'PENDIENTE_ACEPTACION_DOCENTE' && (
-            <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                <p className="text-xs font-medium text-orange-800 dark:text-orange-300">
-                  Acta completada el {format(new Date(practica.fechaCompletadoAlumno), "dd/MM/yyyy", { locale: es })}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {practica.evaluacionDocente && (
-            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  <p className="text-xs font-medium text-green-800 dark:text-green-300">
-                    Evaluado
-                  </p>
-                </div>
-                <span className="text-sm font-bold text-green-800 dark:text-green-300">
-                  {practica.evaluacionDocente.nota}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {practica.evaluacionEmpleador && (
-            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Building className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <p className="text-xs font-medium text-purple-800 dark:text-purple-300">
-                    Evaluación Empleador Disponible
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 px-2 text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/40"
-                  asChild
-                >
-                  <Link href={`/docente/practicas/${practica.id}/ver-evaluacion-empleador`}>
-                    <FileText className="w-3 h-3 mr-1" />
-                    Ver
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {practica.actaFinal && (
-            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-lg border border-emerald-200 dark:border-emerald-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <p className="text-xs font-medium text-emerald-800 dark:text-emerald-300">
-                    Acta Final Validada
-                  </p>
-                </div>
-                <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
-                  {practica.actaFinal.notaFinal.toFixed(1)}
-                </span>
-              </div>
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="w-4 h-4" />
+            {format(new Date(practica.fechaInicio), "dd/MM/yyyy", { locale: es })}
+          </div>
         </div>
       </CardContent>
-      
-      <CardFooter className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-t border-gray-200 dark:border-gray-600 p-6">
-        <Button 
-          asChild 
-          size="default" 
-          variant={accionPrincipal.variant}
-          className={`w-full text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ${
-            accionPrincipal.variant === 'default' 
-              ? 'bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-700 hover:to-emerald-800' 
-              : ''
-          }`}
-          style={accionPrincipal.variant === 'default' ? {
-            background: 'linear-gradient(135deg, #007F7C, #005F5C)', 
-            borderColor: '#007F7C'
-          } : {}}
-        >
-          <Link href={accionPrincipal.href}>
-            <ActionIcon className="mr-2 h-4 w-4" />
-            {accionPrincipal.texto}
-          </Link>
-        </Button>
+      <CardFooter className="flex flex-col gap-2 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-t border-gray-200 dark:border-gray-600 p-6">
+        <div className="flex gap-2 w-full">
+          <Button asChild size="sm" variant={accionPrincipal.variant} className="flex-1">
+            <Link href={accionPrincipal.href}>
+              <ActionIcon className="mr-2 h-4 w-4" />
+              {accionPrincipal.texto}
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline" className="flex-1">
+            <Link href={`/docente/practicas/${practica.id}`}>
+              <Info className="mr-2 h-4 w-4" />
+              Ver Detalle
+            </Link>
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
