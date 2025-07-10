@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks';
 import { useRouter } from 'next/navigation';
 import { 
@@ -14,51 +14,30 @@ import {
   MapPin,
   ChevronLeft,
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  Building,
+  AlertCircle,
+  Archive
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// --- INTERFACES ---
 interface InformeHistorico {
   id: number;
-  alumno: {
-    usuario: {
-      nombre: string;
-      apellido: string;
-      rut: string;
-    };
-  };
-  carrera: {
-    id: number;
-    nombre: string;
-    sede: {
-      id: number;
-      nombre: string;
-    };
-  };
-  docente: {
-    usuario: {
-      nombre: string;
-      apellido: string;
-    };
-  };
+  alumno: { usuario: { nombre: string; apellido: string; rut: string; } };
+  carrera: { id: number; nombre: string; sede: { id: number; nombre: string; }; };
+  docente: { usuario: { nombre: string; apellido: string; } };
   informeUrl: string;
-  fechaSubidaInforme: string | null;
   fechaTermino: string;
   tipo: string;
-  evaluacionDocente?: {
-    nota: number;
-    fecha: string;
-  } | null;
+  evaluacionDocente?: { nota: number; fecha: string; } | null;
 }
 
 interface OpcionesFiltros {
@@ -67,562 +46,225 @@ interface OpcionesFiltros {
   aniosDisponibles: number[];
 }
 
-interface RepositorioInformesResponse {
+interface RepositorioApiResponse {
   informes: InformeHistorico[];
   total: number;
   totalPaginas: number;
   paginaActual: number;
 }
 
+// --- COMPONENTE ---
 export default function AdminRepositorioInformesPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  
-  // Estados de datos
+
   const [informes, setInformes] = useState<InformeHistorico[]>([]);
-  const [opciones, setOpciones] = useState<OpcionesFiltros>({
-    sedes: [],
-    carreras: [],
-    aniosDisponibles: [],
-  });
+  const [opciones, setOpciones] = useState<OpcionesFiltros | null>(null);
+  const [filters, setFilters] = useState({ sedeId: '', carreraId: '', anioAcademico: '', nombreAlumno: '', rutAlumno: '' });
   
-  // Estados de filtros
-  const [filtros, setFiltros] = useState({
-    sedeId: '',
-    carreraId: '',
-    anioAcademico: '',
-    semestre: '',
-    fechaDesde: '',
-    fechaHasta: '',
-    nombreAlumno: '',
-    rutAlumno: '',
-  });
-  
-  // Estados de UI
   const [loading, setLoading] = useState(true);
-  const [buscando, setBuscando] = useState(false);
-  
-  // Estados de paginación
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limite = 20;
+  const limite = 10;
+
+  // --- EFECTOS Y MANEJADORES ---
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Proteger la ruta - solo DC/SuperAdmin pueden acceder
-  useEffect(() => {
-    if (mounted && user && !['DIRECTOR_CARRERA', 'SUPER_ADMIN'].includes(user.rol)) {
+    if (user && !['SUPER_ADMIN', 'DIRECTOR_CARRERA'].includes(user.rol)) {
       toast.error('No tienes permisos para acceder a esta página');
       router.push('/dashboard');
     }
-  }, [mounted, user, router]);
+  }, [user, router]);
 
-  // Cargar opciones de filtros y buscar informes inicial
-  useEffect(() => {
-    if (mounted && user && ['DIRECTOR_CARRERA', 'SUPER_ADMIN'].includes(user.rol)) {
-      cargarOpciones();
-      buscarInformes();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, user]);
-
-  const cargarOpciones = async () => {
+  const cargarOpciones = useCallback(async () => {
     try {
       const response = await fetch('/api/repositorio-informes/opciones');
-      
-      if (!response.ok) {
-        throw new Error('Error al cargar opciones');
-      }
-      
-      const data = await response.json();
-      setOpciones(data);
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || 'Error al cargar opciones de filtro');
+      setOpciones(result.data);
     } catch (error) {
-      console.error('Error al cargar opciones:', error);
-      toast.error('Error al cargar las opciones de filtro');
+      toast.error(error instanceof Error ? error.message : 'Error desconocido');
     }
-  };
+  }, []);
 
-  const buscarInformes = async (nuevaPagina: number = 1) => {
-    if (!user) return;
-    
+  const buscarInformes = useCallback(async (page = 1) => {
+    setLoading(true);
     try {
-      setBuscando(true);
-      
-      // Construir parámetros de consulta
-      const params = new URLSearchParams();
-      params.append('pagina', nuevaPagina.toString());
-      params.append('limite', limite.toString());
-      
-      Object.entries(filtros).forEach(([key, value]) => {
-        if (value && value.trim() !== '' && !['todas', 'todos', 'ambos'].includes(value.trim())) {
-          params.append(key, value.trim());
-        }
-      });
-      
-      const response = await fetch(`/api/repositorio-informes?${params.toString()}`);
-      
-      if (!response.ok) {
-        throw new Error('Error al buscar informes');
-      }
-      
-      const data: RepositorioInformesResponse = await response.json();
-      
-      setInformes(data.informes);
-      setTotal(data.total);
-      setTotalPaginas(data.totalPaginas);
-      setPaginaActual(data.paginaActual);
-      
+        const cleanFilters = Object.fromEntries(
+            Object.entries(filters).filter(([_, v]) => v != null && v !== '' && v !== '_ALL_')
+        );
+        const params = new URLSearchParams({ page: page.toString(), limite: limite.toString(), ...cleanFilters });
+        const response = await fetch(`/api/repositorio-informes?${params.toString()}`);
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error || 'Error al buscar informes');
+        const data: RepositorioApiResponse = result.data;
+        setInformes(data.informes);
+        setTotalPaginas(data.totalPaginas);
+        setPaginaActual(data.paginaActual);
     } catch (error) {
-      console.error('Error al buscar informes:', error);
-      toast.error('Error al buscar los informes históricos');
+        toast.error(error instanceof Error ? error.message : 'Error desconocido al buscar informes.');
     } finally {
-      setBuscando(false);
-      setLoading(false);
+        setLoading(false);
     }
-  };
+  }, [filters]); // La dependencia de los filtros es correcta aquí
 
-  const handleFiltroChange = (campo: string, valor: string) => {
-    setFiltros(prev => ({ ...prev, [campo]: valor }));
-    
-    // Si cambia la sede, limpiar carrera
-    if (campo === 'sedeId') {
-      setFiltros(prev => ({ ...prev, carreraId: '' }));
+  // Este useEffect ahora solo se ejecuta UNA VEZ al montar el componente
+  useEffect(() => {
+    if (user) {
+        cargarOpciones();
+        buscarInformes(1); // Carga los datos iniciales
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Solo depende del usuario para la carga inicial
+  const handleFilterChange = (field: keyof typeof filters, value: string) => {
+    const finalValue = value === '_ALL_' ? '' : value;
+    setFilters(prev => ({ ...prev, [field]: finalValue, ...(field === 'sedeId' && { carreraId: '' }) }));
   };
-
-  const limpiarFiltros = async () => {
-    const filtrosLimpios = {
-      sedeId: '',
-      carreraId: '',
-      anioAcademico: '',
-      semestre: '',
-      fechaDesde: '',
-      fechaHasta: '',
-      nombreAlumno: '',
-      rutAlumno: '',
-    };
-    
-    setFiltros(filtrosLimpios);
-    setPaginaActual(1);
-    
-    // Ejecutar búsqueda sin filtros directamente
-    if (!user) return;
-    
-    try {
-      setBuscando(true);
-      
-      // Construir parámetros solo con paginación
-      const params = new URLSearchParams();
-      params.append('pagina', '1');
-      params.append('limite', limite.toString());
-      
-      const response = await fetch(`/api/repositorio-informes?${params.toString()}`);
-      
-      if (!response.ok) {
-        throw new Error('Error al buscar informes');
-      }
-      
-      const data: RepositorioInformesResponse = await response.json();
-      
-      setInformes(data.informes);
-      setTotal(data.total);
-      setTotalPaginas(data.totalPaginas);
-      setPaginaActual(data.paginaActual);
-      
-    } catch (error) {
-      console.error('Error al buscar informes:', error);
-      toast.error('Error al buscar los informes históricos');
-    } finally {
-      setBuscando(false);
-      setLoading(false);
-    }
-  };
-
-  const aplicarFiltros = () => {
+  
+  const handleApplyFilters = () => {
     setPaginaActual(1);
     buscarInformes(1);
-  };
+  }
 
-  const descargarInforme = (informe: InformeHistorico) => {
-    window.open(informe.informeUrl, '_blank');
-  };
+  const carrerasFiltradas = filters.sedeId && opciones
+    ? opciones.carreras.filter(c => c.sedeId === parseInt(filters.sedeId))
+    : opciones?.carreras;
 
-  const formatearFecha = (fecha: string | null) => {
-    if (!fecha) return 'No disponible';
-    return format(new Date(fecha), 'PPP', { locale: es });
-  };
-
-  const getTipoPracticaBadge = (tipo: string) => {
-    return tipo === 'LABORAL' ? (
-      <Badge variant="secondary">Práctica Laboral</Badge>
-    ) : (
-      <Badge variant="default">Práctica Profesional</Badge>
-    );
-  };
+  // --- FUNCIONES DE RENDERIZADO ---
 
   const getNotaBadge = (nota?: number) => {
-    if (!nota) return <Badge variant="outline">Sin evaluar</Badge>;
-    
-    const color = nota >= 4.0 ? 'default' : nota >= 3.0 ? 'secondary' : 'destructive';
+    if (nota === undefined || nota === null) return <Badge variant="outline">Sin evaluar</Badge>;
+    const color = nota >= 4.0 ? 'default' : 'destructive';
     return <Badge variant={color}>{nota.toFixed(1)}</Badge>;
   };
-
-  // Filtrar carreras por sede seleccionada
-  const carrerasFiltradas = filtros.sedeId && filtros.sedeId !== 'todas'
-    ? opciones.carreras.filter(c => c.sedeId === parseInt(filtros.sedeId))
-    : opciones.carreras;
-
-  if (!mounted) {
-    return <div>Cargando...</div>;
-  }
-
-  if (!user || !['DIRECTOR_CARRERA', 'SUPER_ADMIN'].includes(user.rol)) {
-    return <div>Acceso denegado</div>;
-  }
+  
+  const getTipoPracticaBadge = (tipo: string) => {
+    return tipo === 'LABORAL' ? (
+      <Badge variant="secondary">P. Laboral</Badge>
+    ) : (
+      <Badge variant="default">P. Profesional</Badge>
+    );
+  };
+  
+  if (!user) return <div className="text-center p-8">Cargando...</div>;
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Repositorio de Informes</h1>
-          <p className="text-muted-foreground">
-            Consulta y descarga informes históricos de prácticas con búsqueda avanzada
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-sm">
-            {total} {total === 1 ? 'informe' : 'informes'}
-          </Badge>
-          <Button
-            onClick={() => buscarInformes(paginaActual)}
-            disabled={buscando}
-            variant="outline"
-            size="sm"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${buscando ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
-        </div>
-      </div>
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
+          <Archive className="h-8 w-8" />
+          Repositorio de Informes Históricos
+        </h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Consulta y descarga informes de prácticas finalizadas y evaluadas en el sistema.
+        </p>
+      </header>
 
-      {/* Filtros de Búsqueda */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Filter className="h-4 w-4" />
-            Filtros de Búsqueda
-          </CardTitle>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Filter className="h-5 w-5"/> Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {/* Filtros principales en una sola fila */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">Sede</Label>
-                <Select
-                  value={filtros.sedeId}
-                  onValueChange={(value) => handleFiltroChange('sedeId', value)}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Todas las sedes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">Todas las sedes</SelectItem>
-                    {opciones.sedes.map((sede) => (
-                      <SelectItem key={sede.id} value={sede.id.toString()}>
-                        {sede.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">Carrera</Label>
-                <Select
-                  value={filtros.carreraId}
-                  onValueChange={(value) => handleFiltroChange('carreraId', value)}
-                  disabled={!filtros.sedeId || filtros.sedeId === 'todas'}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Todas las carreras" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">Todas las carreras</SelectItem>
-                    {carrerasFiltradas.map((carrera) => (
-                      <SelectItem key={carrera.id} value={carrera.id.toString()}>
-                        {carrera.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">Año</Label>
-                <Select
-                  value={filtros.anioAcademico}
-                  onValueChange={(value) => handleFiltroChange('anioAcademico', value)}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Todos los años" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos los años</SelectItem>
-                    {opciones.aniosDisponibles.map((anio) => (
-                      <SelectItem key={anio} value={anio.toString()}>
-                        {anio}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">Semestre</Label>
-                <Select
-                  value={filtros.semestre}
-                  onValueChange={(value) => handleFiltroChange('semestre', value)}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Ambos semestres" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ambos">Ambos semestres</SelectItem>
-                    <SelectItem value="1">Primer Semestre</SelectItem>
-                    <SelectItem value="2">Segundo Semestre</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-wrap items-end gap-4">
+                <div className="flex-grow min-w-[200px] space-y-2">
+                    <label className="text-sm font-medium">Sede</label>
+                    <Select value={filters.sedeId} onValueChange={(v) => handleFilterChange('sedeId', v)}>
+                        <SelectTrigger><SelectValue placeholder="Todas las sedes" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="_ALL_">Todas las sedes</SelectItem>
+                            {opciones?.sedes.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.nombre}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="flex-grow min-w-[200px] space-y-2">
+                    <label className="text-sm font-medium">Carrera</label>
+                    <Select value={filters.carreraId} onValueChange={(v) => handleFilterChange('carreraId', v)} disabled={!filters.sedeId}>
+                        <SelectTrigger><SelectValue placeholder="Todas las carreras" /></SelectTrigger>
+                        <SelectContent>
+                             <SelectItem value="_ALL_">Todas las carreras</SelectItem>
+                            {carrerasFiltradas?.map(c => <SelectItem key={c.id} value={c.id.toString()}>{c.nombre}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="flex-grow min-w-[150px] space-y-2">
+                    <label className="text-sm font-medium">Año Término</label>
+                    <Select value={filters.anioAcademico} onValueChange={(v) => handleFilterChange('anioAcademico', v)}>
+                        <SelectTrigger><SelectValue placeholder="Todos los años" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="_ALL_">Todos los años</SelectItem>
+                            {opciones?.aniosDisponibles.map(a => <SelectItem key={a} value={a.toString()}>{a}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex-grow min-w-[200px] space-y-2">
+                    <label className="text-sm font-medium">Alumno o RUT</label>
+                    <Input placeholder="Buscar..." value={filters.nombreAlumno} onChange={(e) => handleFilterChange('nombreAlumno', e.target.value)} />
+                </div>
+                <div className="flex gap-2">
+                    <Button onClick={handleApplyFilters} disabled={loading}>
+                        <Search className="mr-2 h-4 w-4" />
+                        {loading ? 'Buscando...' : 'Buscar'}
+                    </Button>
+                </div>
             </div>
-
-            {/* Filtros secundarios */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">Fecha Desde</Label>
-                <Input
-                  type="date"
-                  value={filtros.fechaDesde}
-                  onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
-                  className="h-9 text-sm"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">Fecha Hasta</Label>
-                <Input
-                  type="date"
-                  value={filtros.fechaHasta}
-                  onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
-                  className="h-9 text-sm"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">Nombre Alumno</Label>
-                <Input
-                  placeholder="Buscar por nombre"
-                  value={filtros.nombreAlumno}
-                  onChange={(e) => handleFiltroChange('nombreAlumno', e.target.value)}
-                  className="h-9 text-sm"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">RUT Alumno</Label>
-                <Input
-                  placeholder="12345678-9"
-                  value={filtros.rutAlumno}
-                  onChange={(e) => handleFiltroChange('rutAlumno', e.target.value)}
-                  className="h-9 text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Botones de Acción */}
-            <div className="flex gap-2 pt-2">
-              <Button 
-                onClick={aplicarFiltros} 
-                disabled={buscando}
-                size="sm"
-              >
-                <Search className="h-4 w-4 mr-2" />
-                {buscando ? 'Buscando...' : 'Buscar'}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={limpiarFiltros}
-                size="sm"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Limpiar
-              </Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
-
-      {/* Resultados */}
+      
       <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Resultados de Búsqueda
-            </CardTitle>
-            {total > 0 && (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {total} {total === 1 ? 'informe' : 'informes'}
-                </Badge>
-                {totalPaginas > 1 && (
-                  <Badge variant="outline">
-                    Página {paginaActual} de {totalPaginas}
-                  </Badge>
-                )}
-              </div>
-            )}
-          </div>
+        <CardHeader>
+          <CardTitle>Resultados</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-3">
-              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Cargando informes...</p>
-            </div>
-          ) : informes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-4">
-              <FileText className="h-12 w-12 text-muted-foreground/50" />
-              <div className="text-center space-y-2">
-                <h3 className="text-lg font-medium">No se encontraron informes</h3>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  No hay informes que coincidan con los criterios de búsqueda especificados.
-                  Intenta ajustar los filtros o limpiarlos para ver más resultados.
-                </p>
-              </div>
-              <Button variant="outline" onClick={limpiarFiltros}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Limpiar Filtros
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {informes.map((informe) => (
-                <Card key={informe.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2 flex-1">
-                        {/* Info del alumno */}
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {informe.alumno.usuario.nombre} {informe.alumno.usuario.apellido}
-                          </span>
-                          <Badge variant="outline">{informe.alumno.usuario.rut}</Badge>
-                          {getTipoPracticaBadge(informe.tipo)}
-                        </div>
-
-                        {/* Info de carrera y sede */}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <GraduationCap className="h-4 w-4" />
-                            <span>{informe.carrera.nombre}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{informe.carrera.sede.nombre}</span>
-                          </div>
-                        </div>
-
-                        {/* Info del docente y fechas */}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <User className="h-4 w-4" />
-                            <span>
-                              Docente: {informe.docente.usuario.nombre} {informe.docente.usuario.apellido}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            <span>Término: {formatearFecha(informe.fechaTermino)}</span>
-                          </div>
-                        </div>
-
-                        {/* Evaluación */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Evaluación:</span>
-                          {getNotaBadge(informe.evaluacionDocente?.nota)}
-                          {informe.evaluacionDocente?.fecha && (
-                            <span className="text-xs text-muted-foreground">
-                              ({formatearFecha(informe.evaluacionDocente.fecha)})
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Botón de descarga */}
-                      <Button
-                        onClick={() => descargarInforme(informe)}
-                        size="sm"
-                        className="ml-4"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Descargar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Paginación */}
-          {totalPaginas > 1 && (
-            <>
-              {/* Paginación */}
-              {totalPaginas > 1 && (
-                <>
-                  <Separator className="my-6" />
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="text-sm text-muted-foreground">
-                      Mostrando {((paginaActual - 1) * limite) + 1} a {Math.min(paginaActual * limite, total)} de {total} informes
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => buscarInformes(paginaActual - 1)}
-                        disabled={paginaActual <= 1 || buscando}
-                      >
-                        <ChevronLeft className="h-4 w-4 mr-1" />
-                        Anterior
-                      </Button>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-muted-foreground">Página</span>
-                        <Badge variant="outline">{paginaActual}</Badge>
-                        <span className="text-sm text-muted-foreground">de {totalPaginas}</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => buscarInformes(paginaActual + 1)}
-                        disabled={paginaActual >= totalPaginas || buscando}
-                      >
-                        Siguiente
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </>
-          )}
+            {loading ? (
+                <div className="text-center py-12 text-muted-foreground">Cargando informes...</div>
+            ) : informes.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                    <FileText className="mx-auto h-12 w-12 opacity-50 mb-4" />
+                    No se encontraron informes con los filtros aplicados.
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {informes.map((informe) => (
+                        <Card key={informe.id} className="hover:shadow-md transition-shadow">
+                            <CardContent className="p-4 flex items-start justify-between gap-4">
+                                <div className="space-y-2 flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">{informe.alumno.usuario.nombre} {informe.alumno.usuario.apellido}</span>
+                                        <Badge variant="outline">{informe.alumno.usuario.rut}</Badge>
+                                        {getTipoPracticaBadge(informe.tipo)}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground space-y-1 pl-6">
+                                        <p className="flex items-center gap-2"><GraduationCap className="h-4 w-4" /> {informe.carrera.nombre}</p>
+                                        <p className="flex items-center gap-2"><Building className="h-4 w-4" /> {informe.carrera.sede.nombre}</p>
+                                        <p className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Término: {format(new Date(informe.fechaTermino), 'dd/MM/yyyy')}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 pl-6">
+                                        <span className="text-sm text-muted-foreground">Evaluación:</span>
+                                        {getNotaBadge(informe.evaluacionDocente?.nota)}
+                                    </div>
+                                </div>
+                                <Button onClick={() => window.open(informe.informeUrl, '_blank')} size="sm">
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Descargar
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
         </CardContent>
+        {totalPaginas > 1 && (
+            <CardFooter className="flex items-center justify-end space-x-2 pt-4">
+                 <span className="text-sm text-muted-foreground">Página {paginaActual} de {totalPaginas}</span>
+                 <Button variant="outline" size="sm" onClick={() => buscarInformes(paginaActual - 1)} disabled={paginaActual <= 1 || loading}>
+                     <ChevronLeft className="h-4 w-4" />
+                 </Button>
+                 <Button variant="outline" size="sm" onClick={() => buscarInformes(paginaActual + 1)} disabled={paginaActual >= totalPaginas || loading}>
+                     <ChevronRight className="h-4 w-4" />
+                 </Button>
+            </CardFooter>
+        )}
       </Card>
     </div>
   );

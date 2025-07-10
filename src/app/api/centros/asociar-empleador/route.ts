@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     // 1. Verificar autenticación
     const user = await verifyUserSession();
-    if (!user || user.rol !== 'COORDINADOR') {
+    if (!user || !['SUPER_ADMIN', 'COORDINADOR'].includes(user.rol)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -93,7 +93,7 @@ export async function DELETE(request: Request) {
   try {
     // 1. Verificar autenticación
     const user = await verifyUserSession();
-    if (!user || user.rol !== 'COORDINADOR') {
+    if (!user || !['SUPER_ADMIN', 'COORDINADOR'].includes(user.rol)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }

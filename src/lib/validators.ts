@@ -19,7 +19,7 @@ export const CreateUserSchema = z.object({
   email: z.string()
     .min(1, { message: "El email es requerido." })
     .email({ message: "Formato de email inválido." }),
-  rol: z.enum(['DirectorCarrera', 'Coordinador', 'Docente'], {
+   rol: z.enum(['DIRECTOR_CARRERA', 'COORDINADOR', 'DOCENTE'], {
     required_error: "El rol es requerido.",
     invalid_type_error: "Rol inválido.",
   }),
@@ -40,7 +40,7 @@ export const UpdateUserSchema = z.object({
   email: z.string()
     .min(1, { message: "El email es requerido." })
     .email({ message: "Formato de email inválido." }),
-  rol: z.enum(['DirectorCarrera', 'Coordinador', 'Docente'], {
+  rol: z.enum(['DIRECTOR_CARRERA', 'COORDINADOR', 'DOCENTE'], {
     required_error: "El rol es requerido.",
     invalid_type_error: "Rol inválido.",
   }),

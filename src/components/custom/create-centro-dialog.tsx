@@ -47,9 +47,11 @@ interface Empleador {
 
 interface CreateCentroDialogProps {
   onSuccess: () => void;
+    children: React.ReactNode;
+
 }
 
-export function CreateCentroDialog({ onSuccess }: CreateCentroDialogProps) {
+export function CreateCentroDialog({ onSuccess, children }: CreateCentroDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [empleadores, setEmpleadores] = useState<Empleador[]>([]);
@@ -149,10 +151,7 @@ export function CreateCentroDialog({ onSuccess }: CreateCentroDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#007F7C] hover:bg-[#006B68]">
-          <Plus className="h-4 w-4 mr-2" />
-          Agregar Centro
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>

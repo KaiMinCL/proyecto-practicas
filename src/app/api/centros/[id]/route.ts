@@ -10,13 +10,13 @@ export async function GET(
   try {
     // 1. Verificar autenticación
     const user = await verifyUserSession();
-    if (!user || user.rol !== 'COORDINADOR') {
+   if (!user || !['SUPER_ADMIN', 'COORDINADOR'].includes(user.rol)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
-
+    
     const { id: idParam } = await params;
     const id = parseInt(idParam);
     if (isNaN(id)) {

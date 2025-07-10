@@ -6,6 +6,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { Save, XCircle, ChevronsUpDown, Check } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -52,16 +54,17 @@ type CarreraFormInputValues = z.input<typeof carreraSchema>;
 type ActiveSedeOption = { label: string; value: number };
 
 interface CarreraFormDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  initialData?: CarreraInput & { id?: number }; 
+  initialData?: CarreraInput & { id?: number };
+  children: React.ReactNode;
 }
 
-export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFormDialogProps) {
+export function CarreraFormDialog({ initialData, children }: CarreraFormDialogProps) {
+  const [open, setOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [activeSedes, setActiveSedes] = React.useState<ActiveSedeOption[]>([]);
   const [isSedesLoading, setIsSedesLoading] = React.useState(true);
   const [sedePopoverOpen, setSedePopoverOpen] = React.useState(false);
+  const router = useRouter();
 
   const formMode = initialData?.id ? 'edit' : 'create';
   const form = useForm<CarreraFormInputValues, unknown, CarreraInput>({
@@ -118,19 +121,19 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
             ? `Carrera "${result.data.nombre}" actualizada exitosamente.`
             : `Carrera "${result.data.nombre}" creada exitosamente.`
         );
-        onOpenChange(false);
+        setOpen(false);
+        router.refresh();
       } else {
-        // Manejo de errores
         if (result.errors && result.errors.length > 0) {
           result.errors.forEach(err => {
             const fieldName = Array.isArray(err.field) ? err.field.join('.') : err.field.toString();
             if (Object.prototype.hasOwnProperty.call(form.getValues(), fieldName)) {
-                 form.setError(fieldName as keyof CarreraFormInputValues, {
-                    type: "server",
-                    message: err.message,
-                 });
+                form.setError(fieldName as keyof CarreraFormInputValues, {
+                  type: "server",
+                  message: err.message,
+                });
             } else {
-                 toast.error(`Error: ${err.message}`);
+                toast.error(`Error: ${err.message}`);
             }
           });
           if (Object.keys(form.formState.errors).length > 0) {
@@ -157,8 +160,11 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
       if (isSubmitting && !isOpen) return;
-      onOpenChange(isOpen);
+      setOpen(isOpen);
     }}>
+        <DialogTrigger asChild>
+            {children}
+        </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
@@ -170,7 +176,6 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitCarreraForm)} className="space-y-4 pt-2">
-            {/* Nombre */}
             <FormField
               control={form.control}
               name="nombre"
@@ -182,7 +187,6 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 </FormItem>
               )}
             />
-            {/* SedeId Combobox */}
             <FormField
               control={form.control}
               name="sedeId"
@@ -236,7 +240,6 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 </FormItem>
               )}
             />
-            {/* Horas Prácticas */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -261,9 +264,8 @@ export function CarreraFormDialog({ open, onOpenChange, initialData }: CarreraFo
                 )}
               />
             </div>
-            {/* Footer con botones */}
             <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
                 <XCircle className="mr-2 h-4 w-4" /> Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting || (formMode === 'create' && isSedesLoading)}>

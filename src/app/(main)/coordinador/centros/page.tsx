@@ -17,10 +17,10 @@ import {
   Card,
   CardContent,
 } from '@/components/ui';
-import { CreateCentroDialog } from './create-centro-dialog';
-import { EditCentroDialog } from './edit-centro-dialog';
-import { AssociateCentroDialog } from './associate-centro-dialog';
-import { DeleteCentroDialog } from './delete-centro-dialog';
+import { CreateCentroDialog } from '../../../../components/custom/create-centro-dialog';
+import { EditCentroDialog } from '../../../../components/custom/edit-centro-dialog';
+import { AssociateCentroDialog } from '../../../../components/custom/associate-centro-dialog';
+import { DeleteCentroDialog } from '../../../../components/custom/delete-centro-dialog';
 import { Search, Building2, Users, Phone, Mail, MapPin, UserCheck, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 

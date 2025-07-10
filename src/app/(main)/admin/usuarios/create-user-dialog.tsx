@@ -1,3 +1,4 @@
+// src/app/(main)/admin/usuarios/create-user-dialog.tsx
 'use client';
 
 import * as React from 'react';
@@ -29,7 +30,8 @@ import {
 import { CreateUserSchema, type CreateUserFormData } from '@/lib/validators';
 import { createUserAction } from './actions';
 
-export function CreateUserDialog() {  const router = useRouter();
+export function CreateUserDialog() {
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [sedes, setSedes] = React.useState<Array<{ id: number; nombre: string }>>([]);
@@ -61,7 +63,7 @@ export function CreateUserDialog() {  const router = useRouter();
       nombre: '',
       apellido: '',
       email: '',
-      rol: 'Docente',
+      rol: 'DOCENTE',
       sedeId: undefined,
     },
   });
@@ -87,7 +89,6 @@ export function CreateUserDialog() {  const router = useRouter();
         form.reset();
         router.refresh();
       } else {
-        // Mostrar errores específicos de campo
         if (response.errors) {
           Object.entries(response.errors).forEach(([field, messages]) => {
             if (field === 'general') {
@@ -114,9 +115,9 @@ export function CreateUserDialog() {  const router = useRouter();
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Crear Usuario
+        <Button size="sm" variant="default" className="flex-1">
+            <Plus className="w-4 h-4 mr-2" />
+            Crear Usuario
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
@@ -212,9 +213,9 @@ export function CreateUserDialog() {  const router = useRouter();
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="DirectorCarrera">Director de Carrera</SelectItem>
-                        <SelectItem value="Coordinador">Coordinador</SelectItem>
-                        <SelectItem value="Docente">Docente</SelectItem>
+                        <SelectItem value="DIRECTOR_CARRERA">Director de Carrera</SelectItem>
+                      <SelectItem value="COORDINADOR">Coordinador</SelectItem>
+                      <SelectItem value="DOCENTE">Docente</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

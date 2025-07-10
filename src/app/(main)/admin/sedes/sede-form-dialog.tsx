@@ -6,6 +6,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { Save, XCircle } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -32,14 +34,15 @@ import { createSedeAction, updateSedeAction, type ActionResponse } from './actio
 type SedeFormInputValues = z.input<typeof sedeSchema>;
 
 interface SedeFormDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   initialData?: Sede | null;
+  children: React.ReactNode; // El botón que abrirá el diálogo
 }
 
-export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDialogProps) {
+export function SedeFormDialog({ initialData, children }: SedeFormDialogProps) {
+  const [open, setOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const formMode = initialData?.id ? 'edit' : 'create'; // Determina el modo por la presencia de initialData.id
+  const router = useRouter();
+  const formMode = initialData?.id ? 'edit' : 'create';
 
   const form = useForm<SedeFormInputValues, unknown, SedeInput>({
     resolver: zodResolver(sedeSchema),
@@ -68,10 +71,8 @@ export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDial
       let result: ActionResponse<Sede>;
 
       if (formMode === 'edit' && initialData?.id) {
-        // Llama a updateSedeAction si estamos en modo edición y tenemos un ID
         result = await updateSedeAction(initialData.id.toString(), data);
       } else {
-        // Llama a createSedeAction para el modo creación
         result = await createSedeAction(data);
       }
 
@@ -81,9 +82,9 @@ export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDial
             ? `Sede "${result.data.nombre}" actualizada exitosamente.`
             : `Sede "${result.data.nombre}" creada exitosamente.`
         );
-        onOpenChange(false); // Cierra el diálogo
+        setOpen(false); // Cierra el diálogo
+        router.refresh(); // Refresca los datos en la página
       } else {
-        // Manejo de errores
         if (result.errors && result.errors.length > 0) {
           result.errors.forEach(err => {
             const fieldName = Array.isArray(err.field) ? err.field[0] : err.field;
@@ -96,7 +97,7 @@ export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDial
               toast.error(`Error: ${err.message}`);
             }
           });
-          if (form.formState.errors) {
+          if (Object.keys(form.formState.errors).length > 0) {
             toast.warning("Por favor, corrige los errores en el formulario.");
           }
         } else {
@@ -118,12 +119,14 @@ export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDial
   const submitButtonText = formMode === 'edit' ? "Guardar Cambios" : "Guardar Sede";
   const submittingButtonText = formMode === 'edit' ? "Guardando Cambios..." : "Guardando...";
 
-
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
-      if (isSubmitting && !isOpen) return; // Previene cierre accidental mientras se envía
-      onOpenChange(isOpen);
+      if (isSubmitting && !isOpen) return;
+      setOpen(isOpen);
     }}>
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
@@ -167,7 +170,7 @@ export function SedeFormDialog({ open, onOpenChange, initialData }: SedeFormDial
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => setOpen(false)}
                 disabled={isSubmitting}
               >
                 <XCircle className="mr-2 h-4 w-4" />

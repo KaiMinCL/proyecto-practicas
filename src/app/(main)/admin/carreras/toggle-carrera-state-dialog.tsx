@@ -83,7 +83,7 @@ export function ToggleCarreraStateDialog({
           </AlertDialogTitle>
           <AlertDialogDescription>
             ¿Estás seguro de que quieres {actionToPerformText} la carrera{" "}
-            <strong>&ldquo{carrera.nombre}&ldquo</strong> (Sede: {carrera.sede?.nombre || 'N/A'})?
+            <strong>{carrera.nombre}</strong> (Sede: {carrera.sede?.nombre || 'N/A'})?
             {isActivating 
               ? " Esto permitirá que la carrera vuelva a estar operativa en el sistema."
               : " Esto podría afectar a alumnos y procesos asociados."
