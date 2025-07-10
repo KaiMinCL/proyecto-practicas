@@ -90,34 +90,27 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch stats
-        const statsResponse = await fetch('/api/admin/dashboard/stats');
+        // Fetch stats filtrados por carrera
+        const statsResponse = await fetch('/api/director/dashboard/stats');
         const statsData = await statsResponse.json();
-        
         if (statsData.success) {
           setStats(statsData.data);
         }
-        
-        // Fetch alerts
-        const alertsResponse = await fetch('/api/admin/dashboard/alerts');
+        // Fetch alerts filtrados por carrera
+        const alertsResponse = await fetch('/api/director/dashboard/alerts');
         const alertsData = await alertsResponse.json();
-        
         if (alertsData.success) {
           setAlerts(alertsData.data);
         }
-
-        // Fetch configuración
+        // Fetch configuración (puede seguir usando el endpoint global)
         const configResponse = await fetch('/api/admin/configuracion');
         const configData = await configResponse.json();
-        
         if (configData.success) {
           setConfiguracion({
             porcentajeEmpleador: configData.data.pesoEvaluacionEmpleador,
             porcentajeInforme: configData.data.pesoEvaluacionInforme
           });
         }
-        
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         setError('Error al cargar los datos del dashboard');
@@ -125,7 +118,6 @@ export function DashboardDirector({ user }: DashboardDirectorProps) {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, []);
 
