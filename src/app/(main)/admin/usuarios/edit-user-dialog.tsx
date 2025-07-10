@@ -82,7 +82,7 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
         apellido: user.apellido,
         email: user.email,
         rol: rolValue,
-        sedeId: user.sedeId ?? undefined,
+        sedeId: user.sedeId || user.sede?.id || undefined,
       });
       if (user.alumno) {
         setTipoUsuario('ALUMNO');
@@ -150,7 +150,7 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
         toast.success(result.message);
         setOpen(false);
         form.reset();
-        router.refresh();
+        window.location.reload(); // Refresca la página completa para asegurar datos actualizados
       } else {
         toast.error(result.error || result.message || 'Error al actualizar usuario');
       }

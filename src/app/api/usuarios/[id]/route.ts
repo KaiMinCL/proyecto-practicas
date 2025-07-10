@@ -52,11 +52,35 @@ export async function GET(
         rol: {
           select: {
             nombre: true,
+            id: true,
           },
         },
+        rolId: true,
         sede: {
           select: {
+            id: true,
             nombre: true,
+          },
+        },
+        sedeId: true,
+        alumno: {
+          select: {
+            carreraId: true,
+            fotoUrl: true,
+          },
+        },
+        docente: {
+          select: {
+            carreras: {
+              select: { carreraId: true },
+            },
+          },
+        },
+        empleador: {
+          select: {
+            centros: {
+              select: { centroPracticaId: true },
+            },
           },
         },
       },
