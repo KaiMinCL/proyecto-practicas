@@ -108,17 +108,22 @@ export function DocumentosView({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Cargando documentos...</span>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Cargando documentos...</span>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-gray-600">{getDescription()}</p>
+    <div className="space-y-4">
+      {/* Simple Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <FileText className="h-4 w-4" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        </div>
       </div>
 
       {error && (
@@ -128,45 +133,51 @@ export function DocumentosView({
       )}
 
       {documentos.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mb-4" />
-            <p className="text-gray-500 text-center">
-              No hay documentos disponibles en este momento.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12 border-2 border-dashed border-border rounded-lg">
+          <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            No hay documentos disponibles
+          </h3>
+          <p className="text-muted-foreground">
+            Los documentos aparecerán aquí cuando estén disponibles.
+          </p>
+        </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-3">
           {documentos.map((documento) => (
             <Card key={documento.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      {documento.nombre}
-                    </CardTitle>
-                    <CardDescription>
-                      Subido el {new Date(documento.creadoEn).toLocaleDateString('es-ES')}
-                    </CardDescription>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {documento.nombre}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(documento.creadoEn).toLocaleDateString('es-ES')}
+                        </span>
+                        {documento.carrera && (
+                          <Badge variant="secondary" className="text-xs bg-primary/20 text-primary">
+                            {documento.carrera.nombre}
+                          </Badge>
+                        )}
+                        {documento.sede && (
+                          <Badge variant="outline" className="text-xs">
+                            {documento.sede.nombre}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    {documento.carrera && (
-                      <Badge variant="secondary">{documento.carrera.nombre}</Badge>
-                    )}
-                    {documento.sede && (
-                      <Badge variant="outline">{documento.sede.nombre}</Badge>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-end">
                   <Button
                     onClick={() => handleDownload(documento)}
                     disabled={downloadingId === documento.id}
-                    className="bg-[#007F7C] hover:bg-[#006663] text-white"
+                    size="sm"
+                    className="ml-4"
                   >
                     {downloadingId === documento.id ? (
                       <>

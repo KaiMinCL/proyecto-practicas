@@ -27,7 +27,7 @@ interface MisPracticasClienteProps {
 
 const getEstadoBadge = (estado: string) => {
   const variants = {
-    'PENDIENTE': { variant: 'secondary' as const, label: 'Pendiente' },
+    'PENDIENTE': { variant: 'outline' as const, label: 'Pendiente' },
     'PENDIENTE_ACEPTACION_DOCENTE': { variant: 'default' as const, label: 'Pendiente Aprobación' },
     'RECHAZADA_DOCENTE': { variant: 'destructive' as const, label: 'Rechazada' },
     'EN_CURSO': { variant: 'default' as const, label: 'En Curso' },
@@ -75,7 +75,7 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
         <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
           <GraduationCap className="w-12 h-12 text-primary" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+        <h3 className="text-2xl font-bold text-foreground mb-3">
           No tienes prácticas asignadas
         </h3>
         <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed mb-6">
@@ -105,18 +105,18 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
         const estadoBadge = getEstadoBadge(practica.estado);
         
         return (
-          <Card key={practica.id} className="overflow-hidden">
-            <CardHeader>
+          <Card key={practica.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <CardHeader className="bg-card border-b border-border">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary text-primary-foreground">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary text-primary-foreground shadow-md">
                     <GraduationCap className="w-6 h-6" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl flex items-center gap-2">
+                    <CardTitle className="text-xl flex items-center gap-2 text-foreground">
                       Práctica {practica.tipo === 'LABORAL' ? 'Laboral' : 'Profesional'}
                     </CardTitle>
-                    <CardDescription className="text-base font-medium">
+                    <CardDescription className="text-base font-medium text-muted-foreground">
                       {practica.carrera?.nombre || 'Carrera no especificada'}
                     </CardDescription>
                   </div>
@@ -146,12 +146,12 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
               </div>
               
               {/* Progress indicator */}
-              <div className="pt-6 border-t">
-                <div className="p-4 rounded-lg bg-muted/50">
+              <div className="pt-6 border-t border-border">
+                <div className="p-4 rounded-lg bg-muted/30 border border-border">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-semibold">Progreso de la Práctica</span>
+                      <span className="text-sm font-semibold text-foreground">Progreso de la Práctica</span>
                     </div>
                     <span className="text-sm font-bold text-primary">
                       {practica.estado === 'PENDIENTE' ? '20%' : 
@@ -173,7 +173,7 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
               </div>
             </CardContent>
             
-            <CardFooter className="border-t p-4">
+            <CardFooter className="border-t border-border bg-card p-4">
               <div className="flex flex-col sm:flex-row gap-2 w-full">
                 {/* Botón Completar Acta 1 */}
                 {practica.estado === 'PENDIENTE' && (
@@ -208,19 +208,19 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
                 {/* Botón Ver Evaluación de Informe */}
                 {puedeVerEvaluacionInforme(practica.estado) && (
                   <div className="flex-1 relative">
-                    <Button asChild size="sm" variant="default" className="w-full bg-green-600 hover:bg-green-700 border-green-600 shadow-lg">
+                    <Button asChild size="sm" variant="default" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg">
                       <Link href={`/alumno/evaluaciones-informe/${practica.id}`}>
                         <Star className="mr-2 h-4 w-4 fill-current" />
                         Ver Evaluación Informe
                       </Link>
                     </Button>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white animate-pulse"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full border-2 border-card animate-pulse"></div>
                   </div>
                 )}
                 
                 {/* Botón de información adicional */}
                 {practica.estado !== 'PENDIENTE' && (
-                  <Button asChild size="sm" variant="secondary" className="flex-1">
+                  <Button asChild size="sm" variant="outline" className="flex-1">
                     <Link href={`/alumno/mis-practicas/${practica.id}`}>
                       <Info className="mr-2 h-4 w-4" />
                       Ver Detalles
@@ -238,11 +238,11 @@ export function MisPracticasCliente({ initialActionResponse }: MisPracticasClien
 
 function InfoItem({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string }) {
   return (
-    <div className="flex items-center space-x-3 p-2 rounded-md">
+    <div className="flex items-center space-x-3 p-2 rounded-md bg-muted/30 border border-border">
       <Icon className="w-4 h-4 text-muted-foreground" />
       <div>
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-semibold">{value}</p>
+        <p className="text-sm font-semibold text-foreground">{value}</p>
       </div>
     </div>
   );

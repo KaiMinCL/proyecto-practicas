@@ -51,13 +51,13 @@
   --card-foreground: oklch(0.18 0.002 247.86); /* Negro */
   --popover: oklch(1 0 0); /* Blanco */
   --popover-foreground: oklch(0.18 0.002 247.86); /* Negro */
-  --primary: oklch(0.505 0.095 199.69); /* Verde Esmeralda Oscuro */
+  --primary: oklch(0.505 0.095 199.69); /* Verde Esmeralda Oscuro #007F7C */
   --primary-foreground: oklch(0.968 0.002 247.86); /* Gris Claro */
-  --secondary: oklch(0.707 0.168 239.84); /* Azul Celeste Claro */
+  --secondary: oklch(0.707 0.168 239.84); /* Azul Celeste Claro #00B0FF */
   --secondary-foreground: oklch(0.18 0.002 247.86); /* Negro */
-  --muted: oklch(0.902 0.002 247.86); /* Gris Medio */
+  --muted: oklch(0.902 0.002 247.86); /* Gris Medio #D0D0D0 */
   --muted-foreground: oklch(0.51 0.002 247.86); /* Gris */
-  --accent: oklch(0.752 0.19 152.93); /* Verde Brillante */
+  --accent: oklch(0.752 0.19 152.93); /* Verde Brillante #00C853 */
   --accent-foreground: oklch(0.18 0.002 247.86); /* Negro */
   --destructive: oklch(0.538 0.224 28.8); /* Rojo */
   --border: oklch(0.902 0.002 247.86); /* Gris Medio */

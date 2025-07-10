@@ -24,13 +24,13 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <nav className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link 
             href={user ? "/dashboard" : "/"} 
-            className="flex items-center space-x-2 font-bold text-xl text-gray-900 dark:text-white hover:text-primary transition-colors"
+            className="flex items-center space-x-2 font-bold text-xl text-foreground hover:text-primary transition-colors"
           >
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,15 +52,15 @@ export default function Navbar() {
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-2 h-9">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="h-4 w-4 text-primary" />
+                    <Button variant="ghost" className="flex items-center space-x-2 h-9 hover:bg-muted">
+                      <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="hidden md:block text-left">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-foreground">
                           {user.nombre} {user.apellido}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-muted-foreground">
                           {user.rol}
                         </div>
                       </div>
@@ -68,10 +68,10 @@ export default function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-2 py-1.5">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="text-sm font-medium text-foreground">
                         {user.nombre} {user.apellido}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         {user.email || user.rut}
                       </div>
                     </div>
@@ -85,7 +85,7 @@ export default function Navbar() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={logout}
-                      className="flex items-center cursor-pointer text-red-600 dark:text-red-400"
+                      className="flex items-center cursor-pointer text-destructive"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
                       Cerrar Sesión

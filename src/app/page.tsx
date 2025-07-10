@@ -96,7 +96,7 @@ export default function LoginPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Verificando sesión...</p>
+            <p className="text-muted-foreground">Verificando sesión...</p>
           </div>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col h-screen">
       <Navbar />
-      <div className="flex-1 bg-gradient-to-br from-secondary via-background to-accent/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <div className="flex-1 bg-gradient-to-br from-secondary/20 via-background to-accent/20 flex items-center justify-center p-4">
         <Toaster richColors position="top-center" />
         
         <div className="w-full max-w-md">
@@ -127,16 +127,16 @@ export default function LoginPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               Portal de Prácticas
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               Sistema de Gestión de Prácticas Profesionales
             </p>
           </div>
 
           {/* Login Form */}
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="bg-card p-8 rounded-2xl shadow-xl border border-border">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -144,18 +144,18 @@ export default function LoginPage() {
                   name="rut"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <FormLabel className="text-sm font-medium text-foreground">
                         RUT
                       </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="12345678-9"
                           disabled={isPending}
-                          className="h-11 border-gray-300 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white"
+                          className="h-11"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                      <FormDescription className="text-xs text-muted-foreground">
                         Ingresa tu RUT con dígito verificador
                       </FormDescription>
                       <FormMessage />
@@ -168,7 +168,7 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <FormLabel className="text-sm font-medium text-foreground">
                         Contraseña
                       </FormLabel>
                       <FormControl>
@@ -176,7 +176,7 @@ export default function LoginPage() {
                           type="password"
                           placeholder="••••••••"
                           disabled={isPending}
-                          className="h-11 border-gray-300 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-white"
+                          className="h-11"
                           {...field}
                         />
                       </FormControl>
@@ -187,12 +187,12 @@ export default function LoginPage() {
 
                 {/* Error Message Display */}
                 {formState.message && !formState.success && formState.errors?.general && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                     <div className="flex items-center">
-                      <svg className="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-destructive mr-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                       </svg>
-                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                      <p className="text-sm font-medium text-destructive">
                         {formState.errors.general}
                       </p>
                     </div>
@@ -201,7 +201,7 @@ export default function LoginPage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl" 
+                  className="w-full h-11 font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl" 
                   disabled={isPending}
                 >
                   {isPending ? (

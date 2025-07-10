@@ -32,21 +32,21 @@ export default async function MisPracticasPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="rounded-lg bg-card p-6 shadow-lg">
+      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl border border-border p-8 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
             <BookOpen className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Mis Prácticas
             </h1>
-            <p className="font-medium text-muted-foreground">
+            <p className="font-medium text-primary">
               {userPayload.nombre} {userPayload.apellido}
             </p>
           </div>
         </div>
-        <p className="mt-4 text-muted-foreground">
+        <p className="mt-4 text-muted-foreground leading-relaxed">
           Gestiona tus prácticas asignadas, completa la información requerida y sube tus informes finales.
         </p>
       </div>

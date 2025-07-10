@@ -222,12 +222,7 @@ const navigationItems: NavItem[] = [
     icon: UserCheck,
     roles: ['EMPLEADOR'],
   },
-  // Shared routes
-  {
-    title: 'Mi Perfil',
-    href: '/perfil',
-    icon: Settings,
-  },
+  // Shared routes - removed Mi Perfil, access only through navbar
 ];
 
 export function Sidebar({ user }: SidebarProps) {
@@ -238,15 +233,15 @@ export function Sidebar({ user }: SidebarProps) {
   );
 
   return (
-    <div className="w-64 bg-card dark:bg-card-dark shadow-lg border-r border-border dark:border-border-dark">
+    <div className="w-64 bg-card shadow-lg border-r border-border">
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
             <GraduationCap className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-semibold text-foreground dark:text-foreground-dark">Portal Prácticas</h2>
-            <p className="text-xs text-muted-foreground dark:text-muted-foreground-dark">{user.rol}</p>
+            <h2 className="font-semibold text-foreground">Portal Prácticas</h2>
+            <p className="text-xs text-muted-foreground">{user.rol}</p>
           </div>
         </div>
       </div>

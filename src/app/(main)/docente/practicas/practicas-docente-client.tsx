@@ -195,18 +195,18 @@ export function PracticasDocenteCliente({ initialActionResponse }: PracticasDoce
 
   if (practicas.length === 0) {
     return (
-      <div className="text-center py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600">
-        <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-          <BookOpen className="w-12 h-12" style={{color: '#007F7C'}} />
+      <div className="text-center py-16 bg-gradient-to-b from-muted/50 to-background rounded-2xl border-2 border-dashed border-border">
+        <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <BookOpen className="w-12 h-12 text-primary" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+        <h3 className="text-2xl font-bold text-foreground mb-3">
           No tienes prácticas asignadas
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-lg max-w-md mx-auto leading-relaxed mb-6">
+        <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed mb-6">
           Cuando tengas prácticas asignadas como tutor, aparecerán aquí para su gestión y supervisión.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-          <Button asChild variant="outline" className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
+          <Button asChild variant="outline">
             <Link href="/dashboard">
               <Info className="mr-2 h-4 w-4" />
               Ir al Dashboard
@@ -266,18 +266,18 @@ function PracticaCard({ practica }: { practica: PracticaConDetalles }) {
   const ActionIcon = accionPrincipal.icon;
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-teal-200 dark:hover:border-teal-800 overflow-hidden">
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 px-6 py-4">
+    <Card className="group hover:shadow-xl transition-all duration-300 border border-border hover:border-primary/20 overflow-hidden">
+      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 px-6 py-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform" style={{background: 'linear-gradient(135deg, #007F7C, #005F5C)'}}>
-              <User className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <User className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <CardTitle className="text-lg text-gray-900 dark:text-white">
+              <CardTitle className="text-lg text-foreground">
                 {practica.alumno?.usuario.nombre} {practica.alumno?.usuario.apellido}
               </CardTitle>
-              <CardDescription className="text-sm font-medium" style={{color: '#007F7C'}}>
+              <CardDescription className="text-sm font-medium text-primary">
                 {practica.alumno?.usuario.rut}
               </CardDescription>
             </div>

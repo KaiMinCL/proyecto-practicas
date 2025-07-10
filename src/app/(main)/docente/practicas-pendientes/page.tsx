@@ -32,18 +32,18 @@ export default async function PracticasPendientesDocentePage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Page Header */}
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-100 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-gray-200 dark:border-gray-600 p-8 shadow-sm mb-8">
+      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl border border-border p-8 shadow-sm mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="mb-4 md:mb-0">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-600 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg" style={{backgroundColor: '#007F7C'}}>
-                <UserCheck className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+                <UserCheck className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white" style={{color: '#1E1E1E'}}>
+                <h1 className="text-3xl font-bold text-foreground">
                   Alumnos Asignados
                 </h1>
-                <p className="font-medium" style={{color: '#007F7C'}}>
+                <p className="font-medium text-primary">
                   {userPayload.nombre} {userPayload.apellido}
                 </p>
               </div>

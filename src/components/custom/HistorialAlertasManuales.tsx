@@ -62,8 +62,8 @@ export function HistorialAlertasManuales({ practicaId }: HistorialAlertasManuale
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <RefreshCw className="h-6 w-6 animate-spin text-gray-500" />
-            <span className="ml-2 text-gray-500">Cargando historial...</span>
+            <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">Cargando historial...</span>
           </div>
         </CardContent>
       </Card>
@@ -118,8 +118,8 @@ export function HistorialAlertasManuales({ practicaId }: HistorialAlertasManuale
       </CardHeader>
       <CardContent>
         {alertas.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Mail className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <div className="text-center py-8 text-muted-foreground">
+            <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
             <p>No se han enviado alertas manuales para esta práctica</p>
           </div>
         ) : (
@@ -127,14 +127,14 @@ export function HistorialAlertasManuales({ practicaId }: HistorialAlertasManuale
             {alertas.map((alerta) => (
               <div
                 key={alerta.id}
-                className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="border rounded-lg p-4 bg-muted/50 hover:bg-muted/80 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">
+                    <h4 className="font-medium text-foreground">
                       {alerta.asunto || 'Sin asunto'}
                     </h4>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                       <Clock className="h-4 w-4" />
                       <span>
                         {format(new Date(alerta.fecha), 'PPP p', { locale: es })}
@@ -145,7 +145,7 @@ export function HistorialAlertasManuales({ practicaId }: HistorialAlertasManuale
                     {alerta.enviadoPor}
                   </Badge>
                 </div>
-                <div className="bg-white rounded border p-3 text-sm text-gray-700">
+                <div className="bg-card rounded border p-3 text-sm text-foreground">
                   <p className="whitespace-pre-wrap">{alerta.mensaje}</p>
                 </div>
               </div>
