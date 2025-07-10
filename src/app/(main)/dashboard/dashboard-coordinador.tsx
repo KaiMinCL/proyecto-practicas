@@ -1,506 +1,207 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import { 
   Users, 
   GraduationCap, 
   FileText, 
-  Settings, 
-  BarChart3, 
-  AlertTriangle,
+  Building,
   Eye,
   Plus,
-  Edit,
   Archive,
-  TrendingUp,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Building,
-  UserPlus,
-  MapPin,
-  Bell,
-  FileCheck,
-  Key
+  BookOpen,
+  Briefcase
 } from 'lucide-react';
 
 import type { UserJwtPayload } from '@/lib/auth-utils';
-import { RepositorioInformesClient } from '@/components/custom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CreateCentroDialog } from '@/components/custom/create-centro-dialog';
+import { CreateAlumnoDialog } from '../coordinador/alumnos/create-alumno-dialog';
+import { CreateEmpleadorDialog } from '../coordinador/empleadores/create-empleador-dialog';
+import { IniciarPracticaDialog } from '../coordinador/practicas/iniciar/iniciar-practica-dialog';
+
+
+// 1. Interfaz de estadísticas que coincide con tu API /api/coordinador/stats
+interface DashboardStats {
+  totalAlumnos: number;
+  alumnosConPracticaActiva: number;
+  totalEmpleadores: number;
+  practicasPendientesRevision: number;
+  totalCentros: number;
+  documentosSubidos: number;
+}
 
 interface DashboardCoordinadorProps {
   user: UserJwtPayload;
 }
 
-interface Stats {
-  usuarios: {
-    total: number;
-    activos: number;
-    inactivos: number;
-  };
-  alumnos: {
-    total: number;
-    enPractica: number;
-    pendientes: number;
-  };
-  empleadores: {
-    total: number;
-    activos: number;
-  };
-  practicas: {
-    total: number;
-    enCurso: number;
-    pendientes: number;
-    finalizadas: number;
-  };
-  documentos: {
-    total: number;
-    pendientes: number;
-  };
-  centros: {
-    total: number;
-    activos: number;
-  };
-}
+// 2. Componente de tarjeta de acción reutilizable
+const ActionCard = ({ icon: Icon, title, description, link, children }: { icon: React.ElementType, title: string, description: string, link: string, children?: React.ReactNode }) => (
+    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
+        <CardHeader>
+            <div className="flex items-center justify-between">
+                <div>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Icon className="w-5 h-5 text-primary" />
+                        {title}
+                    </CardTitle>
+                    <CardDescription className="mt-1">{description}</CardDescription>
+                </div>
+                <Button asChild variant="ghost" size="icon">
+                    <Link href={link}><Eye className="w-5 h-5 text-muted-foreground" /></Link>
+                </Button>
+            </div>
+        </CardHeader>
+        <CardContent className="flex-grow flex flex-col justify-end">
+            {children}
+        </CardContent>
+    </Card>
+);
 
-interface Alert {
-  id: string;
-  type: 'warning' | 'error' | 'info';
-  title: string;
-  description: string;
-  count?: number;
-}
-
+// 3. Componente principal del Dashboard del Coordinador
 export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
-  const [stats, setStats] = useState<Stats>({
-    usuarios: { total: 0, activos: 0, inactivos: 0 },
-    alumnos: { total: 0, enPractica: 0, pendientes: 0 },
-    empleadores: { total: 0, activos: 0 },
-    practicas: { total: 0, enCurso: 0, pendientes: 0, finalizadas: 0 },
-    documentos: { total: 0, pendientes: 0 },
-    centros: { total: 0, activos: 0 }
-  });
-  
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch stats desde el endpoint de coordinador
-        const statsResponse = await fetch('/api/coordinador/stats');
-        const statsData = await statsResponse.json();
-        
-        if (statsResponse.ok) {
-          // Adaptar los datos del coordinador al formato esperado
-          setStats({
-            usuarios: {
-              total: statsData.totalAlumnos + statsData.totalEmpleadores,
-              activos: statsData.alumnosConPracticaActiva + statsData.empleadoresActivos,
-              inactivos: (statsData.totalAlumnos + statsData.totalEmpleadores) - (statsData.alumnosConPracticaActiva + statsData.empleadoresActivos)
-            },
-            alumnos: {
-              total: statsData.totalAlumnos,
-              enPractica: statsData.alumnosConPracticaActiva,
-              pendientes: statsData.practicasPendientesRevision
-            },
-            empleadores: {
-              total: statsData.totalEmpleadores,
-              activos: statsData.empleadoresActivos
-            },
-            practicas: {
-              total: statsData.practicasEsteMes,
-              enCurso: statsData.alumnosConPracticaActiva,
-              pendientes: statsData.practicasPendientesRevision,
-              finalizadas: 0 // Se podría agregar al endpoint
-            },
-            documentos: {
-              total: statsData.documentosSubidos,
-              pendientes: statsData.practicasPendientesRevision
-            },
-            centros: {
-              total: statsData.totalCentros,
-              activos: statsData.centrosActivos
-            }
-          });
-        }
-        
-        // Crear alertas básicas para coordinador
-        const alertsData: Alert[] = [];
-        
-        if (statsData.practicasPendientesRevision > 0) {
-          alertsData.push({
-            id: '1',
-            type: 'warning',
-            title: 'Prácticas pendientes de revisión',
-            description: `Tienes ${statsData.practicasPendientesRevision} prácticas que requieren revisión`,
-            count: statsData.practicasPendientesRevision
-          });
-        }
-        
-        if (statsData.totalAlumnos > 0 && statsData.alumnosConPracticaActiva === 0) {
-          alertsData.push({
-            id: '2',
-            type: 'info',
-            title: 'Sin alumnos en práctica',
-            description: 'No hay alumnos con prácticas activas en este momento',
-          });
-        }
-        
-        setAlerts(alertsData);
-        
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError('Error al cargar los datos del dashboard');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/coordinador/stats');
+      if (!response.ok) throw new Error('No se pudieron cargar las estadísticas.');
+      const data = await response.json();
+      setStats(data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al cargar datos del dashboard');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando dashboard...</p>
-        </div>
-      </div>
-    );
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const handleSuccess = () => {
+    toast.success("Operación exitosa", { description: "Refrescando datos del dashboard..." });
+    fetchDashboardData();
+  };
+
+  if (loading || !stats) {
+    return <DashboardSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 text-white shadow-lg">
-        <h1 className="text-2xl font-bold mb-2">
-          ¡Bienvenido, {user.nombre} {user.apellido}!
-        </h1>
-        <p className="text-white/90">
-          Sistema de Gestión de Prácticas Profesionales
-        </p>
-        <Badge variant="secondary" className="mt-3 bg-white/20 text-white border-white/30">
-          Coordinador
-        </Badge>
-      </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Estadísticas generales */}
-      {/* Eliminado: Cards simples de Estudiantes, Empleadores, Prácticas en Curso y Documentos */}
-
-      {/* Segunda fila de cards - Gestión específica del coordinador */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Gestión de Estudiantes */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5" />
-                  Gestión de Estudiantes
-                </CardTitle>
-                <CardDescription>
-                  Administra estudiantes y sus prácticas
-                </CardDescription>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/coordinador/alumnos">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todos
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total estudiantes</span>
-                <span className="text-sm font-semibold">{stats.alumnos.total}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">En práctica</span>
-                <span className="text-sm font-semibold">{stats.alumnos.enPractica}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/coordinador/alumnos?action=create">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Nuevo Estudiante
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Gestión de Empleadores */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="w-5 h-5" />
-                  Gestión de Empleadores
-                </CardTitle>
-                <CardDescription>
-                  Centros de práctica y empleadores
-                </CardDescription>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/coordinador/empleadores">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todos
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total empleadores</span>
-                <span className="text-sm font-semibold">{stats.empleadores.total}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Activos</span>
-                <span className="text-sm font-semibold">{stats.empleadores.activos}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/coordinador/empleadores?action=create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nuevo Empleador
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Gestión de Prácticas */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Gestión de Prácticas
-                </CardTitle>
-                <CardDescription>
-                  Iniciar y supervisar prácticas
-                </CardDescription>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/coordinador/practicas">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todas
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">En curso</span>
-                <span className="text-sm font-semibold">{stats.practicas.enCurso}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Pendientes revisión</span>
-                <span className="text-sm font-semibold">{stats.practicas.pendientes}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/coordinador/practicas/iniciar">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Iniciar Práctica
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Gestión de Centros */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
-                  Gestión de Centros
-                </CardTitle>
-                <CardDescription>
-                  Gestiona centros de práctica y convenios
-                </CardDescription>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/coordinador/centros">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todos
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total centros</span>
-                <span className="text-sm font-semibold">{stats.centros.total}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Activos</span>
-                <span className="text-sm font-semibold">{stats.centros.activos}</span>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button asChild size="sm" variant="default" className="flex-1">
-                  <Link href="/coordinador/centros?action=create">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nuevo Centro
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Gestión de Usuarios */}
-      <Card>
+    <div className="space-y-8">
+      {/* Encabezado de Bienvenida */}
+      <Card className="bg-gradient-to-r from-primary to-secondary text-primary-foreground border-none">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Gestión de Usuarios
-              </CardTitle>
-              <CardDescription>
-                Administra usuarios y consulta claves iniciales de forma segura.
-              </CardDescription>
-            </div>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/coordinador/usuarios">
-                <Eye className="w-4 h-4 mr-2" />
-                Ver Todos
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Usuarios totales</span>
-              <span className="text-sm font-semibold">{stats.usuarios.total}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Activos</span>
-              <span className="text-sm font-semibold">{stats.usuarios.activos}</span>
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button asChild size="sm" variant="default" className="flex-1">
-                <Link href="/coordinador/usuarios?action=create">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nuevo Usuario
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline" className="flex-1">
-                <Link href="/coordinador/usuarios?action=clave">
-                  <Key className="w-4 h-4 mr-2" />
-                  Revisar Clave
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Herramientas y Repositorio */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Archive className="w-5 h-5" />
-            Herramientas y Repositorio
-          </CardTitle>
-          <CardDescription>
-            Acceso a documentos, repositorio de informes y herramientas de gestión
+          <CardTitle className="text-3xl font-bold">¡Bienvenido, {user.nombre}!</CardTitle>
+          <CardDescription className="text-primary-foreground/80 text-lg">
+            Gestiona las prácticas de la sede **{user.sedeNombre || 'asignada'}**.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="repositorio" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="repositorio" className="flex items-center space-x-2">
-                <Archive className="h-4 w-4" />
-                <span>Repositorio</span>
-              </TabsTrigger>
-              <TabsTrigger value="documentos" className="flex items-center space-x-2">
-                <FileCheck className="h-4 w-4" />
-                <span>Documentos</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="repositorio" className="space-y-4">
-              <div className="border rounded-lg p-4">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold">Repositorio de Informes</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Accede a informes históricos y documentos de prácticas
-                  </p>
-                </div>
-                <RepositorioInformesClient rol="COORDINADOR" />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="documentos" className="space-y-4">
-              <div className="border rounded-lg p-4">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold">Gestión de Documentos</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Administra documentos y materiales de apoyo
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{stats.documentos.total}</div>
-                    <div className="text-sm text-muted-foreground">Documentos subidos</div>
-                  </div>
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{stats.documentos.pendientes}</div>
-                    <div className="text-sm text-muted-foreground">Pendientes revisión</div>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button asChild size="sm" variant="default" className="flex-1">
-                    <Link href="/coordinador/documentos">
-                      <FileCheck className="w-4 h-4 mr-2" />
-                      Gestionar Documentos
-                    </Link>
-                  </Button>
-                  <Button asChild size="sm" variant="outline" className="flex-1">
-                    <Link href="/coordinador/documentos?action=upload">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Subir Documento
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
       </Card>
+      
+      {/* Grid principal de acciones */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <ActionCard
+            icon={Briefcase}
+            title="Gestión de Prácticas"
+            description="Inicia, supervisa y gestiona todas las prácticas."
+            link="/coordinador/practicas/gestion"
+        >
+            <div className="space-y-2">
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">En Curso</span><span className="font-semibold">{stats.alumnosConPracticaActiva}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Pendientes de Revisión</span><span className="font-semibold text-amber-600">{stats.practicasPendientesRevision}</span></div>
+                <div className="pt-2">
+                     <IniciarPracticaDialog onPracticaIniciada={handleSuccess}>
+                        <Button className="w-full"><Plus className="mr-2 h-4 w-4" /> Iniciar Nueva Práctica</Button>
+                     </IniciarPracticaDialog>
+                </div>
+            </div>
+        </ActionCard>
+
+
+        <ActionCard
+            icon={GraduationCap}
+            title="Gestión de Alumnos"
+            description="Administra los perfiles de los estudiantes."
+            link="/coordinador/alumnos"
+        >
+             <div className="space-y-2">
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Alumnos</span><span className="font-semibold">{stats.totalAlumnos}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Con Práctica Activa</span><span className="font-semibold">{stats.alumnosConPracticaActiva}</span></div>
+                <div className="pt-2">
+                    <CreateAlumnoDialog />
+                </div>
+            </div>
+        </ActionCard>
+
+        <ActionCard
+            icon={Building}
+            title="Centros y Empleadores"
+            description="Administra empresas y contactos."
+            link="/coordinador/centros"
+        >
+            <div className="space-y-2">
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Centros</span><span className="font-semibold">{stats.totalCentros}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Empleadores</span><span className="font-semibold">{stats.totalEmpleadores}</span></div>
+                 <div className="flex gap-2 pt-2">
+                    {/* Botones con estilo unificado */}
+                    <CreateCentroDialog onSuccess={handleSuccess}>
+                        <Button variant="outline" className="flex-1"><Plus className="mr-2 h-4 w-4" /> Centro</Button>
+                    </CreateCentroDialog>
+                    <CreateEmpleadorDialog />
+                </div>
+            </div>
+        </ActionCard>
+
+        <ActionCard
+            icon={BookOpen}
+            title="Documentos de Apoyo"
+            description="Gestiona reglamentos, guías y formatos."
+            link="/coordinador/documentos"
+        >
+             <div className="space-y-2">
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Documentos Subidos</span><span className="font-semibold">{stats.documentosSubidos}</span></div>
+             </div>
+        </ActionCard>
+
+        <ActionCard
+            icon={Archive}
+            title="Repositorio de Informes"
+            description="Consulta el historial de informes de prácticas."
+            link="/coordinador/repositorio-informes"
+        />
+
+        <ActionCard
+            icon={Users}
+            title="Gestión de Usuarios"
+            description="Consulta usuarios y sus claves iniciales."
+            link="/coordinador/usuarios"
+        />
+      </div>
     </div>
   );
 }
+
+
+// Componente Skeleton para el estado de carga
+const DashboardSkeleton = () => (
+    <div className="space-y-8">
+        <Skeleton className="h-32 w-full rounded-lg" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-56 w-full rounded-lg" />
+            <Skeleton className="h-56 w-full rounded-lg" />
+            <Skeleton className="h-56 w-full rounded-lg" />
+            <Skeleton className="h-56 w-full rounded-lg" />
+            <Skeleton className="h-56 w-full rounded-lg" />
+            <Skeleton className="h-56 w-full rounded-lg" />
+        </div>
+    </div>
+);

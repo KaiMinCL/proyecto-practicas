@@ -21,7 +21,7 @@ import { CreateCentroDialog } from '../../../../components/custom/create-centro-
 import { EditCentroDialog } from '../../../../components/custom/edit-centro-dialog';
 import { AssociateCentroDialog } from '../../../../components/custom/associate-centro-dialog';
 import { DeleteCentroDialog } from '../../../../components/custom/delete-centro-dialog';
-import { Search, Building2, Users, Phone, Mail, MapPin, UserCheck, Eye } from 'lucide-react';
+import { Search, Building2, Users, Phone, Mail, MapPin, UserCheck, Eye, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Empleador {
@@ -117,7 +117,12 @@ export default function CentrosPracticaPage() {
         <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed mb-4">
           Gestiona la información de los centros donde realizan prácticas los alumnos.
         </p>
-        <CreateCentroDialog onSuccess={fetchCentros} />
+        <CreateCentroDialog onSuccess={fetchCentros}>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Centro de Práctica
+          </Button>
+        </CreateCentroDialog>
       </div>
 
       {/* Search mejorada */}

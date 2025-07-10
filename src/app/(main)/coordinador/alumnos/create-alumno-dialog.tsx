@@ -126,7 +126,7 @@ export function CreateAlumnoDialog() {
           Registrar Alumno
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Registrar Nuevo Alumno</DialogTitle>
           <DialogDescription>

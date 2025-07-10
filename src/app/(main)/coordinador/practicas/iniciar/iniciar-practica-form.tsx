@@ -67,7 +67,11 @@ import { TipoPractica as PrismaTipoPracticaEnum } from '@prisma/client';
 
 type IniciarPracticaFormValues = z.input<typeof iniciarPracticaSchema>;
 
-export function IniciarPracticaForm() {
+interface IniciarPracticaFormProps {
+  onSuccess: () => void; // Prop para notificar éxito
+}
+
+export function IniciarPracticaForm({ onSuccess }: IniciarPracticaFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [alumnosOptions, setAlumnosOptions] = React.useState<AlumnoOption[]>([]);
   const [docentesOptions, setDocentesOptions] = React.useState<DocenteOption[]>([]);
@@ -187,6 +191,7 @@ export function IniciarPracticaForm() {
         setSelectedAlumnoData(null);
         setDocentesOptions([]);
         setSuggestedFechaTermino(null);
+        onSuccess();
       } else {
         // Manejo de errores devueltos por la Server Action
         if (result.errors && result.errors.length > 0) {
@@ -221,14 +226,7 @@ export function IniciarPracticaForm() {
   };
 
   return (
-    <Card className="max-w-3xl mx-auto shadow-lg">
-      <CardHeader>
-        <CardTitle>Registrar Nueva Práctica</CardTitle>
-        <CardDescription>
-          Complete los datos iniciales del Acta 1. La fecha de término es
-          sugerida y puede ser modificada.
-        </CardDescription>
-      </CardHeader>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmitPractica)}>
           <CardContent className="space-y-6 p-6">
@@ -582,6 +580,6 @@ export function IniciarPracticaForm() {
           </CardFooter>
         </form>
       </Form>
-    </Card>
+
   );
 }
