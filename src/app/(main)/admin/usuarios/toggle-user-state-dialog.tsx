@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { toast } from 'sonner';
 import { deactivateUserAction, reactivateUserAction } from './actions';
 import type { ToggleUserStateFormState } from './actions';
@@ -31,7 +31,7 @@ export function ToggleUserStateDialog({ userId, userName, isActive, onSuccess }:
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleAction = isActive ? deactivateUserAction : reactivateUserAction;
-  const [state, formAction] = useFormState<ToggleUserStateFormState, FormData>(toggleAction, {
+  const [state, formAction] = useActionState<ToggleUserStateFormState, FormData>(toggleAction, {
     message: undefined,
     errors: undefined,
     success: false
