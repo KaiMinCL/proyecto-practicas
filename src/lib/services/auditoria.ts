@@ -388,7 +388,7 @@ export class AuditoriaService {
     request?: NextRequest
   ) {
     await this.registrarAccion({
-      accion: 'ENVIO_NOTIFICACION' as AccionAuditoria,
+      accion: 'ENVIO_EMAIL_NOTIFICACION' as AccionAuditoria,
       entidad: entidadRelacionada?.tipo || 'Sistema',
       entidadId: entidadRelacionada?.id || 'N/A',
       usuarioId,
