@@ -315,7 +315,7 @@ async function main() {
       password: hashedPasswordAlumno,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Alumno' } },
+      rol: { connect: { nombre: 'ALUMNO' } },
       sede: { connect: { id: sede.id } },
     },
     create: {
@@ -326,7 +326,7 @@ async function main() {
       password: hashedPasswordAlumno,
       claveInicialVisible: true,
       estado: 'ACTIVO', 
-      rol: { connect: { nombre: 'Alumno' } },
+      rol: { connect: { nombre: 'ALUMNO' } },
       sede: { connect: { id: sede.id } },
     },
   });
@@ -355,7 +355,7 @@ async function main() {
       password: hashedPasswordDocente,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Docente' } },
+      rol: { connect: { nombre: 'DOCENTE' } },
       sede: { connect: { id: sede.id } },
     },
     create: {
@@ -366,7 +366,7 @@ async function main() {
       password: hashedPasswordDocente,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Docente' } },
+      rol: { connect: { nombre: 'DOCENTE' } },
       sede: { connect: { id: sede.id } },
     },
   });
@@ -409,7 +409,7 @@ async function main() {
       password: hashedPasswordEmpleador,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Empleador' } },
+      rol: { connect: { nombre: 'EMPLEADOR' } },
       sede: { connect: { id: sede.id } },
     },
     create: {
@@ -420,7 +420,7 @@ async function main() {
       password: hashedPasswordEmpleador,
       claveInicialVisible: true,
       estado: 'ACTIVO', // Usar string directamente
-      rol: { connect: { nombre: 'Empleador' } },
+      rol: { connect: { nombre: 'EMPLEADOR' } },
       sede: { connect: { id: sede.id } },
     },
   });
@@ -481,7 +481,7 @@ async function main() {
       password: hashedPasswordSA,
       claveInicialVisible: false,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'SA' } },
+      rol: { connect: { nombre: 'SUPER_ADMIN' } },
       sede: { connect: { id: sede.id } },
     },
   });
@@ -498,7 +498,7 @@ async function main() {
       password: hashedPasswordCoord,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Coordinador' } },
+      rol: { connect: { nombre: 'COORDINADOR' } },
       sede: { connect: { id: sede.id } },
     },
   });
@@ -515,7 +515,7 @@ async function main() {
       password: hashedPasswordDir,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'DirectorCarrera' } },
+      rol: { connect: { nombre: 'DIRECTOR_CARRERA' } },
       sede: { connect: { id: sede.id } },
     },
   });
@@ -533,7 +533,7 @@ async function main() {
       password: hashedPasswordAlumno2,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Alumno' } },
+      rol: { connect: { nombre: 'ALUMNO' } },
       sede: { connect: { id: sedeStgo.id } },
     },
   });
@@ -559,7 +559,7 @@ async function main() {
       password: hashedPasswordAlumno3,
       claveInicialVisible: true,
       estado: 'INACTIVO', // Usuario inactivo para pruebas
-      rol: { connect: { nombre: 'Alumno' } },
+      rol: { connect: { nombre: 'ALUMNO' } },
       sede: { connect: { id: sede.id } },
     },
   });
@@ -586,7 +586,7 @@ async function main() {
       password: hashedPasswordDocente2,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Docente' } },
+      rol: { connect: { nombre: 'DOCENTE' } },
       sede: { connect: { id: sedeStgo.id } },
     },
   });
@@ -652,7 +652,7 @@ async function main() {
       password: hashedPasswordEmpleador2,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Empleador' } },
+      rol: { connect: { nombre: 'EMPLEADOR' } },
       sede: { connect: { id: sedeStgo.id } },
     },
   });
@@ -677,7 +677,7 @@ async function main() {
       password: hashedPasswordEmpleador3,
       claveInicialVisible: true,
       estado: 'ACTIVO',
-      rol: { connect: { nombre: 'Empleador' } },
+      rol: { connect: { nombre: 'EMPLEADOR' } },
       sede: { connect: { id: sede.id } },
     },
   });
