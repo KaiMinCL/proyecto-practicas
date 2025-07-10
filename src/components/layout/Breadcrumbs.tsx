@@ -43,6 +43,11 @@ const routeLabels: Record<string, string> = {
 export function Breadcrumbs() {
   const pathname = usePathname();
   
+  // Si estamos en el dashboard, no mostrar breadcrumbs
+  if (pathname === '/dashboard') {
+    return null;
+  }
+  
   const segments = pathname.split('/').filter(Boolean);
   
   const breadcrumbs: BreadcrumbItem[] = [
