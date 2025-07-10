@@ -70,7 +70,7 @@ export async function PATCH(request: Request) {
         ...(apellido && { apellido }),
         ...(email && { email }),
         ...(rol && { rol: { connect: { nombre: rol } } }),
-        ...(sedeId && { sedeId }),
+        ...(sedeId && { sede: { connect: { id: sedeId } } }),
         ...(estado && ['ACTIVO', 'INACTIVO'].includes(estado) ? { estado } : {}),
       },
       include: { alumno: true, docente: true, empleador: true },
