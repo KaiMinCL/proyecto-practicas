@@ -201,53 +201,6 @@ export function DashboardCoordinador({ user }: DashboardCoordinadorProps) {
         </Alert>
       )}
 
-      {/* Alertas y Notificaciones */}
-      {alerts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-muted-foreground" />
-                  Alertas del Sistema
-                </CardTitle>
-                <CardDescription>
-                  Situaciones que requieren atención inmediata
-                </CardDescription>
-              </div>
-              <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                <Link href="/coordinador/notificaciones">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Todas
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {alerts.slice(0, 3).map((alert) => (
-                <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg border border-border/40 bg-card/50 hover:bg-card/70 transition-colors">
-                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                    alert.type === 'error' ? 'bg-destructive' :
-                    alert.type === 'warning' ? 'bg-yellow-500' :
-                    'bg-blue-500'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-foreground">{alert.title}</h4>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{alert.description}</p>
-                  </div>
-                  {alert.count && (
-                    <Badge variant="secondary" className="text-xs bg-muted/50 text-muted-foreground border-0">
-                      {alert.count}
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Estadísticas generales */}
       {/* Eliminado: Cards simples de Estudiantes, Empleadores, Prácticas en Curso y Documentos */}
 
