@@ -98,7 +98,9 @@ export function EditUserDialog({ userId }: EditUserDialogProps) {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
+      formData.append('id', userId.toString());
       Object.entries(data).forEach(([key, value]) => {
+        if (key === 'id') return;
         formData.append(key, value.toString());
       });
 
