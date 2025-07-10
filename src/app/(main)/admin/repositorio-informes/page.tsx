@@ -158,7 +158,7 @@ export default function AdminRepositorioInformesPage() {
       params.append('limite', limite.toString());
       
       Object.entries(filtros).forEach(([key, value]) => {
-        if (value && value.trim() !== '') {
+        if (value && value.trim() !== '' && !['todas', 'todos', 'ambos'].includes(value.trim())) {
           params.append(key, value.trim());
         }
       });
@@ -194,8 +194,8 @@ export default function AdminRepositorioInformesPage() {
     }
   };
 
-  const limpiarFiltros = () => {
-    setFiltros({
+  const limpiarFiltros = async () => {
+    const filtrosLimpios = {
       sedeId: '',
       carreraId: '',
       anioAcademico: '',
@@ -204,8 +204,42 @@ export default function AdminRepositorioInformesPage() {
       fechaHasta: '',
       nombreAlumno: '',
       rutAlumno: '',
-    });
+    };
+    
+    setFiltros(filtrosLimpios);
     setPaginaActual(1);
+    
+    // Ejecutar búsqueda sin filtros directamente
+    if (!user) return;
+    
+    try {
+      setBuscando(true);
+      
+      // Construir parámetros solo con paginación
+      const params = new URLSearchParams();
+      params.append('pagina', '1');
+      params.append('limite', limite.toString());
+      
+      const response = await fetch(`/api/repositorio-informes?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Error al buscar informes');
+      }
+      
+      const data: RepositorioInformesResponse = await response.json();
+      
+      setInformes(data.informes);
+      setTotal(data.total);
+      setTotalPaginas(data.totalPaginas);
+      setPaginaActual(data.paginaActual);
+      
+    } catch (error) {
+      console.error('Error al buscar informes:', error);
+      toast.error('Error al buscar los informes históricos');
+    } finally {
+      setBuscando(false);
+      setLoading(false);
+    }
   };
 
   const aplicarFiltros = () => {
@@ -238,7 +272,7 @@ export default function AdminRepositorioInformesPage() {
   };
 
   // Filtrar carreras por sede seleccionada
-  const carrerasFiltradas = filtros.sedeId 
+  const carrerasFiltradas = filtros.sedeId && filtros.sedeId !== 'todas'
     ? opciones.carreras.filter(c => c.sedeId === parseInt(filtros.sedeId))
     : opciones.carreras;
 
@@ -253,197 +287,229 @@ export default function AdminRepositorioInformesPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Repositorio de Informes Históricos</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Repositorio de Informes</h1>
           <p className="text-muted-foreground">
-            Consulta y descarga informes de práctica con capacidad de búsqueda avanzada
+            Consulta y descarga informes históricos de prácticas con búsqueda avanzada
           </p>
         </div>
-        <Button
-          onClick={() => buscarInformes(paginaActual)}
-          disabled={buscando}
-          variant="outline"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${buscando ? 'animate-spin' : ''}`} />
-          Actualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-sm">
+            {total} {total === 1 ? 'informe' : 'informes'}
+          </Badge>
+          <Button
+            onClick={() => buscarInformes(paginaActual)}
+            disabled={buscando}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${buscando ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* Filtros de Búsqueda */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="h-5 w-5 mr-2" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Filter className="h-4 w-4" />
             Filtros de Búsqueda
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Primera fila: Ubicación */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="sede">Sede</Label>
-              <Select
-                value={filtros.sedeId}
-                onValueChange={(value) => handleFiltroChange('sedeId', value)}
+        <CardContent>
+          <div className="space-y-4">
+            {/* Filtros principales en una sola fila */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Sede</Label>
+                <Select
+                  value={filtros.sedeId}
+                  onValueChange={(value) => handleFiltroChange('sedeId', value)}
+                >
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Todas las sedes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas las sedes</SelectItem>
+                    {opciones.sedes.map((sede) => (
+                      <SelectItem key={sede.id} value={sede.id.toString()}>
+                        {sede.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Carrera</Label>
+                <Select
+                  value={filtros.carreraId}
+                  onValueChange={(value) => handleFiltroChange('carreraId', value)}
+                  disabled={!filtros.sedeId || filtros.sedeId === 'todas'}
+                >
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Todas las carreras" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas las carreras</SelectItem>
+                    {carrerasFiltradas.map((carrera) => (
+                      <SelectItem key={carrera.id} value={carrera.id.toString()}>
+                        {carrera.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Año</Label>
+                <Select
+                  value={filtros.anioAcademico}
+                  onValueChange={(value) => handleFiltroChange('anioAcademico', value)}
+                >
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Todos los años" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos los años</SelectItem>
+                    {opciones.aniosDisponibles.map((anio) => (
+                      <SelectItem key={anio} value={anio.toString()}>
+                        {anio}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Semestre</Label>
+                <Select
+                  value={filtros.semestre}
+                  onValueChange={(value) => handleFiltroChange('semestre', value)}
+                >
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Ambos semestres" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ambos">Ambos semestres</SelectItem>
+                    <SelectItem value="1">Primer Semestre</SelectItem>
+                    <SelectItem value="2">Segundo Semestre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Filtros secundarios */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Fecha Desde</Label>
+                <Input
+                  type="date"
+                  value={filtros.fechaDesde}
+                  onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Fecha Hasta</Label>
+                <Input
+                  type="date"
+                  value={filtros.fechaHasta}
+                  onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Nombre Alumno</Label>
+                <Input
+                  placeholder="Buscar por nombre"
+                  value={filtros.nombreAlumno}
+                  onChange={(e) => handleFiltroChange('nombreAlumno', e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">RUT Alumno</Label>
+                <Input
+                  placeholder="12345678-9"
+                  value={filtros.rutAlumno}
+                  onChange={(e) => handleFiltroChange('rutAlumno', e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Botones de Acción */}
+            <div className="flex gap-2 pt-2">
+              <Button 
+                onClick={aplicarFiltros} 
+                disabled={buscando}
+                size="sm"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas las sedes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas las sedes</SelectItem>
-                  {opciones.sedes.map((sede) => (
-                    <SelectItem key={sede.id} value={sede.id.toString()}>
-                      {sede.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="carrera">Carrera</Label>
-              <Select
-                value={filtros.carreraId}
-                onValueChange={(value) => handleFiltroChange('carreraId', value)}
-                disabled={!filtros.sedeId}
+                <Search className="h-4 w-4 mr-2" />
+                {buscando ? 'Buscando...' : 'Buscar'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={limpiarFiltros}
+                size="sm"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas las carreras" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas las carreras</SelectItem>
-                  {carrerasFiltradas.map((carrera) => (
-                    <SelectItem key={carrera.id} value={carrera.id.toString()}>
-                      {carrera.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Limpiar
+              </Button>
             </div>
-          </div>
-
-          {/* Segunda fila: Tiempo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="anio">Año Académico</Label>
-              <Select
-                value={filtros.anioAcademico}
-                onValueChange={(value) => handleFiltroChange('anioAcademico', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos los años" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos los años</SelectItem>
-                  {opciones.aniosDisponibles.map((anio) => (
-                    <SelectItem key={anio} value={anio.toString()}>
-                      {anio}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="semestre">Semestre</Label>
-              <Select
-                value={filtros.semestre}
-                onValueChange={(value) => handleFiltroChange('semestre', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Ambos semestres" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Ambos semestres</SelectItem>
-                  <SelectItem value="1">Primer Semestre</SelectItem>
-                  <SelectItem value="2">Segundo Semestre</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="fechaDesde">Fecha Desde</Label>
-              <Input
-                type="date"
-                value={filtros.fechaDesde}
-                onChange={(e) => handleFiltroChange('fechaDesde', e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Tercera fila: Búsqueda de alumno */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="fechaHasta">Fecha Hasta</Label>
-              <Input
-                type="date"
-                value={filtros.fechaHasta}
-                onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="nombreAlumno">Nombre Alumno</Label>
-              <Input
-                placeholder="Buscar por nombre o apellido"
-                value={filtros.nombreAlumno}
-                onChange={(e) => handleFiltroChange('nombreAlumno', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="rutAlumno">RUT Alumno</Label>
-              <Input
-                placeholder="Buscar por RUT"
-                value={filtros.rutAlumno}
-                onChange={(e) => handleFiltroChange('rutAlumno', e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Botones de acción */}
-          <div className="flex gap-2 pt-4">
-            <Button onClick={aplicarFiltros} disabled={buscando}>
-              <Search className="h-4 w-4 mr-2" />
-              {buscando ? 'Buscando...' : 'Buscar'}
-            </Button>
-            <Button variant="outline" onClick={limpiarFiltros}>
-              Limpiar Filtros
-            </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Resultados */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
-              Informes Encontrados
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Resultados de Búsqueda
             </CardTitle>
             {total > 0 && (
-              <Badge variant="outline">
-                {total} informe{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  {total} {total === 1 ? 'informe' : 'informes'}
+                </Badge>
+                {totalPaginas > 1 && (
+                  <Badge variant="outline">
+                    Página {paginaActual} de {totalPaginas}
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-              Cargando informes...
+            <div className="flex flex-col items-center justify-center py-12 space-y-3">
+              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Cargando informes...</p>
             </div>
           ) : informes.length === 0 ? (
-            <Alert>
-              <FileText className="h-4 w-4" />
-              <AlertDescription>
-                No se encontraron informes con los criterios de búsqueda especificados.
-                Intenta ajustar los filtros o limpiarlos para ver más resultados.
-              </AlertDescription>
-            </Alert>
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <FileText className="h-12 w-12 text-muted-foreground/50" />
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium">No se encontraron informes</h3>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  No hay informes que coincidan con los criterios de búsqueda especificados.
+                  Intenta ajustar los filtros o limpiarlos para ver más resultados.
+                </p>
+              </div>
+              <Button variant="outline" onClick={limpiarFiltros}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Limpiar Filtros
+              </Button>
+            </div>
           ) : (
             <div className="space-y-4">
               {informes.map((informe) => (
@@ -518,33 +584,42 @@ export default function AdminRepositorioInformesPage() {
           {/* Paginación */}
           {totalPaginas > 1 && (
             <>
-              <Separator className="my-6" />
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Página {paginaActual} de {totalPaginas} 
-                  ({((paginaActual - 1) * limite) + 1}-{Math.min(paginaActual * limite, total)} de {total})
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => buscarInformes(paginaActual - 1)}
-                    disabled={paginaActual <= 1 || buscando}
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Anterior
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => buscarInformes(paginaActual + 1)}
-                    disabled={paginaActual >= totalPaginas || buscando}
-                  >
-                    Siguiente
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
+              {/* Paginación */}
+              {totalPaginas > 1 && (
+                <>
+                  <Separator className="my-6" />
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="text-sm text-muted-foreground">
+                      Mostrando {((paginaActual - 1) * limite) + 1} a {Math.min(paginaActual * limite, total)} de {total} informes
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => buscarInformes(paginaActual - 1)}
+                        disabled={paginaActual <= 1 || buscando}
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Anterior
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground">Página</span>
+                        <Badge variant="outline">{paginaActual}</Badge>
+                        <span className="text-sm text-muted-foreground">de {totalPaginas}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => buscarInformes(paginaActual + 1)}
+                        disabled={paginaActual >= totalPaginas || buscando}
+                      >
+                        Siguiente
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )}
         </CardContent>

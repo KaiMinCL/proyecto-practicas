@@ -123,10 +123,10 @@ export function ReporteVolumenPracticasClient() {
       if (filtros.fechaHasta) {
         params.append('fechaHasta', filtros.fechaHasta.toISOString());
       }
-      if (filtros.sedeId) {
+      if (filtros.sedeId && filtros.sedeId.toString() !== 'todas') {
         params.append('sedeId', filtros.sedeId.toString());
       }
-      if (filtros.carreraId) {
+      if (filtros.carreraId && filtros.carreraId.toString() !== 'todas') {
         params.append('carreraId', filtros.carreraId.toString());
       }
 
@@ -157,10 +157,10 @@ export function ReporteVolumenPracticasClient() {
       if (filtros.fechaHasta) {
         params.append('fechaHasta', filtros.fechaHasta.toISOString());
       }
-      if (filtros.sedeId) {
+      if (filtros.sedeId && filtros.sedeId.toString() !== 'todas') {
         params.append('sedeId', filtros.sedeId.toString());
       }
-      if (filtros.carreraId) {
+      if (filtros.carreraId && filtros.carreraId.toString() !== 'todas') {
         params.append('carreraId', filtros.carreraId.toString());
       }
 
@@ -265,9 +265,9 @@ export function ReporteVolumenPracticasClient() {
             <div className="space-y-2">
               <Label>Sede</Label>
               <Select
-                value={filtros.sedeId?.toString() || ''}
+                value={filtros.sedeId?.toString() || 'todas'}
                 onValueChange={(value) => {
-                  const sedeId = value ? parseInt(value) : undefined;
+                  const sedeId = value !== 'todas' ? parseInt(value) : undefined;
                   setFiltros(prev => ({ 
                     ...prev, 
                     sedeId,
@@ -279,7 +279,7 @@ export function ReporteVolumenPracticasClient() {
                   <SelectValue placeholder="Todas las sedes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las sedes</SelectItem>
+                  <SelectItem value="todas">Todas las sedes</SelectItem>
                   {opciones?.sedes.map((sede) => (
                     <SelectItem key={sede.id} value={sede.id.toString()}>
                       {sede.nombre}
@@ -293,9 +293,9 @@ export function ReporteVolumenPracticasClient() {
             <div className="space-y-2">
               <Label>Carrera</Label>
               <Select
-                value={filtros.carreraId?.toString() || ''}
+                value={filtros.carreraId?.toString() || 'todas'}
                 onValueChange={(value) => {
-                  const carreraId = value ? parseInt(value) : undefined;
+                  const carreraId = value !== 'todas' ? parseInt(value) : undefined;
                   setFiltros(prev => ({ ...prev, carreraId }));
                 }}
                 disabled={carrerasFiltradas.length === 0}
@@ -304,7 +304,7 @@ export function ReporteVolumenPracticasClient() {
                   <SelectValue placeholder="Todas las carreras" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las carreras</SelectItem>
+                  <SelectItem value="todas">Todas las carreras</SelectItem>
                   {carrerasFiltradas.map((carrera) => (
                     <SelectItem key={carrera.id} value={carrera.id.toString()}>
                       {carrera.nombre}

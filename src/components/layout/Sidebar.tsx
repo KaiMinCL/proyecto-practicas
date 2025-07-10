@@ -41,25 +41,6 @@ const navigationItems: NavItem[] = [
     href: '/dashboard',
     icon: Home,
   },
-  // Admin routes (Super Admin only)
-  {
-    title: 'Gestión de Usuarios',
-    href: '/admin/usuarios',
-    icon: Users,
-    roles: ['SUPER_ADMIN'],
-  },
-  {
-    title: 'Gestión de Sedes',
-    href: '/admin/sedes',
-    icon: Building,
-    roles: ['SUPER_ADMIN'],
-  },
-  {
-    title: 'Gestión de Carreras',
-    href: '/admin/carreras',
-    icon: GraduationCap,
-    roles: ['SUPER_ADMIN'],
-  },
   {
     title: 'Configuraciones',
     href: '/admin/configuraciones/evaluaciones',
@@ -70,12 +51,6 @@ const navigationItems: NavItem[] = [
     title: 'Reportes',
     href: '/admin/reportes',
     icon: BarChart3,
-    roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA', 'COORDINADOR'],
-  },
-  {
-    title: 'Alertas Prácticas',
-    href: '/admin/alertas-practicas',
-    icon: AlertCircle,
     roles: ['SUPER_ADMIN', 'DIRECTOR_CARRERA', 'COORDINADOR'],
   },
   {
@@ -170,26 +145,12 @@ const navigationItems: NavItem[] = [
     icon: Mail,
     roles: ['DOCENTE'],
   },
-  // Alumno routes
-  {
-    title: 'Mis Prácticas',
-    href: '/alumno/mis-practicas',
-    icon: BookOpen,
-    roles: ['ALUMNO'],
-  },
   // Docente routes - Documentos
   {
     title: 'Documentos',
     href: '/docente/documentos',
     icon: ClipboardList,
     roles: ['DOCENTE'],
-  },
-  // Alumno routes - Documentos
-  {
-    title: 'Documentos',
-    href: '/alumno/documentos',
-    icon: ClipboardList,
-    roles: ['ALUMNO'],
   },
   // Empleador routes
   {
@@ -204,7 +165,6 @@ const navigationItems: NavItem[] = [
     icon: UserCheck,
     roles: ['EMPLEADOR'],
   },
-  // Shared routes - removed Mi Perfil, access only through navbar
 ];
 
 export function Sidebar({ user }: SidebarProps) {
