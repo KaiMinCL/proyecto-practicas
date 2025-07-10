@@ -352,18 +352,121 @@ export function CompletarActaAlumnoForm({ practica: initialPractica }: Completar
                 </FormItem>
                 
                 {/* Campos del formulario del alumno */}
-                <FormField control={form.control} name="direccionCentro" render={({ field }) => ( <FormItem> <FormLabel>Dirección del Centro de Práctica <span className="text-red-500">*</span></FormLabel> <FormControl><Input placeholder="Ej: Av. Principal 123, Ciudad" {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
-                <FormField control={form.control} name="departamento" render={({ field }) => ( <FormItem> <FormLabel>Departamento</FormLabel> <FormControl><Input placeholder="Ej: Área de Desarrollo" {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
+                <FormField 
+                  control={form.control} 
+                  name="direccionCentro" 
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dirección del Centro de Práctica <span className="text-red-500">*</span></FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ej: Av. Principal 123, Ciudad" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField 
+                  control={form.control} 
+                  name="departamento" 
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Departamento</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ej: Área de Desarrollo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="nombreJefeDirecto" render={({ field }) => ( <FormItem> <FormLabel>Nombre Jefe Directo <span className="text-red-500">*</span></FormLabel> <FormControl><Input placeholder="Ej: Juan Pérez" {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
-                  <FormField control={form.control} name="cargoJefeDirecto" render={({ field }) => ( <FormItem> <FormLabel>Cargo Jefe Directo <span className="text-red-500">*</span></FormLabel> <FormControl><Input placeholder="Ej: Gerente de Proyectos" {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
+                  <FormField 
+                    control={form.control} 
+                    name="nombreJefeDirecto" 
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre Jefe Directo <span className="text-red-500">*</span></FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: Juan Pérez" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField 
+                    control={form.control} 
+                    name="cargoJefeDirecto" 
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cargo Jefe Directo <span className="text-red-500">*</span></FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: Gerente de Proyectos" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="contactoCorreoJefe" render={({ field }) => ( <FormItem> <FormLabel>Email Jefe Directo <span className="text-red-500">*</span></FormLabel> <FormControl><Input type="email" placeholder="Ej: juan.perez@empresa.com" {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
-                  <FormField control={form.control} name="contactoTelefonoJefe" render={({ field }) => ( <FormItem> <FormLabel>Teléfono Jefe Directo</FormLabel> <FormControl><Input placeholder="Ej: +56912345678" {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
+                  <FormField 
+                    control={form.control} 
+                    name="contactoCorreoJefe" 
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Jefe Directo <span className="text-red-500">*</span></FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Ej: juan.perez@empresa.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField 
+                    control={form.control} 
+                    name="contactoTelefonoJefe" 
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Teléfono Jefe Directo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: +56912345678" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <FormField control={form.control} name="practicaDistancia" render={({ field }) => ( <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mt-4"> <div className="space-y-0.5"> <FormLabel>¿Práctica a distancia?</FormLabel> <FormDescription>Marca si tu práctica es remota.</FormDescription> </div> <FormControl> <Switch checked={field.value ?? false} onCheckedChange={field.onChange} /> </FormControl> </FormItem> )}/>
-                <FormField control={form.control} name="tareasPrincipales" render={({ field }) => ( <FormItem> <FormLabel>Principales Tareas a Desempeñar <span className="text-red-500">*</span></FormLabel> <FormControl><Textarea placeholder="Describe las principales funciones y responsabilidades que tendrás..." className="min-h-[100px]" {...field} /></FormControl> <FormMessage /> </FormItem> )}/>
+                
+                <FormField 
+                  control={form.control} 
+                  name="practicaDistancia" 
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm mt-4">
+                      <div className="space-y-0.5">
+                        <FormLabel>¿Práctica a distancia?</FormLabel>
+                        <FormDescription>Marca si tu práctica es remota.</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value ?? false} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField 
+                  control={form.control} 
+                  name="tareasPrincipales" 
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Principales Tareas a Desempeñar <span className="text-red-500">*</span></FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Describe las principales funciones y responsabilidades que tendrás..." className="min-h-[100px]" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           </div>
