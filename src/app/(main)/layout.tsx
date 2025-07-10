@@ -47,7 +47,7 @@ export default function MainLayout({
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar user={user} />
+       
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex-1 overflow-auto">
             <div className="container mx-auto px-6 py-6">

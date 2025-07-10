@@ -61,7 +61,29 @@ export async function POST(
                 apellido: true,
                 email: true
               }
+            },
+            carrera: {
+              select: {
+                nombre: true
+              }
             }
+          }
+        },
+        docente: {
+          include: {
+            usuario: {
+              select: {
+                id: true,
+                nombre: true,
+                apellido: true
+              }
+            }
+          }
+        },
+        centroPractica: {
+          select: {
+            nombreEmpresa: true,
+            direccion: true
           }
         }
       }
@@ -74,7 +96,7 @@ export async function POST(
       );
     }
 
-    if (practica.docenteId !== session.userId) {
+    if (practica.docente?.usuario?.id !== session.userId) {
       return NextResponse.json(
         { error: 'No tienes permisos para evaluar esta práctica' }, 
         { status: 403 }

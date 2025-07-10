@@ -45,6 +45,7 @@ export async function GET(
           include: {
             usuario: {
               select: {
+                id: true,
                 nombre: true,
                 apellido: true
               }
@@ -70,7 +71,7 @@ export async function GET(
     // Verificar permisos según rol
     switch (session.rol) {
       case 'DOCENTE':
-        if (practica.docenteId !== session.userId) {
+        if (practica.docente?.usuario?.id  !== session.userId) {
           return NextResponse.json(
             { error: 'No tienes permisos para ver esta práctica' }, 
             { status: 403 }

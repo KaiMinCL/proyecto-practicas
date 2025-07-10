@@ -30,9 +30,7 @@ export function PracticaDetalleDocente({ practica }: PracticaDetalleDocenteProps
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 py-8">
-      <Button asChild variant="ghost" size="sm" className="mb-2">
-        <Link href="/docente/practicas"> <ArrowLeft className="w-4 h-4 mr-2" /> Volver a Prácticas </Link>
-      </Button>
+    
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">

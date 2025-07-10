@@ -301,9 +301,20 @@ export default function EvaluarInformePage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Informe</p>
-                <div className="flex items-center">
-                  <FileText className="h-4 w-4 mr-1" />
-                  <span className="text-sm">Subido</span>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  {practicaData.informeUrl ? (
+                    <a
+                      href={practicaData.informeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline text-sm font-medium"
+                    >
+                      Descargar Informe
+                    </a>
+                  ) : (
+                    <span className="text-sm">No subido</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -323,7 +334,7 @@ export default function EvaluarInformePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {criteriosEvaluacion.map((criterio, index) => (
+              {criteriosEvaluacion.map((criterio, idx) => (
                 <div key={criterio.key}>
                   <FormField
                     control={form.control}
@@ -331,7 +342,7 @@ export default function EvaluarInformePage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-medium">
-                          {index + 1}. {criterio.titulo}
+                          {idx + 1}. {criterio.titulo}
                         </FormLabel>
                         <FormDescription className="text-sm text-muted-foreground">
                           {criterio.descripcion}
@@ -357,7 +368,7 @@ export default function EvaluarInformePage() {
                       </FormItem>
                     )}
                   />
-                  {index < criteriosEvaluacion.length - 1 && <Separator className="mt-6" />}
+                  {idx < criteriosEvaluacion.length - 1 && <Separator className="mt-6" />}
                 </div>
               ))}
             </CardContent>

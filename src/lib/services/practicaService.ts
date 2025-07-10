@@ -378,8 +378,8 @@ export class PracticaService {
         include: { // Incluye todos los datos relevantes del Acta 1
           alumno: { include: { usuario: true, carrera: { include: { sede: true } } } },
           carrera: { include: { sede: true } },
-          docente: { include: { usuario: true } }, // Para confirmar info del docente actual
-          centroPractica: true, // Si el alumno ya lo asoció (aunque no debería en PENDIENTE_ACEPTACION_DOCENTE)
+          docente: { include: { usuario: true } },
+          centroPractica: true,
         },
       });
 
@@ -387,10 +387,7 @@ export class PracticaService {
         return { success: false, error: 'Práctica no encontrada o no asignada a usted.' };
       }
 
-      if (practica.estado !== 'PENDIENTE_ACEPTACION_DOCENTE') {
-        return { success: false, error: `Esta práctica no está pendiente de su aceptación. Estado actual: ${practica.estado}` };
-      }
-
+      // Permitir ver el detalle de cualquier práctica asignada al docente, sin importar el estado
       return { success: true, data: practica };
     } catch (error) {
       console.error("Error en getPracticaParaRevisionDocente:", error);

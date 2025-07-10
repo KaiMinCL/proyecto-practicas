@@ -41,30 +41,6 @@ const navigationItems: NavItem[] = [
     href: '/dashboard',
     icon: Home,
   },
-  {
-    title: 'Evaluaciones',
-    href: '/docente/evaluaciones',
-    icon: Star,
-    roles: ['DOCENTE'],
-  },
-  {
-    title: 'Visitas',
-    href: '/docente/visitas',
-    icon: Calendar,
-    roles: ['DOCENTE'],
-  },
-  {
-    title: 'Notificaciones',
-    href: '/docente/notificaciones',
-    icon: Mail,
-    roles: ['DOCENTE'],
-  },
-    {
-    title: 'Documentos',
-    href: '/docente/documentos',
-    icon: ClipboardList,
-    roles: ['DOCENTE'],
-  },
 ];
 
 export function Sidebar({ user }: SidebarProps) {
